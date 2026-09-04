@@ -131,27 +131,27 @@ To ensure uninterrupted usage in rural or low-connectivity environments:
 
 ```mermaid
 graph TD
-    subgraph Mobile Client (React Native + Expo)
-        A[Patient / Caregiver Mobile UI] --> B[Zustand Stores & Repositories]
-        B --> C[SQLite Local Storage]
-        B --> D[SyncService Engine]
+    subgraph Mobile_Client["Mobile Client (React Native + Expo)"]
+        A["Patient / Caregiver Mobile UI"] --> B["Zustand Stores & Repositories"]
+        B --> C["SQLite Local Storage"]
+        B --> D["SyncService Engine"]
     end
 
-    subgraph Web Clients (Next.js 14 App Router)
-        E[Caregiver Web Dashboard] --> F[Axios API Client]
-        G[Doctor Portal] --> F
-        H[Admin Operations] --> F
+    subgraph Web_Clients["Web Clients (Next.js 14 App Router)"]
+        E["Caregiver Web Dashboard"] --> F["Axios API Client"]
+        G["Doctor Portal"] --> F
+        H["Admin Operations"] --> F
     end
 
-    subgraph Backend Service (FastAPI)
-        D -- "REST API (Bearer JWT)" --> I[FastAPI Gateway]
+    subgraph Backend_Service["Backend Service (FastAPI)"]
+        D -- "REST API (Bearer JWT)" --> I["FastAPI Gateway"]
         F -- "REST API (Bearer JWT)" --> I
-        I --> J[RBAC & IDOR Middleware]
-        J --> K[API Routers (Auth, Patients, Sync, Caregiver, Doctor, Memory, Admin)]
+        I --> J["RBAC & IDOR Middleware"]
+        J --> K["API Routers (Auth, Patients, Sync, Caregiver, Doctor, Memory, Admin)"]
     end
 
-    subgraph Database Layer
-        K --> L[(Neon PostgreSQL Cloud DB)]
+    subgraph Database_Layer["Database Layer"]
+        K --> L[("Neon PostgreSQL Cloud DB")]
     end
 
     C -- "Idempotent Event Flush" --> D
