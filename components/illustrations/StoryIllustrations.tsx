@@ -839,7 +839,7 @@ export const AnitaMangoScene3: React.FC<SceneIllustrationProps> = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    borderRadius: 8,
+    borderRadius: 16,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',

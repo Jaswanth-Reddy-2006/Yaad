@@ -590,17 +590,9 @@ export default function StoryRecallGameScreen() {
             </View>
           </View>
 
-          {/* Large Picture Illustration Card */}
-          <View
-            style={[
-              styles.illustrationCard,
-              {
-                backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF',
-                borderColor: isHc ? COLORS.hcBorder : '#E2E8F0',
-              },
-            ]}
-          >
-            <CurrentSceneIllustration height={200} />
+          {/* Large Picture Illustration — full-width, no border box */}
+          <View style={styles.illustrationCard}>
+            <CurrentSceneIllustration height={240} />
           </View>
 
           {/* Scene Progress Indicators */}
@@ -954,13 +946,7 @@ const styles = StyleSheet.create({
   illustrationCard: {
     width: '100%',
     borderRadius: RADIUS.xl,
-    borderWidth: 2,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
   },
   sceneDotsRow: {
     flexDirection: 'row',
