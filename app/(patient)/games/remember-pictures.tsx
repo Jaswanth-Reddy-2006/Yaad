@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, CheckCircle2, LogOut } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle2, LogOut, AlertCircle, XCircle, RotateCcw } from 'lucide-react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
 import { Typography } from '../../../components/common/Typography';
 import { Button } from '../../../components/common/Button';
@@ -12,6 +12,7 @@ import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 import { GameDifficulty, GameResult } from '../../../types';
 import { gameRepository } from '../../../repositories/GameRepository';
+import { voiceService } from '../../../services/VoiceService';
 
 const SYMBOL_POOL = [
   'apple',
@@ -52,6 +53,8 @@ export default function RememberPicturesGameScreen() {
   const [targetItems, setTargetItems] = useState<PictureItem[]>([]);
   const [choiceItems, setChoiceItems] = useState<PictureItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [wrongIds, setWrongIds] = useState<string[]>([]);
+  const [isWrong, setIsWrong] = useState(false);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
 
@@ -82,10 +85,20 @@ export default function RememberPicturesGameScreen() {
     setTargetItems(selectedTargets);
     setChoiceItems(allChoices);
     setSelectedIds([]);
+    setWrongIds([]);
+    setIsWrong(false);
     setCountdown(5);
     setPhase('LOOK');
     setGameResult(null);
     startTimeRef.current = Date.now();
+  };
+
+  const handleLookAgain = () => {
+    setIsWrong(false);
+    setWrongIds([]);
+    setSelectedIds([]);
+    setCountdown(3);
+    setPhase('LOOK');
   };
 
   useEffect(() => {
@@ -117,12 +130,17 @@ export default function RememberPicturesGameScreen() {
 
   const handleSelect = (id: string) => {
     if (phase !== 'TEST') return;
+    if (isWrong) {
+      setIsWrong(false);
+      setWrongIds([]);
+      setSelectedIds([id]);
+      return;
+    }
     if (selectedIds.includes(id)) {
       setSelectedIds(selectedIds.filter((x) => x !== id));
     } else if (selectedIds.length < targetCount) {
       const next = [...selectedIds, id];
       setSelectedIds(next);
-      // If user selected all needed pictures, enable submission
     }
   };
 
@@ -130,9 +148,27 @@ export default function RememberPicturesGameScreen() {
     const elapsedSecs = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
     const targetIdList = choiceItems.filter((p) => p.isTarget).map((p) => p.id);
     const correctCount = selectedIds.filter((id) => targetIdList.includes(id)).length;
-    const accuracy = Math.round((correctCount / targetCount) * 100);
-    const mistakes = selectedIds.length - correctCount;
-    const calculatedScore = correctCount * 350 + Math.max(0, 30 - elapsedSecs) * 10;
+    const isAllCorrect = correctCount === targetCount && selectedIds.length === targetCount;
+
+    if (!isAllCorrect) {
+      const wrongSelected = selectedIds.filter((id) => !targetIdList.includes(id));
+      setWrongIds(wrongSelected);
+      setIsWrong(true);
+
+      // Voice audio feedback
+      voiceService.speak('Wrong picture, try again!');
+
+      // Automatically reset selection after short delay so the user can try again
+      setTimeout(() => {
+        setIsWrong(false);
+        setWrongIds([]);
+        setSelectedIds([]);
+      }, 1800);
+      return;
+    }
+
+    const accuracy = 100;
+    const calculatedScore = targetCount * 350 + Math.max(0, 30 - elapsedSecs) * 10;
     
     const fallbackResult: GameResult = {
       id: `result-${Date.now()}`,
@@ -144,7 +180,7 @@ export default function RememberPicturesGameScreen() {
       accuracy,
       durationSeconds: elapsedSecs,
       attempts: selectedIds.length,
-      mistakes: Math.max(0, mistakes),
+      mistakes: 0,
       hintsUsed: 0,
       startedAt: new Date(startTimeRef.current).toISOString(),
       completedAt: new Date().toISOString(),
@@ -163,7 +199,7 @@ export default function RememberPicturesGameScreen() {
       accuracy,
       durationSeconds: elapsedSecs,
       attempts: selectedIds.length,
-      mistakes: Math.max(0, mistakes),
+      mistakes: 0,
       hintsUsed: 0,
       startedAt: fallbackResult.startedAt,
       completedAt: fallbackResult.completedAt,
@@ -312,15 +348,24 @@ export default function RememberPicturesGameScreen() {
       {/* ============================================================ */}
       {phase === 'TEST' && (
         <View style={styles.recallSection}>
-          <Typography size="base" weight="bold" color="#0F172A" align="center" style={{ marginBottom: SPACING.xs }}>
-            {targetCount === 1
-              ? '🤔 Which picture did you see earlier?'
-              : `🤔 Tap the ${targetCount} pictures you saw earlier:`}
-          </Typography>
+          {isWrong ? (
+            <View style={styles.wrongBanner}>
+              <AlertCircle size={22} color="#DC2626" />
+              <Typography size="sm" weight="bold" color="#DC2626" style={{ marginLeft: 8 }}>
+                Wrong picture, try again!
+              </Typography>
+            </View>
+          ) : (
+            <Typography size="base" weight="bold" color="#0F172A" align="center" style={{ marginBottom: SPACING.xs }}>
+              {targetCount === 1
+                ? '🤔 Which picture did you see earlier?'
+                : `🤔 Tap the ${targetCount} pictures you saw earlier:`}
+            </Typography>
+          )}
 
           {/* Selection counter pill */}
           <View style={styles.selectionPill}>
-            <Typography size="xs" weight="bold" color="#15803D">
+            <Typography size="xs" weight="bold" color={isWrong ? '#DC2626' : '#15803D'}>
               Selected: {selectedIds.length} / {targetCount}
             </Typography>
           </View>
@@ -329,6 +374,7 @@ export default function RememberPicturesGameScreen() {
           <View style={styles.choiceGrid}>
             {choiceItems.map((item) => {
               const isSelected = selectedIds.includes(item.id);
+              const isItemWrong = wrongIds.includes(item.id);
               const cfg = getSymbolConfig(item.symbolId);
 
               return (
@@ -340,20 +386,36 @@ export default function RememberPicturesGameScreen() {
                     styles.choiceTile,
                     {
                       width: choiceTileWidth as any,
-                      backgroundColor: isSelected ? '#DCFCE7' : isHc ? COLORS.hcCardBackground : cfg.cardBg,
-                      borderColor: isSelected ? '#16A34A' : isHc ? COLORS.hcBorder : cfg.borderColor,
-                      borderWidth: isSelected ? 3.5 : 2,
+                      backgroundColor: isItemWrong
+                        ? '#FEE2E2'
+                        : isSelected
+                        ? '#DCFCE7'
+                        : isHc
+                        ? COLORS.hcCardBackground
+                        : cfg.cardBg,
+                      borderColor: isItemWrong
+                        ? '#DC2626'
+                        : isSelected
+                        ? '#16A34A'
+                        : isHc
+                        ? COLORS.hcBorder
+                        : cfg.borderColor,
+                      borderWidth: isItemWrong || isSelected ? 3.5 : 2,
                     },
                   ]}
                 >
                   <GamePicture symbolId={item.symbolId} size={choicePicSize} showLabel={false} />
 
-                  {/* Corner Checkmark Badge when Selected */}
-                  {isSelected && (
+                  {/* Corner Icon Badge when Selected or Wrong */}
+                  {isItemWrong ? (
+                    <View style={[styles.selectedCheckBadge, { backgroundColor: '#DC2626' }]}>
+                      <XCircle size={20} color="#FFFFFF" />
+                    </View>
+                  ) : isSelected ? (
                     <View style={styles.selectedCheckBadge}>
                       <CheckCircle2 size={20} color="#FFFFFF" />
                     </View>
-                  )}
+                  ) : null}
                 </TouchableOpacity>
               );
             })}
@@ -364,7 +426,7 @@ export default function RememberPicturesGameScreen() {
             <Button
               title={t('submit') || 'SUBMIT'}
               variant="primary"
-              disabled={selectedIds.length !== targetCount}
+              disabled={selectedIds.length !== targetCount || isWrong}
               onPress={handleSubmit}
               style={styles.submitBtn}
             />
@@ -501,6 +563,18 @@ const styles = StyleSheet.create({
   recallSection: {
     alignItems: 'center',
     marginTop: SPACING.xs,
+  },
+  wrongBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FECDD3',
+    borderWidth: 1.5,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: RADIUS.full,
+    marginBottom: SPACING.xs,
   },
   selectionPill: {
     backgroundColor: '#DCFCE7',
