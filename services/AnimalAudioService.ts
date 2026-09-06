@@ -1,92 +1,53 @@
 import { Platform } from 'react-native';
 import { createAudioPlayer, AudioPlayer } from 'expo-audio';
-import { voiceService } from './VoiceService';
+import { ANIMAL_AUDIO_BASE64 } from '../constants/AnimalAudioData';
 
 export interface AnimalSoundData {
   id: string;
   name: string;
-  audioUrl: string;
-  fallbackSpeech: string;
 }
 
-export const ANIMAL_AUDIO_MAP: Record<string, AnimalSoundData> = {
-  dog: {
-    id: 'dog',
-    name: 'Dog',
-    audioUrl: 'https://actions.google.com/sounds/v1/animals/dog_barking.ogg',
-    fallbackSpeech: 'Woof! Woof! Woof!',
-  },
-  cat: {
-    id: 'cat',
-    name: 'Cat',
-    audioUrl: 'https://actions.google.com/sounds/v1/animals/cat_purr_meow.ogg',
-    fallbackSpeech: 'Meow! Meow! Meow!',
-  },
-  cow: {
-    id: 'cow',
-    name: 'Cow',
-    audioUrl: 'https://actions.google.com/sounds/v1/animals/cow_moo.ogg',
-    fallbackSpeech: 'Mooo! Mooo!',
-  },
-  bird: {
-    id: 'bird',
-    name: 'Bird',
-    audioUrl: 'https://actions.google.com/sounds/v1/birds/wood_thrush_song.ogg',
-    fallbackSpeech: 'Chirp chirp! Tweet tweet!',
-  },
-  duck: {
-    id: 'duck',
-    name: 'Duck',
-    audioUrl: 'https://actions.google.com/sounds/v1/animals/duck_quack.ogg',
-    fallbackSpeech: 'Quack! Quack! Quack!',
-  },
-  sheep: {
-    id: 'sheep',
-    name: 'Sheep',
-    audioUrl: 'https://actions.google.com/sounds/v1/animals/sheep_bleating.ogg',
-    fallbackSpeech: 'Baa! Baa! Baa!',
-  },
-  lion: {
-    id: 'lion',
-    name: 'Lion',
-    audioUrl: 'https://actions.google.com/sounds/v1/animals/lion_roar.ogg',
-    fallbackSpeech: 'Roar! Roar!',
-  },
-  elephant: {
-    id: 'elephant',
-    name: 'Elephant',
-    audioUrl: 'https://actions.google.com/sounds/v1/animals/elephant_trumpeting.ogg',
-    fallbackSpeech: 'Pawoo! Pawoo!',
-  },
-};
+export const ANIMAL_LIST = [
+  { id: 'dog', name: 'Dog' },
+  { id: 'cat', name: 'Cat' },
+  { id: 'cow', name: 'Cow' },
+  { id: 'bird', name: 'Bird' },
+  { id: 'duck', name: 'Duck' },
+  { id: 'sheep', name: 'Sheep' },
+  { id: 'lion', name: 'Lion' },
+  { id: 'elephant', name: 'Elephant' },
+];
 
 class AnimalAudioService {
   private activePlayer: AudioPlayer | null = null;
   private webAudio: HTMLAudioElement | null = null;
 
   /**
-   * Play real animal audio sound effect with fallback to voice synthesis.
+   * Play genuine real acoustic animal sound effect.
+   * Uses real audio waveform without any robotic human TTS fallback.
    */
   public async playAnimalSound(animalId: string): Promise<void> {
-    const soundData = ANIMAL_AUDIO_MAP[animalId];
-    if (!soundData) return;
+    const dataUri = ANIMAL_AUDIO_BASE64[animalId];
+    if (!dataUri) {
+      console.warn(`[AnimalAudioService] Sound not found for animal: ${animalId}`);
+      return;
+    }
 
     try {
       this.stop();
 
       if (Platform.OS === 'web' && typeof window !== 'undefined' && 'Audio' in window) {
-        this.webAudio = new window.Audio(soundData.audioUrl);
+        this.webAudio = new window.Audio(dataUri);
         this.webAudio.volume = 1.0;
         await this.webAudio.play();
         return;
       }
 
       // Native playback using expo-audio in SDK 57
-      this.activePlayer = createAudioPlayer({ uri: soundData.audioUrl });
+      this.activePlayer = createAudioPlayer({ uri: dataUri });
       this.activePlayer.play();
-    } catch {
-      // Graceful fallback to vocal sound if network or codec fails
-      voiceService.speak(soundData.fallbackSpeech);
+    } catch (err) {
+      console.warn('[AnimalAudioService] Audio playback notice:', err);
     }
   }
 

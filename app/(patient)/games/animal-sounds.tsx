@@ -41,7 +41,6 @@ interface AnimalItem {
   id: string;
   name: string;
   soundText: string;
-  speechPrompt: string;
   component: React.ComponentType<{ size?: number }>;
   cardBg: string;
   borderColor: string;
@@ -52,8 +51,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'dog',
     name: 'Dog',
-    soundText: '🐶 Woof! Woof!',
-    speechPrompt: 'Woof! Woof! Woof!',
+    soundText: '🐶 Bark',
     component: DogIllustration,
     cardBg: '#FFF7ED',
     borderColor: '#FFEDD5',
@@ -62,8 +60,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'cat',
     name: 'Cat',
-    soundText: '🐱 Meow! Meow!',
-    speechPrompt: 'Meow! Meow! Meow!',
+    soundText: '🐱 Meow',
     component: CatIllustration,
     cardBg: '#FEFCE8',
     borderColor: '#FEF08A',
@@ -72,8 +69,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'cow',
     name: 'Cow',
-    soundText: '🐮 Moo! Moo!',
-    speechPrompt: 'Mooo! Mooo!',
+    soundText: '🐮 Moo',
     component: CowIllustration,
     cardBg: '#FFF1F2',
     borderColor: '#FFE4E6',
@@ -82,8 +78,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'bird',
     name: 'Bird',
-    soundText: '🐦 Chirp! Chirp!',
-    speechPrompt: 'Chirp chirp! Tweet tweet!',
+    soundText: '🐦 Chirp',
     component: BirdIllustration,
     cardBg: '#F0F9FF',
     borderColor: '#E0F2FE',
@@ -92,8 +87,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'duck',
     name: 'Duck',
-    soundText: '🦆 Quack! Quack!',
-    speechPrompt: 'Quack! Quack! Quack!',
+    soundText: '🦆 Quack',
     component: DuckIllustration,
     cardBg: '#FEF9C3',
     borderColor: '#FEF08A',
@@ -102,8 +96,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'sheep',
     name: 'Sheep',
-    soundText: '🐑 Baa! Baa!',
-    speechPrompt: 'Baa! Baa! Baa!',
+    soundText: '🐑 Baa',
     component: SheepIllustration,
     cardBg: '#F8FAFC',
     borderColor: '#E2E8F0',
@@ -112,8 +105,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'lion',
     name: 'Lion',
-    soundText: '🦁 Roar! Roar!',
-    speechPrompt: 'Roar! Roar!',
+    soundText: '🦁 Roar',
     component: LionIllustration,
     cardBg: '#FFFBEB',
     borderColor: '#FDE68A',
@@ -122,8 +114,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'elephant',
     name: 'Elephant',
-    soundText: '🐘 Pawoo! Trumpet!',
-    speechPrompt: 'Pawoo! Pawoo!',
+    soundText: '🐘 Trumpet',
     component: ElephantIllustration,
     cardBg: '#F1F5F9',
     borderColor: '#CBD5E1',
