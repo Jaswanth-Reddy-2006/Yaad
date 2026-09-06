@@ -48,6 +48,20 @@ describe('Cognitive Game Engine Tests', () => {
     });
   });
 
+  test('GameBoard generates correct number of cards for PAIR EXPERT mode (10 pairs = 20 cards)', () => {
+    const cards = GameBoard.generateBoard('PAIR', 'EXPERT');
+    expect(cards.length).toBe(20);
+
+    const symbolCounts: Record<string, number> = {};
+    cards.forEach((c) => {
+      symbolCounts[c.symbolId] = (symbolCounts[c.symbolId] || 0) + 1;
+    });
+
+    Object.values(symbolCounts).forEach((count) => {
+      expect(count).toBe(2);
+    });
+  });
+
   test('GameBoard generates correct number of cards for TRIPLET EASY mode (3 triplets = 9 cards)', () => {
     const cards = GameBoard.generateBoard('TRIPLET', 'EASY');
     expect(cards.length).toBe(9);
@@ -79,6 +93,20 @@ describe('Cognitive Game Engine Tests', () => {
   test('GameBoard generates correct number of cards for TRIPLET HARD mode (6 triplets = 18 cards)', () => {
     const cards = GameBoard.generateBoard('TRIPLET', 'HARD');
     expect(cards.length).toBe(18);
+
+    const symbolCounts: Record<string, number> = {};
+    cards.forEach((c) => {
+      symbolCounts[c.symbolId] = (symbolCounts[c.symbolId] || 0) + 1;
+    });
+
+    Object.values(symbolCounts).forEach((count) => {
+      expect(count).toBe(3);
+    });
+  });
+
+  test('GameBoard generates correct number of cards for TRIPLET EXPERT mode (8 triplets = 24 cards)', () => {
+    const cards = GameBoard.generateBoard('TRIPLET', 'EXPERT');
+    expect(cards.length).toBe(24);
 
     const symbolCounts: Record<string, number> = {};
     cards.forEach((c) => {

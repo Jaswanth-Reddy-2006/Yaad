@@ -13,19 +13,28 @@ import { Typography } from '../../../components/common/Typography';
 import { ListenButton } from '../../../components/common/ListenButton';
 import { GameCard } from '../../../components/games/GameCard';
 import { GameResultModal } from '../../../components/games/GameResultModal';
+import { LevelSelector, LevelOption } from '../../../components/games/LevelSelector';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { GameController, GameState } from '../../../features/games/engine/GameController';
 import { GameDifficulty } from '../../../types';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 
+const TRIPLET_LEVEL_OPTIONS: LevelOption[] = [
+  { key: 'EASY', levelNum: 1, label: 'Level 1', subtitle: '3 Triplets' },
+  { key: 'MEDIUM', levelNum: 2, label: 'Level 2', subtitle: '4 Triplets' },
+  { key: 'HARD', levelNum: 3, label: 'Level 3', subtitle: '6 Triplets' },
+  { key: 'EXPERT', levelNum: 4, label: 'Level 4', subtitle: '8 Triplets' },
+];
+
 export default function MatchTripletGameScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ difficulty?: string }>();
-  const difficulty: GameDifficulty = (params.difficulty as GameDifficulty) || 'EASY';
+  const initialDifficulty: GameDifficulty = (params.difficulty as GameDifficulty) || 'EASY';
 
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
+  const [difficulty, setDifficulty] = useState<GameDifficulty>(initialDifficulty);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const controllerRef = useRef<GameController | null>(null);
@@ -41,6 +50,18 @@ export default function MatchTripletGameScreen() {
       controller.dispose();
     };
   }, [difficulty]);
+
+  const handleSelectLevel = (newDifficulty: GameDifficulty) => {
+    if (newDifficulty === difficulty) return;
+    setDifficulty(newDifficulty);
+  };
+
+  const handleNextLevel = () => {
+    if (difficulty === 'EASY') setDifficulty('MEDIUM');
+    else if (difficulty === 'MEDIUM') setDifficulty('HARD');
+    else if (difficulty === 'HARD') setDifficulty('EXPERT');
+    else controllerRef.current?.restart();
+  };
 
   const handleBackPress = () => {
     if (
@@ -78,7 +99,7 @@ export default function MatchTripletGameScreen() {
   const hintDisabled =
     gameState.hintCooldownActive || gameState.hintsUsed >= 3 || gameState.isLocked;
 
-  const numColumns = 3;
+  const numColumns = gameState.cards.length <= 12 ? 3 : 4;
 
   // Prompt text
   const flippedUnmatched = gameState.cards.filter((c) => c.isFlipped && !c.isMatched);
@@ -126,12 +147,15 @@ export default function MatchTripletGameScreen() {
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
           {t('find_three') || 'Find Three'}
         </Typography>
-        <View style={styles.difficultyBadge}>
-          <Typography size="xs" weight="bold" color="#D97706">
-            {difficulty} • {gameState.totalRequiredMatches} Triplets
-          </Typography>
-        </View>
       </View>
+
+      {/* 4 Progressive Game Levels Selector */}
+      <LevelSelector
+        currentLevel={difficulty}
+        onSelectLevel={handleSelectLevel}
+        options={TRIPLET_LEVEL_OPTIONS}
+        themeColor="#D97706"
+      />
 
       {/* Clean Minimal Stat Chips Row (Matched, Time, Hint) */}
       <View style={styles.statsChipsRow}>

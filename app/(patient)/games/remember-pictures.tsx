@@ -8,10 +8,18 @@ import { Button } from '../../../components/common/Button';
 import { ListenButton } from '../../../components/common/ListenButton';
 import { GamePicture, getSymbolConfig } from '../../../components/games/GamePicture';
 import { GameResultModal } from '../../../components/games/GameResultModal';
+import { LevelSelector, LevelOption } from '../../../components/games/LevelSelector';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 import { GameDifficulty, GameResult } from '../../../types';
 import { gameRepository } from '../../../repositories/GameRepository';
+
+const REMEMBER_LEVEL_OPTIONS: LevelOption[] = [
+  { key: 'EASY', levelNum: 1, label: 'Level 1', subtitle: '1 Picture' },
+  { key: 'MEDIUM', levelNum: 2, label: 'Level 2', subtitle: '2 Pictures' },
+  { key: 'HARD', levelNum: 3, label: 'Level 3', subtitle: '3 Pictures' },
+  { key: 'EXPERT', levelNum: 4, label: 'Level 4', subtitle: '4 Pictures' },
+];
 
 const SYMBOL_POOL = [
   'apple',
@@ -35,15 +43,17 @@ interface PictureItem {
 export default function RememberPicturesGameScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ difficulty?: string }>();
-  const difficulty: GameDifficulty = (params.difficulty as GameDifficulty) || 'EASY';
+  const initialDifficulty: GameDifficulty = (params.difficulty as GameDifficulty) || 'EASY';
 
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
   const { width: screenWidth } = useWindowDimensions();
 
-  // Difficulty parameters: 1 target for EASY (4 choices), 2 for MEDIUM (6 choices), 3 for HARD (9 choices)
-  const targetCount = difficulty === 'EASY' ? 1 : difficulty === 'MEDIUM' ? 2 : 3;
-  const totalChoiceCount = difficulty === 'EASY' ? 4 : difficulty === 'MEDIUM' ? 6 : 9;
+  const [difficulty, setDifficulty] = useState<GameDifficulty>(initialDifficulty);
+
+  // Difficulty parameters: 1 target (4 choices), 2 targets (6 choices), 3 targets (8 choices), 4 targets (10 choices)
+  const targetCount = difficulty === 'EASY' ? 1 : difficulty === 'MEDIUM' ? 2 : difficulty === 'HARD' ? 3 : 4;
+  const totalChoiceCount = difficulty === 'EASY' ? 4 : difficulty === 'MEDIUM' ? 6 : difficulty === 'HARD' ? 8 : 10;
 
   const [phase, setPhase] = useState<'LOOK' | 'TEST' | 'COMPLETED'>('LOOK');
   const [countdown, setCountdown] = useState(5);
@@ -173,6 +183,18 @@ export default function RememberPicturesGameScreen() {
     });
   };
 
+  const handleSelectLevel = (newDifficulty: GameDifficulty) => {
+    if (newDifficulty === difficulty) return;
+    setDifficulty(newDifficulty);
+  };
+
+  const handleNextLevel = () => {
+    if (difficulty === 'EASY') setDifficulty('MEDIUM');
+    else if (difficulty === 'MEDIUM') setDifficulty('HARD');
+    else if (difficulty === 'HARD') setDifficulty('EXPERT');
+    else initRound();
+  };
+
   const handleBackPress = () => {
     if (phase === 'LOOK' || phase === 'TEST') {
       setShowLeaveModal(true);
@@ -191,10 +213,15 @@ export default function RememberPicturesGameScreen() {
   };
 
   // Dynamic responsive tile sizing
-  const targetPicSize = targetCount === 1 ? 120 : targetCount === 2 ? 88 : 72;
-  const choiceCols = totalChoiceCount <= 4 ? 2 : 3;
-  const choiceTileWidth = choiceCols === 2 ? '46%' : '30.5%';
-  const choicePicSize = choiceCols === 2 ? Math.min(84, Math.floor(screenWidth * 0.19)) : Math.min(62, Math.floor(screenWidth * 0.14));
+  const targetPicSize = targetCount === 1 ? 120 : targetCount === 2 ? 88 : targetCount === 3 ? 72 : 62;
+  const choiceCols = totalChoiceCount <= 4 ? 2 : totalChoiceCount <= 6 ? 3 : 4;
+  const choiceTileWidth = choiceCols === 2 ? '46%' : choiceCols === 3 ? '30.5%' : '22.5%';
+  const choicePicSize =
+    choiceCols === 2
+      ? Math.min(84, Math.floor(screenWidth * 0.19))
+      : choiceCols === 3
+      ? Math.min(62, Math.floor(screenWidth * 0.14))
+      : Math.min(48, Math.floor(screenWidth * 0.11));
 
   const currentSpeech =
     phase === 'LOOK'
@@ -231,12 +258,15 @@ export default function RememberPicturesGameScreen() {
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
           {t('remember_the_pictures') || 'Remember the Pictures'}
         </Typography>
-        <View style={styles.difficultyBadge}>
-          <Typography size="xs" weight="bold" color="#15803D">
-            {difficulty} • {targetCount} {targetCount === 1 ? 'Picture' : 'Pictures'} to Remember
-          </Typography>
-        </View>
       </View>
+
+      {/* 4 Progressive Game Levels Selector */}
+      <LevelSelector
+        currentLevel={difficulty}
+        onSelectLevel={handleSelectLevel}
+        options={REMEMBER_LEVEL_OPTIONS}
+        themeColor="#15803D"
+      />
 
       {/* ============================================================ */}
       {/* PHASE 1: "LOOK" / MEMORIZATION PHASE (Only show target items) */}
@@ -392,7 +422,7 @@ export default function RememberPicturesGameScreen() {
       <GameResultModal
         visible={phase === 'COMPLETED'}
         result={gameResult}
-        onPlayAgain={initRound}
+        onPlayAgain={handleNextLevel}
         onGoHome={() => router.replace('/(patient)/games')}
       />
     </ScreenContainer>

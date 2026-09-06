@@ -129,6 +129,22 @@ export default function GamesHomeScreen() {
               <Typography size="sm" color={COLORS.textSecondary} style={{ marginTop: 4 }}>
                 {game.description}
               </Typography>
+
+              {/* 4 Level Badges */}
+              <View style={styles.levelsPillRow}>
+                {(['EASY', 'MEDIUM', 'HARD', 'EXPERT'] as const).map((lvl, idx) => (
+                  <TouchableOpacity
+                    key={lvl}
+                    activeOpacity={0.8}
+                    onPress={() => router.push(`${game.route}?difficulty=${lvl}` as any)}
+                    style={[styles.levelChip, { borderColor: isHc ? COLORS.hcBorder : game.borderColor }]}
+                  >
+                    <Typography size="xs" weight="bold" color={game.titleColor}>
+                      Level {idx + 1}
+                    </Typography>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
             {/* 3. Action Buttons Row: Listen + Wide PLAY */}
@@ -234,5 +250,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
+  },
+  levelsPillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: SPACING.xs,
+  },
+  levelChip: {
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
   },
 });

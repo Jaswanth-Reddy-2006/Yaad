@@ -33,14 +33,16 @@ export class GameBoard {
   ): GameCardItem[] {
     let groupCount = 2; // Default 2 pairs = 4 cards (2x2) for EASY
     if (gameType === 'PAIR') {
-      if (difficulty === 'EASY') groupCount = 2;   // 2 pairs = 4 cards (2x2 grid)
-      else if (difficulty === 'MEDIUM') groupCount = 6; // 6 pairs = 12 cards (3x4 grid)
-      else if (difficulty === 'HARD') groupCount = 8;   // 8 pairs = 16 cards (4x4 grid)
+      if (difficulty === 'EASY') groupCount = 2;        // Level 1: 2 pairs = 4 cards (2x2 grid)
+      else if (difficulty === 'MEDIUM') groupCount = 6; // Level 2: 6 pairs = 12 cards (3x4 grid)
+      else if (difficulty === 'HARD') groupCount = 8;   // Level 3: 8 pairs = 16 cards (4x4 grid)
+      else if (difficulty === 'EXPERT') groupCount = 10;// Level 4: 10 pairs = 20 cards (4x5 grid)
     } else {
       // TRIPLET
-      if (difficulty === 'EASY') groupCount = 3;   // 3 triplets = 9 cards (3x3 grid)
-      else if (difficulty === 'MEDIUM') groupCount = 4; // 4 triplets = 12 cards (3x4 grid)
-      else if (difficulty === 'HARD') groupCount = 6;   // 6 triplets = 18 cards (3x6 grid)
+      if (difficulty === 'EASY') groupCount = 3;        // Level 1: 3 triplets = 9 cards (3x3 grid)
+      else if (difficulty === 'MEDIUM') groupCount = 4; // Level 2: 4 triplets = 12 cards (3x4 grid)
+      else if (difficulty === 'HARD') groupCount = 6;   // Level 3: 6 triplets = 18 cards (3x6 grid)
+      else if (difficulty === 'EXPERT') groupCount = 8; // Level 4: 8 triplets = 24 cards (4x6 grid)
     }
 
     const selectedSymbols = DEMENTIA_GAME_SYMBOLS.slice(0, groupCount);

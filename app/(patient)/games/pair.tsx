@@ -13,19 +13,28 @@ import { Typography } from '../../../components/common/Typography';
 import { ListenButton } from '../../../components/common/ListenButton';
 import { GameCard } from '../../../components/games/GameCard';
 import { GameResultModal } from '../../../components/games/GameResultModal';
+import { LevelSelector, LevelOption } from '../../../components/games/LevelSelector';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { GameController, GameState } from '../../../features/games/engine/GameController';
 import { GameDifficulty } from '../../../types';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 
+const PAIR_LEVEL_OPTIONS: LevelOption[] = [
+  { key: 'EASY', levelNum: 1, label: 'Level 1', subtitle: '2 Pairs' },
+  { key: 'MEDIUM', levelNum: 2, label: 'Level 2', subtitle: '6 Pairs' },
+  { key: 'HARD', levelNum: 3, label: 'Level 3', subtitle: '8 Pairs' },
+  { key: 'EXPERT', levelNum: 4, label: 'Level 4', subtitle: '10 Pairs' },
+];
+
 export default function PairGameScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ difficulty?: string }>();
-  const difficulty: GameDifficulty = (params.difficulty as GameDifficulty) || 'EASY';
+  const initialDifficulty: GameDifficulty = (params.difficulty as GameDifficulty) || 'EASY';
 
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
+  const [difficulty, setDifficulty] = useState<GameDifficulty>(initialDifficulty);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const controllerRef = useRef<GameController | null>(null);
@@ -41,6 +50,18 @@ export default function PairGameScreen() {
       controller.dispose();
     };
   }, [difficulty]);
+
+  const handleSelectLevel = (newDifficulty: GameDifficulty) => {
+    if (newDifficulty === difficulty) return;
+    setDifficulty(newDifficulty);
+  };
+
+  const handleNextLevel = () => {
+    if (difficulty === 'EASY') setDifficulty('MEDIUM');
+    else if (difficulty === 'MEDIUM') setDifficulty('HARD');
+    else if (difficulty === 'HARD') setDifficulty('EXPERT');
+    else controllerRef.current?.restart();
+  };
 
   const handleBackPress = () => {
     if (
@@ -128,12 +149,15 @@ export default function PairGameScreen() {
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
           {t('match_the_cards') || 'Match the Cards'}
         </Typography>
-        <View style={styles.difficultyBadge}>
-          <Typography size="xs" weight="bold" color="#6D28D9">
-            {difficulty} • {gameState.totalRequiredMatches} Pairs
-          </Typography>
-        </View>
       </View>
+
+      {/* 4 Progressive Game Levels Selector */}
+      <LevelSelector
+        currentLevel={difficulty}
+        onSelectLevel={handleSelectLevel}
+        options={PAIR_LEVEL_OPTIONS}
+        themeColor="#6D28D9"
+      />
 
       {/* Clean Minimal Stat Chips Row (Matched, Time, Hint) */}
       <View style={styles.statsChipsRow}>
