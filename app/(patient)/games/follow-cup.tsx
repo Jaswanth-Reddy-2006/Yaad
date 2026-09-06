@@ -662,21 +662,12 @@ const styles = StyleSheet.create({
   stageWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SPACING.md,
+    marginTop: SPACING.lg,
   },
   tableSurface: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
     paddingTop: 90,
     paddingBottom: SPACING.md,
     paddingHorizontal: 12,
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 4,
     position: 'relative',
   },
   cupsTrack: {
@@ -710,10 +701,7 @@ const styles = StyleSheet.create({
   },
   tableWoodBase: {
     width: '100%',
-    height: 8,
-    backgroundColor: '#CBD5E1',
-    borderRadius: 4,
-    marginTop: 4,
+    height: 0,
   },
   resultBadge: {
     position: 'absolute',
