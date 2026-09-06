@@ -102,8 +102,8 @@ export default function MatchTripletGameScreen() {
 
   return (
     <ScreenContainer scrollable={true} style={styles.container}>
-      {/* Top Header Row with Back Button, Title, and Listen Button */}
-      <View style={styles.topHeaderRow}>
+      {/* Top Navigation Row: Back Button & Listen Button */}
+      <View style={styles.navRow}>
         <TouchableOpacity
           accessibilityLabel={t('go_back') || 'Go Back'}
           accessibilityRole="button"
@@ -113,17 +113,6 @@ export default function MatchTripletGameScreen() {
           <ArrowLeft size={24} color={isHc ? COLORS.hcTextPrimary : '#D97706'} strokeWidth={2.5} />
         </TouchableOpacity>
 
-        <View style={styles.headerTitleContainer}>
-          <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center" numberOfLines={1}>
-            {t('find_three') || 'Find Three'}
-          </Typography>
-          <View style={styles.difficultyPill}>
-            <Typography size="xs" weight="bold" color="#D97706">
-              {difficulty} • {gameState.totalRequiredMatches} Triplets
-            </Typography>
-          </View>
-        </View>
-
         <ListenButton
           textToSpeak={voiceInstructions}
           label="LISTEN"
@@ -132,82 +121,52 @@ export default function MatchTripletGameScreen() {
         />
       </View>
 
-      {/* Stats Bar (Found, Time, Hint) */}
-      <View
-        style={[
-          styles.statsCard,
-          {
-            backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF',
-            borderColor: isHc ? COLORS.hcBorder : '#E2E8F0',
-          },
-        ]}
-      >
-        {/* Stat 1: Matched Triplets */}
-        <View style={styles.statBox}>
-          <View style={[styles.statIconCircle, { backgroundColor: '#FEF3C7' }]}>
-            <Target size={20} color="#D97706" />
-          </View>
-          <View style={{ marginLeft: SPACING.xs }}>
-            <Typography size="xs" color={COLORS.textMuted}>
-              {t('matched') || 'Matched'}
-            </Typography>
-            <Typography size="base" weight="bold" color="#D97706">
-              {gameState.matchesCount} / {gameState.totalRequiredMatches}
-            </Typography>
-          </View>
+      {/* Title & Difficulty Header */}
+      <View style={styles.titleSection}>
+        <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
+          {t('find_three') || 'Find Three'}
+        </Typography>
+        <View style={styles.difficultyBadge}>
+          <Typography size="xs" weight="bold" color="#D97706">
+            {difficulty} • {gameState.totalRequiredMatches} Triplets
+          </Typography>
         </View>
+      </View>
 
-        <View style={styles.verticalDivider} />
+      {/* Clean Minimal Stat Chips Row (Matched, Time, Hint) */}
+      <View style={styles.statsChipsRow}>
+        {/* Stat 1: Matched Triplets */}
+        <View style={[styles.statChip, { backgroundColor: isHc ? '#78350F' : '#FEF3C7', borderColor: '#FDE68A' }]}>
+          <Target size={18} color="#D97706" />
+          <Typography size="sm" weight="bold" color="#B45309" style={{ marginLeft: 6 }}>
+            {gameState.matchesCount} / {gameState.totalRequiredMatches}
+          </Typography>
+        </View>
 
         {/* Stat 2: Timer */}
-        <View style={styles.statBox}>
-          <View style={[styles.statIconCircle, { backgroundColor: '#DBEAFE' }]}>
-            <Clock size={20} color="#2563EB" />
-          </View>
-          <View style={{ marginLeft: SPACING.xs }}>
-            <Typography size="xs" color={COLORS.textMuted}>
-              {t('time') || 'Time'}
-            </Typography>
-            <Typography size="base" weight="bold" color="#2563EB">
-              {formatTimer(gameState.elapsedSeconds)}
-            </Typography>
-          </View>
+        <View style={[styles.statChip, { backgroundColor: isHc ? '#1E3A8A' : '#DBEAFE', borderColor: '#BFDBFE' }]}>
+          <Clock size={18} color="#2563EB" />
+          <Typography size="sm" weight="bold" color="#1D4ED8" style={{ marginLeft: 6 }}>
+            {formatTimer(gameState.elapsedSeconds)}
+          </Typography>
         </View>
-
-        <View style={styles.verticalDivider} />
 
         {/* Stat 3: Hint Action Button */}
         <TouchableOpacity
           activeOpacity={0.8}
           disabled={hintDisabled}
           onPress={() => controllerRef.current?.useHint()}
-          style={[styles.hintBtn, hintDisabled ? styles.hintBtnDisabled : null]}
+          style={[
+            styles.statChip,
+            { backgroundColor: isHc ? '#78350F' : '#FEF3C7', borderColor: '#FDE68A' },
+            hintDisabled ? styles.hintBtnDisabled : null,
+          ]}
         >
-          <Sparkles size={16} color={hintDisabled ? COLORS.textMuted : '#D97706'} style={{ marginRight: 4 }} />
-          <Typography size="xs" weight="bold" color={hintDisabled ? COLORS.textMuted : '#B45309'}>
+          <Sparkles size={16} color={hintDisabled ? COLORS.textMuted : '#D97706'} />
+          <Typography size="sm" weight="bold" color={hintDisabled ? COLORS.textMuted : '#B45309'} style={{ marginLeft: 5 }}>
             {t('hint') || 'Hint'} ({3 - gameState.hintsUsed})
           </Typography>
         </TouchableOpacity>
-      </View>
-
-      {/* Match Progress Bar */}
-      <View style={styles.progressBarContainer}>
-        <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
-      </View>
-
-      {/* Gentle Guidance Prompt Banner */}
-      <View
-        style={[
-          styles.promptBanner,
-          {
-            backgroundColor: isHc ? '#1E293B' : '#FFFBEB',
-            borderColor: isHc ? '#475569' : '#FDE68A',
-          },
-        ]}
-      >
-        <Typography size="sm" weight="bold" color={isHc ? '#93C5FD' : '#B45309'} align="center">
-          {promptText}
-        </Typography>
       </View>
 
       {/* Board Grid: 3-column responsive cards */}
@@ -275,14 +234,14 @@ export default function MatchTripletGameScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingHorizontal: SPACING.md,
     paddingBottom: SPACING.xl,
   },
-  topHeaderRow: {
+  navRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: SPACING.xs,
-    marginBottom: SPACING.xs,
   },
   backSquareBtn: {
     width: 44,
@@ -298,94 +257,50 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  headerTitleContainer: {
-    flex: 1,
+  titleSection: {
     alignItems: 'center',
-    paddingHorizontal: SPACING.xs,
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.sm,
   },
-  difficultyPill: {
+  difficultyBadge: {
     backgroundColor: '#FEF3C7',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     borderRadius: RADIUS.full,
-    marginTop: 2,
+    marginTop: 4,
   },
-  statsCard: {
+  statsChipsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: RADIUS.lg,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.xs,
     marginVertical: SPACING.xs,
-    borderWidth: 1.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    gap: 8,
   },
-  statBox: {
+  statChip: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  statIconCircle: {
-    width: 32,
-    height: 32,
+    paddingVertical: 9,
+    paddingHorizontal: 8,
     borderRadius: RADIUS.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  verticalDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: '#E2E8F0',
-    marginHorizontal: 2,
-  },
-  hintBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: RADIUS.full,
-    borderWidth: 1.2,
-    borderColor: '#FDE68A',
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 2,
   },
   hintBtnDisabled: {
     backgroundColor: '#F3F4F6',
     borderColor: '#E5E7EB',
     opacity: 0.55,
   },
-  progressBarContainer: {
-    width: '100%',
-    height: 6,
-    backgroundColor: '#E2E8F0',
-    borderRadius: RADIUS.full,
-    overflow: 'hidden',
-    marginTop: 2,
-    marginBottom: SPACING.xs,
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#D97706',
-    borderRadius: RADIUS.full,
-  },
-  promptBanner: {
-    paddingVertical: 8,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.md,
-    borderWidth: 1,
-    marginVertical: 4,
-  },
   boardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginVertical: SPACING.xs,
+    marginTop: SPACING.sm,
     paddingBottom: SPACING.md,
   },
   modalOverlay: {

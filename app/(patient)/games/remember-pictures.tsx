@@ -91,22 +91,16 @@ export default function RememberPicturesGameScreen() {
 
   return (
     <ScreenContainer scrollable={true} style={styles.container}>
-      {/* Header with Back button and Listen button */}
-      <View style={styles.topHeaderRow}>
+      {/* Top Navigation Row: Back Button & Listen Button */}
+      <View style={styles.navRow}>
         <TouchableOpacity
           accessibilityLabel={t('go_back') || 'Go Back'}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={[styles.backSquareBtn, { backgroundColor: isHc ? '#1E293B' : '#FFFFFF' }]}
         >
-          <ArrowLeft size={26} color={isHc ? COLORS.hcTextPrimary : '#15803D'} strokeWidth={2.5} />
+          <ArrowLeft size={24} color={isHc ? COLORS.hcTextPrimary : '#15803D'} strokeWidth={2.5} />
         </TouchableOpacity>
-
-        <View style={styles.headerTitleContainer}>
-          <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center" numberOfLines={1}>
-            {t('remember_the_pictures') || 'Remember Pictures'}
-          </Typography>
-        </View>
 
         <ListenButton
           textToSpeak={currentSpeech}
@@ -114,6 +108,13 @@ export default function RememberPicturesGameScreen() {
           size="sm"
           variant="secondary"
         />
+      </View>
+
+      {/* Title Section */}
+      <View style={styles.titleSection}>
+        <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
+          {t('remember_the_pictures') || 'Remember the Pictures'}
+        </Typography>
       </View>
 
       {/* Instruction Card */}
@@ -236,17 +237,16 @@ const styles = StyleSheet.create({
   container: {
     paddingBottom: SPACING.xl,
   },
-  topHeaderRow: {
+  navRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: SPACING.xs,
-    marginBottom: SPACING.xs,
   },
-  headerTitleContainer: {
-    flex: 1,
+  titleSection: {
     alignItems: 'center',
-    paddingHorizontal: SPACING.xs,
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.xs,
   },
   backSquareBtn: {
     width: 44,
