@@ -2,10 +2,14 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Heart, Stethoscope, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { User, Heart, Stethoscope, AlertTriangle, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
+import { INDIAN_LANGUAGES } from '../i18n/languages';
 
 export default function MultiStepRegistrationPage() {
   const router = useRouter();
+  const { t, isRTL } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
 
   // Form State
@@ -84,10 +88,10 @@ export default function MultiStepRegistrationPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAF8', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAF8' }}>
       {/* Header Nav */}
-      <header style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '16px 32px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '14px 32px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <a href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontWeight: 'bold', fontSize: '20px' }}>
               M
@@ -95,11 +99,14 @@ export default function MultiStepRegistrationPage() {
             <span style={{ fontSize: '22px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.5px' }}>MitraCare</span>
           </a>
 
-          <div style={{ fontSize: '14px', color: '#64748B' }}>
-            Already have an account?{' '}
-            <a href="/login" style={{ color: '#16A34A', fontWeight: '700', textDecoration: 'none', marginLeft: '4px' }}>
-              Sign In →
-            </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <LanguageSelector compact />
+            <div style={{ fontSize: '14px', color: '#64748B' }}>
+              {t('auth.hasAccount', 'Already have an account?')}{' '}
+              <a href="/login" style={{ color: '#16A34A', fontWeight: '700', textDecoration: 'none', marginLeft: '4px' }}>
+                {t('nav.signIn', 'Sign In')} →
+              </a>
+            </div>
           </div>
         </div>
       </header>
@@ -110,8 +117,8 @@ export default function MultiStepRegistrationPage() {
         {currentStep <= 7 && (
           <div style={{ marginBottom: '28px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '800', color: '#64748B', marginBottom: '8px' }}>
-              <span>STEP {currentStep} OF 7</span>
-              <span>{Math.round((currentStep / 7) * 100)}% COMPLETED</span>
+              <span>{t('register.step', 'STEP')} {currentStep} {t('register.of', 'OF')} 7</span>
+              <span>{Math.round((currentStep / 7) * 100)}{t('register.completed', '% COMPLETED')}</span>
             </div>
             <div style={{ height: '6px', backgroundColor: '#E2E8F0', borderRadius: '3px', overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${(currentStep / 7) * 100}%`, backgroundColor: '#16A34A', transition: 'width 0.3s ease' }} />
@@ -126,16 +133,16 @@ export default function MultiStepRegistrationPage() {
           {currentStep === 1 && (
             <div>
               <span style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '4px 14px', borderRadius: '14px', fontSize: '12px', fontWeight: '800' }}>
-                GETTING STARTED
+                {t('register.gettingStarted', 'GETTING STARTED')}
               </span>
               <h2 style={{ margin: '16px 0 8px 0', fontSize: '26px', fontWeight: '800', color: '#0F172A' }}>
-                How will you use MitraCare?
+                {t('register.howWillYouUse', 'How will you use MitraCare?')}
               </h2>
               <p style={{ margin: '0 0 28px 0', fontSize: '14px', color: '#64748B' }}>
-                Select the role that best describes how you will interact with the platform.
+                {t('register.selectRoleDesc', 'Select the role that best describes how you will interact with the platform.')}
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                 {/* Patient Card */}
                 <div
                   onClick={() => setRole('PATIENT')}
@@ -152,9 +159,9 @@ export default function MultiStepRegistrationPage() {
                   <div style={{ marginBottom: '12px' }}>
                     <User style={{ width: '32px', height: '32px', color: '#16A34A' }} />
                   </div>
-                  <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '800', color: '#0F172A' }}>Patient</h3>
+                  <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '800', color: '#0F172A' }}>{t('howItWorks.step1Title', 'Patient')}</h3>
                   <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
-                    Access memory games, daily schedules, voice check-ins, and local language routines.
+                    {t('register.patientCardDesc', 'Access memory games, daily schedules, voice check-ins, and local language routines.')}
                   </p>
                 </div>
 
@@ -174,41 +181,41 @@ export default function MultiStepRegistrationPage() {
                   <div style={{ marginBottom: '12px' }}>
                     <Heart style={{ width: '32px', height: '32px', color: '#16A34A' }} />
                   </div>
-                  <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '800', color: '#0F172A' }}>Caregiver</h3>
+                  <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '800', color: '#0F172A' }}>{t('auth.caregiver', 'Caregiver')}</h3>
                   <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
-                    Monitor connected patients, schedule care plans, view activity trends & alerts.
+                    {t('register.caregiverCardDesc', 'Monitor connected patients, schedule care plans, view activity trends & alerts.')}
                   </p>
                 </div>
               </div>
 
               <div style={{ padding: '16px', borderRadius: '12px', backgroundColor: '#DBEAFE', border: '1px solid #93C5FD', color: '#1E3A8A', fontSize: '13px', lineHeight: '1.5', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Stethoscope style={{ width: '18px', height: '18px', flexShrink: 0, color: '#1E3A8A' }} />
-                <span><strong>Doctor & Clinician Accounts:</strong> Created exclusively through authorized hospital invitation. Public self-registration as Doctor or Admin is restricted.</span>
+                <span>{t('register.doctorAccountNotice', 'Doctor & Clinician Accounts: Created exclusively through authorized hospital invitation. Public self-registration as Doctor or Admin is restricted.')}</span>
               </div>
             </div>
           )}
 
-          {/* STEP 2: BASIC INFORMATION */}
+          {/* STEP 2: {t('register.basicInfo', 'BASIC INFORMATION')} */}
           {currentStep === 2 && (
             <div>
               <span style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '4px 14px', borderRadius: '14px', fontSize: '12px', fontWeight: '800' }}>
-                BASIC INFORMATION
+                {t('register.basicInfo', 'BASIC INFORMATION')}
               </span>
               <h2 style={{ margin: '16px 0 8px 0', fontSize: '26px', fontWeight: '800', color: '#0F172A' }}>
-                Tell us about yourself
+                {t('register.tellUsAboutYourself', 'Tell us about yourself')}
               </h2>
               <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#64748B' }}>
-                Provide your basic contact information for your {role.toLowerCase()} account.
+                {t('register.provideBasicContact', 'Provide your basic contact information for your account.')}
               </p>
 
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '6px' }}>
-                  Full Name *
+                  {t('register.fullName', 'Full Name *')}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Priya Sharma"
+                  placeholder={t('register.fullNamePlaceholder', 'e.g. Priya Sharma')}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   style={{ width: '100%', padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #CBD5E1', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
@@ -217,7 +224,7 @@ export default function MultiStepRegistrationPage() {
 
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '6px' }}>
-                  Email Address
+                  {t('register.emailAddress', 'Email Address')}
                 </label>
                 <input
                   type="email"
@@ -230,7 +237,7 @@ export default function MultiStepRegistrationPage() {
 
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '6px' }}>
-                  Phone Number
+                  {t('register.phoneNumber', 'Phone Number')}
                 </label>
                 <input
                   type="text"
@@ -247,18 +254,18 @@ export default function MultiStepRegistrationPage() {
           {currentStep === 3 && (
             <div>
               <span style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '4px 14px', borderRadius: '14px', fontSize: '12px', fontWeight: '800' }}>
-                SECURITY CREDENTIALS
+                {t('register.securityCredentials', 'SECURITY CREDENTIALS')}
               </span>
               <h2 style={{ margin: '16px 0 8px 0', fontSize: '26px', fontWeight: '800', color: '#0F172A' }}>
-                Create your password
+                {t('register.createPassword', 'Create your password')}
               </h2>
               <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#64748B' }}>
-                Ensure your account is protected with a secure password.
+                {t('register.passwordDesc', 'Ensure your account is protected with a secure password.')}
               </p>
 
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '6px' }}>
-                  Password *
+                  {t('auth.password', 'Password')} *
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
@@ -272,9 +279,9 @@ export default function MultiStepRegistrationPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#64748B', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
+                    style={{ position: 'absolute', [isRTL ? 'left' : 'right']: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#64748B', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
                   >
-                    {showPassword ? 'Hide' : 'Show'}
+                    {showPassword ? t('auth.hide', 'Hide') : t('auth.show', 'Show')}
                   </button>
                 </div>
 
@@ -282,7 +289,7 @@ export default function MultiStepRegistrationPage() {
                 {password && (
                   <div style={{ marginTop: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: strength.color, marginBottom: '4px' }}>
-                      <span>Strength: {strength.label}</span>
+                      <span>{t('register.strength', 'Strength:')} {strength.label}</span>
                     </div>
                     <div style={{ height: '4px', backgroundColor: '#E2E8F0', borderRadius: '2px', overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${(strength.score / 3) * 100}%`, backgroundColor: strength.color, transition: 'width 0.3s' }} />
@@ -293,7 +300,7 @@ export default function MultiStepRegistrationPage() {
 
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '6px' }}>
-                  Confirm Password *
+                  {t('register.confirmPassword', 'Confirm Password *')}
                 </label>
                 <input
                   type="password"
@@ -305,7 +312,7 @@ export default function MultiStepRegistrationPage() {
                 />
                 {confirmPassword && password !== confirmPassword && (
                   <span style={{ fontSize: '12px', color: '#EF4444', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                    <AlertTriangle style={{ width: '14px', height: '14px' }} /> Passwords do not match
+                    <AlertTriangle style={{ width: '14px', height: '14px' }} /> {t('register.passwordsDoNotMatch', 'Passwords do not match')}
                   </span>
                 )}
               </div>
@@ -316,20 +323,20 @@ export default function MultiStepRegistrationPage() {
           {currentStep === 4 && (
             <div>
               <span style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '4px 14px', borderRadius: '14px', fontSize: '12px', fontWeight: '800' }}>
-                {role} DETAILS
+                {role} {t('register.details', 'DETAILS')}
               </span>
               <h2 style={{ margin: '16px 0 8px 0', fontSize: '26px', fontWeight: '800', color: '#0F172A' }}>
-                {role === 'PATIENT' ? 'Patient Profile Details' : 'Caregiver Role Information'}
+                {role === 'PATIENT' ? t('register.patientProfileDetails', 'Patient Profile Details') : t('register.caregiverRoleInfo', 'Caregiver Role Information')}
               </h2>
               <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#64748B' }}>
-                Customize your experience according to your daily care requirements.
+                {t('register.customizeExperience', 'Customize your experience according to your daily care requirements.')}
               </p>
 
               {role === 'PATIENT' ? (
                 <>
                   <div style={{ marginBottom: '16px' }}>
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '6px' }}>
-                      Age
+                      {t('register.age', 'Age')}
                     </label>
                     <input
                       type="number"
@@ -340,7 +347,7 @@ export default function MultiStepRegistrationPage() {
                   </div>
                   <div style={{ marginBottom: '16px' }}>
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '6px' }}>
-                      Emergency Contact Phone Number
+                      {t('register.emergencyContact', 'Emergency Contact Phone Number')}
                     </label>
                     <input
                       type="text"
@@ -354,16 +361,16 @@ export default function MultiStepRegistrationPage() {
               ) : (
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '6px' }}>
-                    Caregiver Relationship Type
+                    {t('register.relationshipType', 'Caregiver Relationship Type')}
                   </label>
                   <select
                     value={relationshipType}
                     onChange={(e) => setRelationshipType(e.target.value)}
                     style={{ width: '100%', padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #CBD5E1', fontSize: '14px', outline: 'none', boxSizing: 'border-box', backgroundColor: '#FFFFFF' }}
                   >
-                    <option value="Family Member">Family Member (Son / Daughter / Spouse)</option>
-                    <option value="Primary Guardian">Primary Guardian</option>
-                    <option value="Professional Caregiver">Professional Nurse / Caregiver</option>
+                    <option value="Family Member">{t('register.relFamilyMember', 'Family Member (Son / Daughter / Spouse)')}</option>
+                    <option value="Primary Guardian">{t('register.relPrimaryGuardian', 'Primary Guardian')}</option>
+                    <option value="Professional Caregiver">{t('register.relProfessionalCaregiver', 'Professional Nurse / Caregiver')}</option>
                   </select>
                 </div>
               )}
@@ -374,41 +381,36 @@ export default function MultiStepRegistrationPage() {
           {currentStep === 5 && (
             <div>
               <span style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '4px 14px', borderRadius: '14px', fontSize: '12px', fontWeight: '800' }}>
-                PREFERENCES
+                {t('register.preferences', 'PREFERENCES')}
               </span>
               <h2 style={{ margin: '16px 0 8px 0', fontSize: '26px', fontWeight: '800', color: '#0F172A' }}>
-                Language & Accessibility
+                {t('register.langAccessibility', 'Language & Accessibility')}
               </h2>
               <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#64748B' }}>
-                MitraCare supports 13 Indian regional languages and accessible display modes.
+                {t('register.langSupportDesc', 'MitraCare supports 22 Indian regional languages and accessible display modes.')}
               </p>
 
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '6px' }}>
-                  Preferred Language
+                  {t('register.preferredLanguage', 'Preferred Language')}
                 </label>
                 <select
                   value={preferredLanguage}
                   onChange={(e) => setPreferredLanguage(e.target.value)}
                   style={{ width: '100%', padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #CBD5E1', fontSize: '14px', outline: 'none', boxSizing: 'border-box', backgroundColor: '#FFFFFF' }}
                 >
-                  <option value="kn">Kannada (ಕನ್ನಡ)</option>
-                  <option value="hi">Hindi (हिंदी)</option>
-                  <option value="en">English</option>
-                  <option value="mr">Marathi (मराठी)</option>
-                  <option value="ta">Tamil (தமிழ்)</option>
-                  <option value="te">Telugu (తెలుగు)</option>
-                  <option value="ml">Malayalam (മലയാളം)</option>
-                  <option value="bn">Bengali (বাংলা)</option>
-                  <option value="gu">Gujarati (ગુજરાતી)</option>
-                  <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                  {INDIAN_LANGUAGES.map((lang) => (
+                    <option key={lang.code} value={lang.code}>
+                      {lang.name} ({lang.nativeName})
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {role === 'PATIENT' && (
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '8px' }}>
-                    Display Text Size
+                    {t('register.displayTextSize', 'Display Text Size')}
                   </label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                     {(['normal', 'large', 'xlarge'] as const).map((sz) => (
@@ -441,19 +443,19 @@ export default function MultiStepRegistrationPage() {
           {currentStep === 6 && (
             <div>
               <span style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '4px 14px', borderRadius: '14px', fontSize: '12px', fontWeight: '800' }}>
-                CONSENT & PRIVACY
+                {t('register.consentPrivacy', 'CONSENT & PRIVACY')}
               </span>
               <h2 style={{ margin: '16px 0 8px 0', fontSize: '26px', fontWeight: '800', color: '#0F172A' }}>
-                Terms & Privacy Consent
+                {t('register.termsConsentTitle', 'Terms & Privacy Consent')}
               </h2>
               <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#64748B' }}>
-                Please review and accept our platform privacy commitments.
+                {t('register.termsConsentDesc', 'Please review and accept our platform privacy commitments.')}
               </p>
 
               <div style={{ backgroundColor: '#F8FAF8', padding: '20px', borderRadius: '16px', border: '1px solid #E2E8F0', marginBottom: '20px', fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
-                • <strong>Data Security:</strong> Encrypted transport and least-privilege role authorization.<br/>
-                • <strong>Non-Diagnostic Commitment:</strong> All cognitive game analytics represent observed application usage trends and do not constitute formal medical diagnoses.<br/>
-                • <strong>Account Parity:</strong> Your account can be accessed securely on mobile and web.
+                • <strong>{t('register.dataSecurity', 'Data Security: Encrypted transport and least-privilege role authorization.')}</strong><br/>
+                • <strong>{t('register.nonDiagnosticCommitment', 'Non-Diagnostic Commitment: All cognitive game analytics represent observed application usage trends and do not constitute formal medical diagnoses.')}</strong><br/>
+                • <strong>{t('register.accountParity', 'Account Parity: Your account can be accessed securely on mobile and web.')}</strong>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
@@ -465,7 +467,7 @@ export default function MultiStepRegistrationPage() {
                   style={{ width: '18px', height: '18px', accentColor: '#16A34A', cursor: 'pointer' }}
                 />
                 <label htmlFor="terms" style={{ fontSize: '14px', color: '#0F172A', cursor: 'pointer', fontWeight: '600' }}>
-                  I agree to the MitraCare Terms of Service *
+                  {t('register.agreeTerms', 'I agree to the MitraCare Terms of Service *')}
                 </label>
               </div>
 
@@ -478,7 +480,7 @@ export default function MultiStepRegistrationPage() {
                   style={{ width: '18px', height: '18px', accentColor: '#16A34A', cursor: 'pointer' }}
                 />
                 <label htmlFor="privacy" style={{ fontSize: '14px', color: '#0F172A', cursor: 'pointer', fontWeight: '600' }}>
-                  I agree to the Privacy Policy and Data Handling Guidelines *
+                  {t('register.agreePrivacy', 'I agree to the Privacy Policy and Data Handling Guidelines *')}
                 </label>
               </div>
             </div>
@@ -488,31 +490,31 @@ export default function MultiStepRegistrationPage() {
           {currentStep === 7 && (
             <div>
               <span style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '4px 14px', borderRadius: '14px', fontSize: '12px', fontWeight: '800' }}>
-                FINAL REVIEW
+                {t('register.finalReview', 'FINAL REVIEW')}
               </span>
               <h2 style={{ margin: '16px 0 8px 0', fontSize: '26px', fontWeight: '800', color: '#0F172A' }}>
-                Review Account Details
+                {t('register.reviewAccountDetails', 'Review Account Details')}
               </h2>
               <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#64748B' }}>
-                Confirm your account registration information before creation.
+                {t('register.confirmDetailsDesc', 'Confirm your account registration information before creation.')}
               </p>
 
               <div style={{ backgroundColor: '#F8FAF8', padding: '24px', borderRadius: '16px', border: '1px solid #E2E8F0', marginBottom: '24px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', fontSize: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', fontSize: '14px' }}>
                   <div>
-                    <span style={{ color: '#64748B', display: 'block', fontSize: '12px' }}>ACCOUNT ROLE</span>
+                    <span style={{ color: '#64748B', display: 'block', fontSize: '12px' }}>{t('register.accountRole', 'ACCOUNT ROLE')}</span>
                     <strong style={{ color: '#16A34A' }}>{role}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748B', display: 'block', fontSize: '12px' }}>FULL NAME</span>
+                    <span style={{ color: '#64748B', display: 'block', fontSize: '12px' }}>{t('register.fullName', 'FULL NAME')}</span>
                     <strong style={{ color: '#0F172A' }}>{fullName}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748B', display: 'block', fontSize: '12px' }}>EMAIL / PHONE</span>
+                    <span style={{ color: '#64748B', display: 'block', fontSize: '12px' }}>{t('register.emailAddress', 'EMAIL')} / {t('register.phoneNumber', 'PHONE')}</span>
                     <strong style={{ color: '#0F172A' }}>{email || phone}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748B', display: 'block', fontSize: '12px' }}>PREFERRED LANGUAGE</span>
+                    <span style={{ color: '#64748B', display: 'block', fontSize: '12px' }}>{t('register.preferredLanguage', 'PREFERRED LANGUAGE')}</span>
                     <strong style={{ color: '#0F172A' }}>{preferredLanguage.toUpperCase()}</strong>
                   </div>
                 </div>
@@ -527,10 +529,10 @@ export default function MultiStepRegistrationPage() {
                 <CheckCircle2 style={{ width: '36px', height: '36px' }} />
               </div>
               <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#0F172A', margin: '0 0 10px 0' }}>
-                Your {role.toLowerCase()} account is ready!
+                {t('register.accountReady', 'Your account is ready!')}
               </h2>
               <p style={{ fontSize: '15px', color: '#64748B', marginBottom: '32px' }}>
-                Registration completed successfully. You can now access your workspace across mobile and web.
+                {t('register.regSuccessDesc', 'Registration completed successfully. You can now access your workspace across mobile and web.')}
               </p>
               <a
                 href={role === 'CAREGIVER' ? '/caregiver/dashboard' : '/caregiver/dashboard'}
@@ -546,7 +548,7 @@ export default function MultiStepRegistrationPage() {
                   boxShadow: '0 4px 14px rgba(22, 163, 74, 0.28)'
                 }}
               >
-                Go to Workspace Dashboard →
+                {t('register.goToDashboard', 'Go to Workspace Dashboard →')}
               </a>
             </div>
           )}
@@ -558,9 +560,10 @@ export default function MultiStepRegistrationPage() {
                 <button
                   type="button"
                   onClick={() => setCurrentStep(currentStep - 1)}
-                  style={{ padding: '12px 24px', borderRadius: '20px', border: '1.5px solid #CBD5E1', backgroundColor: '#FFFFFF', color: '#475569', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}
+                  style={{ padding: '12px 24px', borderRadius: '20px', border: '1.5px solid #CBD5E1', backgroundColor: '#FFFFFF', color: '#475569', fontWeight: '700', fontSize: '14px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  ← Back
+                  <ArrowLeft className={isRTL ? 'rtl-flip' : ''} style={{ width: '16px', height: '16px' }} />
+                  <span>{t('common.back', 'Back')}</span>
                 </button>
               ) : <div />}
 
@@ -577,10 +580,14 @@ export default function MultiStepRegistrationPage() {
                     color: canProceed() ? '#FFFFFF' : '#94A3B8',
                     fontWeight: '800',
                     fontSize: '14px',
-                    cursor: canProceed() ? 'pointer' : 'not-allowed'
+                    cursor: canProceed() ? 'pointer' : 'not-allowed',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
                 >
-                  Continue →
+                  <span>{t('common.continue', 'Continue')}</span>
+                  <ArrowRight className={isRTL ? 'rtl-flip' : ''} style={{ width: '16px', height: '16px' }} />
                 </button>
               ) : (
                 <button
@@ -596,10 +603,14 @@ export default function MultiStepRegistrationPage() {
                     fontWeight: '800',
                     fontSize: '14px',
                     cursor: 'pointer',
-                    boxShadow: '0 3px 10px rgba(22, 163, 74, 0.25)'
+                    boxShadow: '0 3px 10px rgba(22, 163, 74, 0.25)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
                 >
-                  {isLoading ? 'Creating Account...' : 'Confirm & Create Account →'}
+                  <span>{isLoading ? t('register.creatingAccount', 'Creating Account...') : t('register.confirmCreate', 'Confirm & Create Account')}</span>
+                  <ArrowRight className={isRTL ? 'rtl-flip' : ''} style={{ width: '16px', height: '16px' }} />
                 </button>
               )}
             </div>

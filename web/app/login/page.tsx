@@ -2,10 +2,13 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Stethoscope, Shield, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Users, Stethoscope, Shield, CheckCircle2, AlertTriangle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 export default function SharedLoginPage() {
   const router = useRouter();
+  const { t, isRTL } = useLanguage();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -58,8 +61,9 @@ export default function SharedLoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!identifier.trim() || !password) {
-      setErrorMsg('Please enter your email/phone and password.');
+      setErrorMsg(t('auth.identifierLabel', 'Please enter your email/phone and password.'));
       return;
     }
 
@@ -113,10 +117,10 @@ export default function SharedLoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAF8', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAF8', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       {/* Sticky Header Nav */}
-      <header style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '16px 32px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '14px 32px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <a href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontWeight: 'bold', fontSize: '20px' }}>
               M
@@ -124,11 +128,14 @@ export default function SharedLoginPage() {
             <span style={{ fontSize: '22px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.5px' }}>MitraCare</span>
           </a>
 
-          <div style={{ fontSize: '14px', color: '#64748B' }}>
-            Don't have an account?{' '}
-            <a href="/register" style={{ color: '#16A34A', fontWeight: '700', textDecoration: 'none', marginLeft: '4px' }}>
-              Create Account →
-            </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <LanguageSelector compact />
+            <div style={{ fontSize: '14px', color: '#64748B' }}>
+              {t('auth.noAccount', "Don't have an account?")}{' '}
+              <a href="/register" style={{ color: '#16A34A', fontWeight: '700', textDecoration: 'none', marginLeft: '4px' }}>
+                {t('auth.createAccount', 'Create Account →')}
+              </a>
+            </div>
           </div>
         </div>
       </header>
@@ -139,20 +146,20 @@ export default function SharedLoginPage() {
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <span style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '4px 14px', borderRadius: '14px', fontSize: '12px', fontWeight: '800', letterSpacing: '0.5px' }}>
-              SECURE WEB PORTAL
+              {t('auth.portalBadge', 'SECURE WEB PORTAL')}
             </span>
             <h1 style={{ margin: '14px 0 6px 0', fontSize: '26px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.5px' }}>
-              Welcome back to MitraCare
+              {t('auth.welcomeBack', 'Welcome back to MitraCare')}
             </h1>
             <p style={{ margin: 0, fontSize: '14px', color: '#64748B' }}>
-              Sign in or click a demo role button below to explore features
+              {t('auth.signInDesc', 'Sign in or click a demo role button below to explore features')}
             </p>
           </div>
 
           {/* QUICK UI DEMO LOGINS */}
           <div style={{ backgroundColor: '#F8FAF8', padding: '16px', borderRadius: '16px', border: '1.5px solid #E2E8F0', marginBottom: '24px' }}>
             <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', marginBottom: '10px', letterSpacing: '0.5px', textTransform: 'uppercase', textAlign: 'center' }}>
-              QUICK UI TEST LOGIN SHORTCUTS
+              {t('auth.demoShortcuts', 'QUICK UI TEST LOGIN SHORTCUTS')}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
               <button
@@ -161,7 +168,7 @@ export default function SharedLoginPage() {
                 style={{ padding: '8px 4px', borderRadius: '10px', backgroundColor: '#DCFCE7', border: '1px solid #86EFAC', color: '#15803D', fontWeight: '800', fontSize: '11px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
               >
                 <Users style={{ width: '16px', height: '16px' }} />
-                <span>Caregiver</span>
+                <span>{t('auth.caregiverRole', 'Caregiver')}</span>
               </button>
 
               <button
@@ -170,7 +177,7 @@ export default function SharedLoginPage() {
                 style={{ padding: '8px 4px', borderRadius: '10px', backgroundColor: '#DBEAFE', border: '1px solid #93C5FD', color: '#1E40AF', fontWeight: '800', fontSize: '11px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
               >
                 <Stethoscope style={{ width: '16px', height: '16px' }} />
-                <span>Doctor</span>
+                <span>{t('auth.doctorRole', 'Doctor')}</span>
               </button>
 
               <button
@@ -179,7 +186,7 @@ export default function SharedLoginPage() {
                 style={{ padding: '8px 4px', borderRadius: '10px', backgroundColor: '#F3E8FF', border: '1px solid #C084FC', color: '#6B21A8', fontWeight: '800', fontSize: '11px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
               >
                 <Shield style={{ width: '16px', height: '16px' }} />
-                <span>Admin</span>
+                <span>{t('auth.adminRole', 'Admin')}</span>
               </button>
             </div>
           </div>
@@ -195,7 +202,7 @@ export default function SharedLoginPage() {
           {successRole && (
             <div style={{ padding: '12px 16px', borderRadius: '12px', backgroundColor: '#DCFCE7', border: '1.5px solid #86EFAC', color: '#15803D', fontSize: '13px', fontWeight: '700', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <CheckCircle2 style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-              <span>Authentication Successful! Loading {successRole} workspace...</span>
+              <span>{t('auth.authSuccess', 'Authentication Successful!')} {t('auth.loading', 'Loading...')} {successRole}</span>
             </div>
           )}
 
@@ -203,12 +210,12 @@ export default function SharedLoginPage() {
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#0F172A', marginBottom: '6px' }}>
-                Email Address or Phone Number
+                {t('auth.identifierLabel', 'Email Address or Phone Number')}
               </label>
               <input
                 type="text"
                 required
-                placeholder="caregiver@mitracare.org or +91 98765 43210"
+                placeholder={t('auth.identifierPlaceholder', 'caregiver@mitracare.org or +91 98765 43210')}
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 style={{ width: '100%', padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #CBD5E1', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
@@ -217,9 +224,9 @@ export default function SharedLoginPage() {
 
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '700', color: '#0F172A' }}>Password</label>
+                <label style={{ fontSize: '13px', fontWeight: '700', color: '#0F172A' }}>{t('auth.passwordLabel', 'Password')}</label>
                 <a href="/reset-password" style={{ fontSize: '12px', color: '#16A34A', fontWeight: '700', textDecoration: 'none' }}>
-                  Forgot password?
+                  {t('auth.forgotPassword', 'Forgot password?')}
                 </a>
               </div>
 
@@ -235,9 +242,9 @@ export default function SharedLoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#64748B', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
+                  style={{ position: 'absolute', [isRTL ? 'left' : 'right']: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#64748B', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {showPassword ? t('auth.hide', 'Hide') : t('auth.show', 'Show')}
                 </button>
               </div>
             </div>
@@ -251,7 +258,7 @@ export default function SharedLoginPage() {
                 style={{ accentColor: '#16A34A', cursor: 'pointer', width: '16px', height: '16px' }}
               />
               <label htmlFor="remember" style={{ fontSize: '13px', color: '#475569', cursor: 'pointer', fontWeight: '600' }}>
-                Keep me signed in on this device
+                {t('auth.rememberDevice', 'Keep me signed in on this device')}
               </label>
             </div>
 
@@ -268,16 +275,22 @@ export default function SharedLoginPage() {
                 fontSize: '16px',
                 border: 'none',
                 cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.28)'
+                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.28)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
               }}
             >
-              {isLoading ? 'Authenticating...' : 'Sign In →'}
+              <span>{isLoading ? t('auth.authenticating', 'Authenticating...') : t('auth.signInButton', 'Sign In →')}</span>
+              {!isLoading && <ArrowRight className={isRTL ? 'rtl-flip' : ''} style={{ width: '18px', height: '18px' }} />}
             </button>
           </form>
 
           <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '13px', color: '#64748B' }}>
-            <a href="/" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600' }}>
-              ← Return to Landing Page
+            <a href="/" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <ArrowLeft className={isRTL ? 'rtl-flip' : ''} style={{ width: '14px', height: '14px' }} />
+              <span>{t('auth.returnHome', 'Return to Landing Page')}</span>
             </a>
           </div>
         </div>

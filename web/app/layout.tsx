@@ -1,7 +1,9 @@
 import React from 'react';
+import './globals.css';
+import { LanguageProvider } from './context/LanguageContext';
 
 export const metadata = {
-  title: 'Yaad — Unified Multi-Role Healthcare Platform',
+  title: 'MitraCare — Unified Multi-Role Healthcare Platform',
   description: 'MitraCare & Yaad Caregiver, Doctor, and Admin Platform',
 };
 
@@ -12,8 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, fontFamily: 'system-ui, -apple-system, sans-serif', backgroundColor: '#F8FAF8' }}>
-        {children}
+      <body>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );
