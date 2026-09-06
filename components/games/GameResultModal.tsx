@@ -12,6 +12,7 @@ export interface GameResultModalProps {
   result: GameResult | null;
   onPlayAgain: () => void;
   onGoHome: () => void;
+  playAgainLabel?: string;
 }
 
 export const GameResultModal: React.FC<GameResultModalProps> = ({
@@ -19,6 +20,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
   result,
   onPlayAgain,
   onGoHome,
+  playAgainLabel,
 }) => {
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
@@ -151,9 +153,9 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
 
           {/* Action Buttons */}
           <View style={styles.actionButtonsContainer}>
-            {/* Primary Solid Green: Play Again */}
+            {/* Primary Solid Green: Next Level / Play Again */}
             <Button
-              title={t('play_again')}
+              title={playAgainLabel || t('next_level') || 'NEXT LEVEL'}
               variant="primary"
               icon={<RefreshCw size={22} color="#FFFFFF" />}
               onPress={onPlayAgain}

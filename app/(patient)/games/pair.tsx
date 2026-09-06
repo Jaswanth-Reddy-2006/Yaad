@@ -13,18 +13,10 @@ import { Typography } from '../../../components/common/Typography';
 import { ListenButton } from '../../../components/common/ListenButton';
 import { GameCard } from '../../../components/games/GameCard';
 import { GameResultModal } from '../../../components/games/GameResultModal';
-import { LevelSelector, LevelOption } from '../../../components/games/LevelSelector';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { GameController, GameState } from '../../../features/games/engine/GameController';
 import { GameDifficulty } from '../../../types';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
-
-const PAIR_LEVEL_OPTIONS: LevelOption[] = [
-  { key: 'EASY', levelNum: 1, label: 'Level 1', subtitle: '2 Pairs' },
-  { key: 'MEDIUM', levelNum: 2, label: 'Level 2', subtitle: '6 Pairs' },
-  { key: 'HARD', levelNum: 3, label: 'Level 3', subtitle: '8 Pairs' },
-  { key: 'EXPERT', levelNum: 4, label: 'Level 4', subtitle: '10 Pairs' },
-];
 
 export default function PairGameScreen() {
   const router = useRouter();
@@ -123,6 +115,9 @@ export default function PairGameScreen() {
 
   const voiceInstructions = `Match the Cards. Look at the cards carefully and tap two cards to find matching pictures. Take your time.`;
 
+  const levelNum = difficulty === 'EASY' ? 1 : difficulty === 'MEDIUM' ? 2 : difficulty === 'HARD' ? 3 : 4;
+  const levelLabel = `Level ${levelNum}`;
+
   return (
     <ScreenContainer scrollable={true} style={styles.container}>
       {/* Top Navigation Row: Back Button & Listen Button */}
@@ -144,20 +139,17 @@ export default function PairGameScreen() {
         />
       </View>
 
-      {/* Title & Difficulty Header */}
+      {/* Title & Level Header */}
       <View style={styles.titleSection}>
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
           {t('match_the_cards') || 'Match the Cards'}
         </Typography>
+        <View style={styles.difficultyBadge}>
+          <Typography size="xs" weight="bold" color="#6D28D9">
+            {levelLabel} • {gameState.totalRequiredMatches} Pairs
+          </Typography>
+        </View>
       </View>
-
-      {/* 4 Progressive Game Levels Selector */}
-      <LevelSelector
-        currentLevel={difficulty}
-        onSelectLevel={handleSelectLevel}
-        options={PAIR_LEVEL_OPTIONS}
-        themeColor="#6D28D9"
-      />
 
       {/* Clean Minimal Stat Chips Row (Matched, Time, Hint) */}
       <View style={styles.statsChipsRow}>
@@ -251,7 +243,8 @@ export default function PairGameScreen() {
       <GameResultModal
         visible={gameState.status === 'COMPLETED'}
         result={gameState.result || null}
-        onPlayAgain={() => controllerRef.current?.restart()}
+        playAgainLabel={difficulty === 'EXPERT' ? 'PLAY AGAIN' : 'NEXT LEVEL'}
+        onPlayAgain={handleNextLevel}
         onGoHome={() => router.replace('/(patient)/games')}
       />
     </ScreenContainer>

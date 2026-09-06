@@ -8,18 +8,10 @@ import { Button } from '../../../components/common/Button';
 import { ListenButton } from '../../../components/common/ListenButton';
 import { GamePicture, getSymbolConfig } from '../../../components/games/GamePicture';
 import { GameResultModal } from '../../../components/games/GameResultModal';
-import { LevelSelector, LevelOption } from '../../../components/games/LevelSelector';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 import { GameDifficulty, GameResult } from '../../../types';
 import { gameRepository } from '../../../repositories/GameRepository';
-
-const REMEMBER_LEVEL_OPTIONS: LevelOption[] = [
-  { key: 'EASY', levelNum: 1, label: 'Level 1', subtitle: '1 Picture' },
-  { key: 'MEDIUM', levelNum: 2, label: 'Level 2', subtitle: '2 Pictures' },
-  { key: 'HARD', levelNum: 3, label: 'Level 3', subtitle: '3 Pictures' },
-  { key: 'EXPERT', levelNum: 4, label: 'Level 4', subtitle: '4 Pictures' },
-];
 
 const SYMBOL_POOL = [
   'apple',
@@ -232,6 +224,9 @@ export default function RememberPicturesGameScreen() {
       ? 'Which picture did you see earlier? Tap on the picture to select it.'
       : `Which ${targetCount} pictures did you see earlier? Tap the pictures to select them.`;
 
+  const levelNum = difficulty === 'EASY' ? 1 : difficulty === 'MEDIUM' ? 2 : difficulty === 'HARD' ? 3 : 4;
+  const levelLabel = `Level ${levelNum}`;
+
   return (
     <ScreenContainer scrollable={true} style={styles.container}>
       {/* Top Navigation Row: Back Button & Listen Button */}
@@ -253,20 +248,17 @@ export default function RememberPicturesGameScreen() {
         />
       </View>
 
-      {/* Game Title & Difficulty Pill */}
+      {/* Game Title & Level Badge */}
       <View style={styles.titleSection}>
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
           {t('remember_the_pictures') || 'Remember the Pictures'}
         </Typography>
+        <View style={styles.difficultyBadge}>
+          <Typography size="xs" weight="bold" color="#15803D">
+            {levelLabel} • {targetCount} {targetCount === 1 ? 'Picture' : 'Pictures'} to Remember
+          </Typography>
+        </View>
       </View>
-
-      {/* 4 Progressive Game Levels Selector */}
-      <LevelSelector
-        currentLevel={difficulty}
-        onSelectLevel={handleSelectLevel}
-        options={REMEMBER_LEVEL_OPTIONS}
-        themeColor="#15803D"
-      />
 
       {/* ============================================================ */}
       {/* PHASE 1: "LOOK" / MEMORIZATION PHASE (Only show target items) */}
@@ -422,6 +414,7 @@ export default function RememberPicturesGameScreen() {
       <GameResultModal
         visible={phase === 'COMPLETED'}
         result={gameResult}
+        playAgainLabel={difficulty === 'EXPERT' ? 'PLAY AGAIN' : 'NEXT LEVEL'}
         onPlayAgain={handleNextLevel}
         onGoHome={() => router.replace('/(patient)/games')}
       />

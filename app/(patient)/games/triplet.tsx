@@ -13,18 +13,10 @@ import { Typography } from '../../../components/common/Typography';
 import { ListenButton } from '../../../components/common/ListenButton';
 import { GameCard } from '../../../components/games/GameCard';
 import { GameResultModal } from '../../../components/games/GameResultModal';
-import { LevelSelector, LevelOption } from '../../../components/games/LevelSelector';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { GameController, GameState } from '../../../features/games/engine/GameController';
 import { GameDifficulty } from '../../../types';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
-
-const TRIPLET_LEVEL_OPTIONS: LevelOption[] = [
-  { key: 'EASY', levelNum: 1, label: 'Level 1', subtitle: '3 Triplets' },
-  { key: 'MEDIUM', levelNum: 2, label: 'Level 2', subtitle: '4 Triplets' },
-  { key: 'HARD', levelNum: 3, label: 'Level 3', subtitle: '6 Triplets' },
-  { key: 'EXPERT', levelNum: 4, label: 'Level 4', subtitle: '8 Triplets' },
-];
 
 export default function MatchTripletGameScreen() {
   const router = useRouter();
@@ -121,6 +113,9 @@ export default function MatchTripletGameScreen() {
 
   const voiceInstructions = `Find Three. Look at the cards carefully and tap 3 cards to find matching pictures. Take your time.`;
 
+  const levelNum = difficulty === 'EASY' ? 1 : difficulty === 'MEDIUM' ? 2 : difficulty === 'HARD' ? 3 : 4;
+  const levelLabel = `Level ${levelNum}`;
+
   return (
     <ScreenContainer scrollable={true} style={styles.container}>
       {/* Top Navigation Row: Back Button & Listen Button */}
@@ -142,20 +137,17 @@ export default function MatchTripletGameScreen() {
         />
       </View>
 
-      {/* Title & Difficulty Header */}
+      {/* Title & Level Header */}
       <View style={styles.titleSection}>
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
           {t('find_three') || 'Find Three'}
         </Typography>
+        <View style={styles.difficultyBadge}>
+          <Typography size="xs" weight="bold" color="#D97706">
+            {levelLabel} • {gameState.totalRequiredMatches} Triplets
+          </Typography>
+        </View>
       </View>
-
-      {/* 4 Progressive Game Levels Selector */}
-      <LevelSelector
-        currentLevel={difficulty}
-        onSelectLevel={handleSelectLevel}
-        options={TRIPLET_LEVEL_OPTIONS}
-        themeColor="#D97706"
-      />
 
       {/* Clean Minimal Stat Chips Row (Matched, Time, Hint) */}
       <View style={styles.statsChipsRow}>
@@ -249,7 +241,8 @@ export default function MatchTripletGameScreen() {
       <GameResultModal
         visible={gameState.status === 'COMPLETED'}
         result={gameState.result || null}
-        onPlayAgain={() => controllerRef.current?.restart()}
+        playAgainLabel={difficulty === 'EXPERT' ? 'PLAY AGAIN' : 'NEXT LEVEL'}
+        onPlayAgain={handleNextLevel}
         onGoHome={() => router.replace('/(patient)/games')}
       />
     </ScreenContainer>
