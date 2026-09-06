@@ -411,6 +411,123 @@ export const FollowTheCupBannerIllustration: React.FC<BannerProps> = ({ height =
   </View>
 );
 
+/**
+ * 10. Count the Sheep: Meadow farmhouse in center with cute sheep walking in.
+ */
+export const CountSheepBannerIllustration: React.FC<BannerProps> = ({ height = 120 }) => (
+  <View style={[styles.container, { height }]}>
+    <Svg width="100%" height="100%" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet">
+      <Defs>
+        <LinearGradient id="sheepMeadowBg" x1="0%" y1="0%" x2="0%" y2="100%">
+          <Stop offset="0%" stopColor="#E0F2FE" />
+          <Stop offset="55%" stopColor="#BAE6FD" />
+          <Stop offset="56%" stopColor="#86EFAC" />
+          <Stop offset="100%" stopColor="#4ADE80" />
+        </LinearGradient>
+        <LinearGradient id="roofGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <Stop offset="0%" stopColor="#EF4444" />
+          <Stop offset="100%" stopColor="#B91C1C" />
+        </LinearGradient>
+        <LinearGradient id="houseWallGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#FEF3C7" />
+          <Stop offset="100%" stopColor="#FDE68A" />
+        </LinearGradient>
+      </Defs>
+
+      {/* Sky and Meadow Grass */}
+      <Rect width="280" height="120" rx="14" fill="url(#sheepMeadowBg)" />
+
+      {/* Distant Hills */}
+      <Path d="M 0 70 Q 70 50 140 68 T 280 65 L 280 120 L 0 120 Z" fill="#22C55E" opacity="0.4" />
+
+      {/* Sun & Cloud */}
+      <Circle cx="35" cy="28" r="14" fill="#FDE047" stroke="#F59E0B" strokeWidth="2" />
+      <G fill="#FFFFFF" opacity="0.85">
+        <Circle cx="240" cy="24" r="10" />
+        <Circle cx="252" cy="20" r="13" />
+        <Circle cx="264" cy="24" r="10" />
+      </G>
+
+      {/* Wooden Fence on Left */}
+      <G stroke="#78350F" strokeWidth="2" fill="none">
+        <Path d="M 12 75 L 12 96 M 28 75 L 28 96 M 44 75 L 44 96" />
+        <Path d="M 8 80 L 48 80 M 8 90 L 48 90" />
+      </G>
+
+      {/* Cobblestone Path to House */}
+      <Path d="M 60 115 Q 110 95 140 85 L 175 85 Q 150 115 110 120 Z" fill="#E2E8F0" stroke="#CBD5E1" strokeWidth="1.5" />
+
+      {/* Cozy Center Farm House */}
+      <G transform="translate(130, 30)">
+        {/* Chimney & Smoke */}
+        <Rect x="54" y="6" width="12" height="18" fill="#991B1B" rx="1" />
+        <Circle cx="60" cy="2" r="4" fill="#FFFFFF" opacity="0.7" />
+        <Circle cx="64" cy="-5" r="5" fill="#FFFFFF" opacity="0.5" />
+
+        {/* House Main Body */}
+        <Rect x="10" y="24" width="65" height="42" fill="url(#houseWallGrad)" stroke="#B45309" strokeWidth="2" rx="3" />
+
+        {/* Triangular Gabled Roof */}
+        <Path d="M 4 26 L 42 2 L 81 26 Z" fill="url(#roofGrad)" stroke="#7F1D1D" strokeWidth="2.5" strokeLinejoin="round" />
+
+        {/* Loft Window */}
+        <Circle cx="42.5" cy="16" r="6" fill="#DBEAFE" stroke="#7F1D1D" strokeWidth="1.5" />
+        <Path d="M 42.5 10 L 42.5 22 M 36.5 16 L 48.5 16" stroke="#7F1D1D" strokeWidth="1" />
+
+        {/* Open Arch Doorway */}
+        <Path d="M 30 66 L 30 42 Q 42.5 32 55 42 L 55 66 Z" fill="#78350F" stroke="#451A03" strokeWidth="1.5" />
+        {/* Warm Golden Interior Light */}
+        <Path d="M 33 66 L 33 44 Q 42.5 36 52 44 L 52 66 Z" fill="#FDE047" opacity="0.9" />
+
+        {/* Side Window */}
+        <Rect x="14" y="34" width="12" height="14" rx="2" fill="#DBEAFE" stroke="#B45309" strokeWidth="1.5" />
+        <Path d="M 20 34 L 20 48 M 14 41 L 26 41" stroke="#B45309" strokeWidth="1" />
+      </G>
+
+      {/* 2 Walking Sheep Heading into the House */}
+      {/* Sheep 1: Right at the Doorway */}
+      <G transform="translate(150, 68) scale(0.42)">
+        {/* Legs */}
+        <Rect x="24" y="52" width="6" height="20" rx="3" fill="#475569" />
+        <Rect x="36" y="54" width="6" height="18" rx="3" fill="#475569" />
+        <Rect x="60" y="54" width="6" height="18" rx="3" fill="#475569" />
+        <Rect x="72" y="52" width="6" height="20" rx="3" fill="#475569" />
+        {/* Wool Cloud Body */}
+        <G fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="2">
+          <Circle cx="30" cy="38" r="14" />
+          <Circle cx="48" cy="28" r="15" />
+          <Circle cx="66" cy="36" r="14" />
+          <Circle cx="50" cy="46" r="15" />
+          <Circle cx="34" cy="46" r="13" />
+        </G>
+        {/* Head */}
+        <Ellipse cx="76" cy="32" rx="10" ry="12" fill="#FFEDD5" stroke="#FB923C" strokeWidth="1.5" />
+        <Circle cx="80" cy="30" r="2.5" fill="#1E293B" />
+      </G>
+
+      {/* Sheep 2: Approaching on Path */}
+      <G transform="translate(85, 74) scale(0.48)">
+        {/* Legs */}
+        <Rect x="24" y="52" width="6" height="22" rx="3" fill="#475569" />
+        <Rect x="36" y="54" width="6" height="20" rx="3" fill="#475569" />
+        <Rect x="60" y="54" width="6" height="20" rx="3" fill="#475569" />
+        <Rect x="72" y="52" width="6" height="22" rx="3" fill="#475569" />
+        {/* Wool Cloud Body */}
+        <G fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="2">
+          <Circle cx="30" cy="38" r="14" />
+          <Circle cx="48" cy="28" r="15" />
+          <Circle cx="66" cy="36" r="14" />
+          <Circle cx="50" cy="46" r="15" />
+          <Circle cx="34" cy="46" r="13" />
+        </G>
+        {/* Head */}
+        <Ellipse cx="76" cy="32" rx="10" ry="12" fill="#FFEDD5" stroke="#FB923C" strokeWidth="1.5" />
+        <Circle cx="80" cy="30" r="2.5" fill="#1E293B" />
+      </G>
+    </Svg>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',

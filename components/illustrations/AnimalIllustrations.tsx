@@ -247,6 +247,65 @@ export const SheepIllustration: React.FC<AnimalIllustrationProps> = ({ size = 64
 );
 
 /**
+ * 6b. Walking Sheep: Side-profile animated walking sheep with fluffy wool and trot legs.
+ */
+export const WalkingSheepIllustration: React.FC<{ size?: number; facing?: 'left' | 'right' }> = ({
+  size = 64,
+  facing = 'right',
+}) => (
+  <Svg
+    width={size}
+    height={size * 0.85}
+    viewBox="0 0 100 85"
+    style={{ transform: [{ scaleX: facing === 'left' ? -1 : 1 }] }}
+  >
+    {/* 4 Trot Walking Legs */}
+    <G fill="#475569" stroke="#1E293B" strokeWidth="1.5">
+      {/* Back Left Leg */}
+      <Rect x="24" y="52" width="6" height="24" rx="3" fill="#64748B" />
+      {/* Back Right Leg */}
+      <Rect x="36" y="54" width="6" height="22" rx="3" fill="#475569" />
+      {/* Front Left Leg */}
+      <Rect x="60" y="54" width="6" height="22" rx="3" fill="#64748B" />
+      {/* Front Right Leg */}
+      <Rect x="72" y="52" width="6" height="24" rx="3" fill="#475569" />
+    </G>
+
+    {/* Fluffy Tail */}
+    <Circle cx="16" cy="38" r="8" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="2" />
+
+    {/* Fluffy Wool Body Cloud */}
+    <G fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="2.5">
+      <Circle cx="28" cy="36" r="14" />
+      <Circle cx="42" cy="26" r="15" />
+      <Circle cx="58" cy="28" r="15" />
+      <Circle cx="70" cy="38" r="14" />
+      <Circle cx="64" cy="50" r="14" />
+      <Circle cx="48" cy="52" r="15" />
+      <Circle cx="32" cy="48" r="14" />
+      <Ellipse cx="48" cy="40" rx="26" ry="18" fill="#FFFFFF" stroke="none" />
+    </G>
+
+    {/* Head & Face (Facing Right) */}
+    <G transform="translate(62, 16)">
+      {/* Ear */}
+      <Ellipse cx="6" cy="10" rx="8" ry="4" transform="rotate(-25 6 10)" fill="#FED7AA" stroke="#FB923C" strokeWidth="1.5" />
+      {/* Head */}
+      <Ellipse cx="16" cy="16" rx="12" ry="14" fill="#FFEDD5" stroke="#FB923C" strokeWidth="2" />
+      {/* Wool Forehead */}
+      <Circle cx="12" cy="6" r="6" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="1.5" />
+      <Circle cx="18" cy="7" r="5" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="1.5" />
+      {/* Eye */}
+      <Circle cx="20" cy="14" r="2.8" fill="#1E293B" />
+      <Circle cx="21" cy="13" r="1" fill="#FFFFFF" />
+      {/* Nose & Smile */}
+      <Circle cx="25" cy="20" r="2" fill="#F43F5E" />
+      <Path d="M 23 24 Q 25 26 27 24" stroke="#9A3412" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    </G>
+  </Svg>
+);
+
+/**
  * 7. Lion: Cheerful brave lion with fluffy orange mane.
  */
 export const LionIllustration: React.FC<AnimalIllustrationProps> = ({ size = 64 }) => (

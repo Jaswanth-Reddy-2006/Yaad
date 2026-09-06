@@ -12,6 +12,7 @@ import {
   WordMatchBannerIllustration,
   AnimalSoundsBannerIllustration,
   FollowTheCupBannerIllustration,
+  CountSheepBannerIllustration,
 } from '../../../components/illustrations';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
@@ -37,6 +38,18 @@ export default function GamesHomeScreen() {
   const gamesList: GameItem[] = [
     {
       id: '1',
+      name: t('count_the_sheep') || 'Count the Sheep',
+      description: t('count_sheep_desc') || 'Watch the sheep enter the house and count how many went inside.',
+      speechText: 'Count the Sheep. Watch the sheep enter the house and count how many went inside.',
+      cardBg: '#F0FDF4',
+      borderColor: '#BBF7D0',
+      titleColor: '#15803D',
+      btnBg: '#16A34A',
+      route: '/(patient)/games/sheep-count',
+      renderBanner: () => <CountSheepBannerIllustration height={130} />,
+    },
+    {
+      id: '2',
       name: t('match_the_cards') || 'Match the Cards',
       description: t('match_cards_desc') || 'Find two pictures that are the same.',
       speechText: 'Match the Cards. Find two pictures that are the same. Take your time.',
@@ -48,7 +61,7 @@ export default function GamesHomeScreen() {
       renderBanner: () => <MatchCardsBannerIllustration height={130} />,
     },
     {
-      id: '2',
+      id: '3',
       name: t('remember_the_pictures') || 'Remember the Pictures',
       description: t('remember_pictures_desc') || 'Look carefully and remember.',
       speechText: 'Remember the Pictures. Look carefully at the pictures and remember what you see.',
@@ -60,7 +73,7 @@ export default function GamesHomeScreen() {
       renderBanner: () => <RememberPicturesBannerIllustration height={130} />,
     },
     {
-      id: '3',
+      id: '4',
       name: t('follow_the_cup') || 'Follow the Glass',
       description: t('follow_cup_desc') || 'Follow the glass with the hidden star and guess where it is.',
       speechText: 'Follow the Glass. Watch where the golden star is hidden, follow the glasses, and guess.',
@@ -72,7 +85,7 @@ export default function GamesHomeScreen() {
       renderBanner: () => <FollowTheCupBannerIllustration height={130} />,
     },
     {
-      id: '4',
+      id: '5',
       name: t('animal_sounds') || 'Animal Sounds',
       description: t('animal_sounds_desc') || 'Listen to the sound and tap the matching animal.',
       speechText: 'Animal Sounds. Listen to the sound and tap the animal that made it.',
@@ -84,7 +97,7 @@ export default function GamesHomeScreen() {
       renderBanner: () => <AnimalSoundsBannerIllustration height={130} />,
     },
     {
-      id: '5',
+      id: '6',
       name: t('name_the_object') || 'Name the Object',
       description: t('name_object_desc') || 'Look at the picture and tap its matching name.',
       speechText: 'Name the Object. Look at the picture and tap the matching word.',
@@ -96,7 +109,7 @@ export default function GamesHomeScreen() {
       renderBanner: () => <WordMatchBannerIllustration height={130} />,
     },
     {
-      id: '6',
+      id: '7',
       name: t('find_three') || 'Find Three',
       description: t('find_three_desc') || 'Find three pictures that belong together.',
       speechText: 'Find Three. Find three pictures that belong together.',
