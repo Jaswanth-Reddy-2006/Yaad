@@ -32,7 +32,7 @@ import {
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
 import { Typography } from '../../../components/common/Typography';
 import { ListenButton } from '../../../components/common/ListenButton';
-import { GameResultModal } from '../../../components/games/GameResultModal';
+import { GameResultModal, LeaveGameModal } from '../../../components/games/GameResultModal';
 import {
   AppleIllustration,
   BananaIllustration,
@@ -800,41 +800,15 @@ export default function ObjectLocationMemoryGameScreen() {
       )}
 
       {/* 4. Exit Confirmation Modal */}
-      <Modal visible={showLeaveModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.leaveModalCard, { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF' }]}>
-            <AlertCircle size={44} color="#D97706" style={{ marginBottom: SPACING.sm }} />
-            <Typography size="lg" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-              {t('leave_game_title') || 'Leave Game?'}
-            </Typography>
-            <Typography size="sm" color={COLORS.textSecondary} align="center" style={{ marginTop: 6, marginBottom: SPACING.lg }}>
-              {t('leave_game_msg') || 'Are you sure you want to stop playing Object–Location Memory?'}
-            </Typography>
-            <View style={styles.leaveModalActions}>
-              <TouchableOpacity
-                onPress={() => setShowLeaveModal(false)}
-                style={[styles.leaveCancelBtn, { borderColor: '#CBD5E1' }]}
-              >
-                <Typography size="sm" weight="bold" color="#475569">
-                  {t('stay_here') || 'Stay & Play'}
-                </Typography>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowLeaveModal(false);
-                  router.back();
-                }}
-                style={styles.leaveConfirmBtn}
-              >
-                <LogOut size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
-                <Typography size="sm" weight="bold" color="#FFFFFF">
-                  {t('leave') || 'Leave'}
-                </Typography>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <LeaveGameModal
+        visible={showLeaveModal}
+        gameTitle="Object–Location Memory"
+        onCancel={() => setShowLeaveModal(false)}
+        onConfirm={() => {
+          setShowLeaveModal(false);
+          router.back();
+        }}
+      />
 
       {/* 5. Game Over / Scorecard Modal */}
       <GameResultModal
@@ -1046,41 +1020,5 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#FECDD3',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: SPACING.md,
-  },
-  leaveModalCard: {
-    width: '90%',
-    maxWidth: 360,
-    borderRadius: 8,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    elevation: 5,
-  },
-  leaveModalActions: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    width: '100%',
-  },
-  leaveCancelBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    alignItems: 'center',
-  },
-  leaveConfirmBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#DC2626',
-    paddingVertical: 12,
-    borderRadius: 6,
   },
 });

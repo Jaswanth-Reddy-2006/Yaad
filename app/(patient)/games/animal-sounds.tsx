@@ -19,7 +19,7 @@ import {
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
 import { Typography } from '../../../components/common/Typography';
 import { ListenButton } from '../../../components/common/ListenButton';
-import { GameResultModal } from '../../../components/games/GameResultModal';
+import { GameResultModal, LeaveGameModal } from '../../../components/games/GameResultModal';
 import {
   DogIllustration,
   CatIllustration,
@@ -439,46 +439,15 @@ export default function AnimalSoundsGameScreen() {
       )}
 
       {/* Leave Modal */}
-      <Modal visible={showLeaveModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalIconCircle}>
-              <LogOut size={32} color="#DC2626" />
-            </View>
-            <Typography size="lg" weight="bold" align="center" style={{ marginTop: SPACING.sm }}>
-              {t('leave_game_title') || 'Leave this game?'}
-            </Typography>
-            <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: 6, lineHeight: 20 }}>
-              {t('leave_game_desc') || 'Your current game progress will not be saved.'}
-            </Typography>
-
-            <View style={styles.modalButtonsStack}>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => setShowLeaveModal(false)}
-                style={styles.continueModalBtn}
-              >
-                <Typography size="base" weight="bold" color="#FFFFFF">
-                  {t('continue_playing') || 'CONTINUE PLAYING'}
-                </Typography>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => {
-                  setShowLeaveModal(false);
-                  router.back();
-                }}
-                style={styles.leaveModalBtn}
-              >
-                <Typography size="sm" weight="bold" color="#DC2626">
-                  {t('leave_game') || 'LEAVE GAME'}
-                </Typography>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <LeaveGameModal
+        visible={showLeaveModal}
+        gameTitle="Animal Sounds"
+        onCancel={() => setShowLeaveModal(false)}
+        onConfirm={() => {
+          setShowLeaveModal(false);
+          router.replace('/(patient)/games');
+        }}
+      />
     </ScreenContainer>
   );
 }
@@ -606,61 +575,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 4,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: SPACING.md,
-  },
-  modalCard: {
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  modalIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: '#FEE2E2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalButtonsStack: {
-    width: '100%',
-    marginTop: SPACING.lg,
-    gap: SPACING.sm,
-  },
-  continueModalBtn: {
-    width: '100%',
-    backgroundColor: '#16A34A',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#16A34A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  leaveModalBtn: {
-    width: '100%',
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1.5,
-    borderColor: '#FECDD3',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

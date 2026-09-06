@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Modal, TouchableOpacity, useWindowDimensions } from 'react-native';
-import { Trophy, Star, Target, Clock, ArrowRight, Home, Sparkles } from 'lucide-react-native';
+import { Trophy, Star, Target, Clock, ArrowRight, Home, Sparkles, AlertCircle, LogOut } from 'lucide-react-native';
 import { Typography } from '../common/Typography';
 import { COLORS, SPACING } from '../../constants/theme';
 import { GameResult } from '../../types';
@@ -58,95 +58,96 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
 
           {/* 2. Congratulations Titles */}
           <Typography size={isCompactScreen ? "lg" : "xl"} weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-            {t('great_job') || 'Great Job!'}
+            {accuracy === 100 ? (t('perfect_memory') || '🌟 Perfect Memory!') : (t('great_effort') || '🎉 Great Job!')}
           </Typography>
-          <Typography size="sm" align="center" color={COLORS.primary} weight="bold" style={{ marginTop: 2 }}>
-            {t('well_done') || 'Well done! Level complete.'}
+          <Typography size="xs" color={COLORS.textSecondary} align="center" style={{ marginTop: 2, marginBottom: isCompactScreen ? SPACING.sm : SPACING.md }}>
+            {t('game_completed_sub') || 'You finished this cognitive round successfully.'}
           </Typography>
 
-          {/* 3. Compact 3-Stat Metric Row */}
+          {/* 3. Three Metrics in Clean Row */}
           <View
             style={[
               styles.metricsCard,
               {
-                backgroundColor: isHc ? COLORS.hcBackground : '#F8FAFC',
-                paddingVertical: isCompactScreen ? 10 : SPACING.md,
-                marginVertical: isCompactScreen ? 10 : SPACING.md,
+                backgroundColor: isHc ? '#1E293B' : '#F8FAFC',
+                borderColor: isHc ? COLORS.hcBorder : '#E2E8F0',
+                paddingVertical: isCompactScreen ? 8 : 10,
+                marginBottom: isCompactScreen ? SPACING.sm : SPACING.md,
               },
             ]}
           >
-            {/* Stat 1: Score */}
+            {/* Score */}
             <View style={styles.statCol}>
-              <View style={[styles.statIconCircle, { backgroundColor: '#DCFCE7' }]}>
-                <Star size={16} color="#16A34A" />
+              <View style={[styles.statIconCircle, { backgroundColor: '#FEF3C7' }]}>
+                <Star size={16} color="#D97706" />
               </View>
-              <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 4 }}>
-                {t('your_score') || 'Score'}
-              </Typography>
-              <Typography size="base" weight="bold" color="#16A34A">
+              <Typography size={isCompactScreen ? "base" : "lg"} weight="bold" color="#D97706" style={{ marginTop: 2 }}>
                 {score}
               </Typography>
+              <Typography size="xs" color={COLORS.textMuted}>
+                {t('stat_score') || 'Points'}
+              </Typography>
             </View>
 
             <View style={styles.statDivider} />
 
-            {/* Stat 2: Accuracy */}
+            {/* Accuracy */}
             <View style={styles.statCol}>
-              <View style={[styles.statIconCircle, { backgroundColor: '#DBEAFE' }]}>
-                <Target size={16} color="#2563EB" />
+              <View style={[styles.statIconCircle, { backgroundColor: '#DCFCE7' }]}>
+                <Target size={16} color="#16A34A" />
               </View>
-              <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 4 }}>
-                {t('accuracy') || 'Accuracy'}
-              </Typography>
-              <Typography size="base" weight="bold" color="#2563EB">
+              <Typography size={isCompactScreen ? "base" : "lg"} weight="bold" color="#16A34A" style={{ marginTop: 2 }}>
                 {accuracy}%
               </Typography>
+              <Typography size="xs" color={COLORS.textMuted}>
+                {t('stat_accuracy') || 'Accuracy'}
+              </Typography>
             </View>
 
             <View style={styles.statDivider} />
 
-            {/* Stat 3: Time Taken */}
+            {/* Time */}
             <View style={styles.statCol}>
-              <View style={[styles.statIconCircle, { backgroundColor: '#EDE9FE' }]}>
-                <Clock size={16} color="#7C3AED" />
+              <View style={[styles.statIconCircle, { backgroundColor: '#EFF6FF' }]}>
+                <Clock size={16} color="#2563EB" />
               </View>
-              <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 4 }}>
-                {t('time_taken') || 'Time'}
-              </Typography>
-              <Typography size="base" weight="bold" color="#7C3AED">
+              <Typography size={isCompactScreen ? "base" : "lg"} weight="bold" color="#2563EB" style={{ marginTop: 2 }}>
                 {timeSecs}s
+              </Typography>
+              <Typography size="xs" color={COLORS.textMuted}>
+                {t('stat_time') || 'Time'}
               </Typography>
             </View>
           </View>
 
-          {/* 4. Cheerful Encouragement Card (Sharper corners) */}
+          {/* 4. Encouragement Banner */}
           <View
             style={[
               styles.cheerCard,
               {
-                marginBottom: isCompactScreen ? 10 : SPACING.md,
-                paddingVertical: isCompactScreen ? 8 : 10,
+                paddingVertical: isCompactScreen ? 6 : 8,
+                marginBottom: isCompactScreen ? SPACING.md : SPACING.lg,
               },
             ]}
           >
-            <Sparkles size={16} color="#D97706" style={{ marginRight: 6, flexShrink: 0 }} />
-            <Typography size="xs" weight="bold" color="#92400E" align="center" style={{ flexShrink: 1 }}>
-              {t('brain_stronger_msg') || 'Every game keeps your brain active & sharp!'}
+            <Sparkles size={16} color="#D97706" style={{ marginRight: 6 }} />
+            <Typography size="xs" weight="bold" color="#B45309" align="center">
+              {t('brain_workout_cheer') || 'Daily brain exercise keeps memory sharp!'}
             </Typography>
           </View>
 
-          {/* 5. Action Buttons (Crisp, sharp corners) */}
+          {/* 5. Action Buttons Stack */}
           <View style={styles.actionsStack}>
-            {/* Primary Action Button: NEXT LEVEL */}
+            {/* Primary Action Button: Play Again / Next Level */}
             <TouchableOpacity
               activeOpacity={0.88}
               onPress={onPlayAgain}
               style={[styles.primaryActionBtn, { paddingVertical: isCompactScreen ? 12 : 14 }]}
             >
-              <Typography size="base" weight="bold" color="#FFFFFF">
-                {playAgainLabel || t('next_level') || 'NEXT LEVEL'}
+              <Typography size="base" weight="bold" color="#FFFFFF" style={{ marginRight: 6 }}>
+                {playAgainLabel || t('play_again') || 'Play Next Round'}
               </Typography>
-              <ArrowRight size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
+              <ArrowRight size={18} color="#FFFFFF" strokeWidth={2.5} />
             </TouchableOpacity>
 
             {/* Secondary Action Button: Back to Games */}
@@ -167,6 +168,66 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
   );
 };
 
+// =============================================================
+// UNIFIED LEAVE GAME MODAL (Standardized across all Yaad games)
+// =============================================================
+
+export interface LeaveGameModalProps {
+  visible: boolean;
+  gameTitle?: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+export const LeaveGameModal: React.FC<LeaveGameModalProps> = ({
+  visible,
+  gameTitle = 'this game',
+  onCancel,
+  onConfirm,
+}) => {
+  const { preferences, t } = useAccessibilityStore();
+  const isHc = preferences.highContrast;
+
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={styles.leaveOverlay}>
+        <View style={[styles.leaveCard, { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF' }]}>
+          <AlertCircle size={44} color="#D97706" style={{ marginBottom: SPACING.sm }} />
+          <Typography size="lg" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
+            {t('leave_game_title') || 'Leave Game?'}
+          </Typography>
+          <Typography size="sm" color={COLORS.textSecondary} align="center" style={{ marginTop: 6, marginBottom: SPACING.lg }}>
+            {t('leave_game_msg') || `Are you sure you want to stop playing ${gameTitle}?`}
+          </Typography>
+          <View style={styles.leaveActionsRow}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              onPress={onCancel}
+              style={[styles.leaveCancelBtn, { borderColor: '#CBD5E1' }]}
+            >
+              <Typography size="sm" weight="bold" color="#475569">
+                {t('stay_here') || 'Stay & Play'}
+              </Typography>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              onPress={onConfirm}
+              style={styles.leaveConfirmBtn}
+            >
+              <LogOut size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+              <Typography size="sm" weight="bold" color="#FFFFFF">
+                {t('leave') || 'Leave'}
+              </Typography>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -176,7 +237,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
   },
   dialogCard: {
-    borderRadius: 16,
+    borderRadius: 8,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
@@ -188,7 +249,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   trophyCircle: {
-    borderRadius: 14,
+    borderRadius: 8,
     backgroundColor: '#FEF3C7',
     alignItems: 'center',
     justifyContent: 'center',
@@ -200,7 +261,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    borderRadius: 12,
+    borderRadius: 8,
     paddingHorizontal: SPACING.xs,
     borderWidth: 0,
   },
@@ -212,7 +273,7 @@ const styles = StyleSheet.create({
   statIconCircle: {
     width: 32,
     height: 32,
-    borderRadius: 8,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -228,7 +289,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FEF3C7',
     borderWidth: 0,
-    borderRadius: 10,
+    borderRadius: 6,
     paddingHorizontal: SPACING.md,
     width: '100%',
   },
@@ -241,7 +302,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#16A34A',
-    borderRadius: 12,
+    borderRadius: 8,
     shadowColor: '#16A34A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -252,6 +313,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 6,
+  },
+  leaveOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.md,
+  },
+  leaveCard: {
+    width: '90%',
+    maxWidth: 360,
+    borderRadius: 8,
+    padding: SPACING.lg,
+    alignItems: 'center',
+    elevation: 5,
+  },
+  leaveActionsRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    width: '100%',
+  },
+  leaveCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    alignItems: 'center',
+  },
+  leaveConfirmBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#DC2626',
+    paddingVertical: 12,
+    borderRadius: 6,
   },
 });

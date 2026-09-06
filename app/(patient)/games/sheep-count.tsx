@@ -32,7 +32,7 @@ import Svg, {
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
 import { Typography } from '../../../components/common/Typography';
 import { ListenButton } from '../../../components/common/ListenButton';
-import { GameResultModal } from '../../../components/games/GameResultModal';
+import { GameResultModal, LeaveGameModal } from '../../../components/games/GameResultModal';
 import { WalkingSheepIllustration } from '../../../components/illustrations/AnimalIllustrations';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
@@ -756,50 +756,15 @@ export default function SheepCountGameScreen() {
       </View>
 
       {/* Leave Confirmation Modal */}
-      <Modal visible={showLeaveModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF' }]}>
-            <View style={styles.modalIconCircle}>
-              <LogOut size={28} color="#DC2626" />
-            </View>
-
-            <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} style={{ marginTop: 12 }}>
-              {t('leave_game_title') || 'Leave Game?'}
-            </Typography>
-
-            <Typography size="sm" color={COLORS.textSecondary} align="center" style={{ marginTop: 6, lineHeight: 20 }}>
-              {t('leave_game_desc') || 'Your progress in this round will be lost.'}
-            </Typography>
-
-            <View style={styles.modalButtonsStack}>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                onPress={() => setShowLeaveModal(false)}
-                style={styles.continueModalBtn}
-              >
-                <Typography size="base" weight="bold" color="#FFFFFF">
-                  {t('continue_game') || 'Continue Playing'}
-                </Typography>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                onPress={() => {
-                  setShowLeaveModal(false);
-                  router.back();
-                }}
-                style={styles.leaveModalBtn}
-              >
-                <Typography size="sm" weight="semibold" color="#DC2626">
-                  {t('leave') || 'Exit Game'}
-                </Typography>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <LeaveGameModal
+        visible={showLeaveModal}
+        gameTitle="Count the Sheep"
+        onCancel={() => setShowLeaveModal(false)}
+        onConfirm={() => {
+          setShowLeaveModal(false);
+          router.back();
+        }}
+      />
 
       {/* Result Scorecard Modal */}
       <GameResultModal
@@ -926,61 +891,5 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: SPACING.md,
-  },
-  modalCard: {
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  modalIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 8,
-    backgroundColor: '#FEE2E2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalButtonsStack: {
-    width: '100%',
-    marginTop: SPACING.lg,
-    gap: SPACING.sm,
-  },
-  continueModalBtn: {
-    width: '100%',
-    backgroundColor: '#16A34A',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#16A34A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  leaveModalBtn: {
-    width: '100%',
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1.5,
-    borderColor: '#FECDD3',
-    paddingVertical: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
