@@ -44,10 +44,11 @@ export default function PatientHelpScreen() {
   const [isTranslatingRegional, setIsTranslatingRegional] = useState(false);
   const [regionalError, setRegionalError] = useState<string | null>(null);
 
-  // Feature 2: English -> Current App Language state
+  // Feature 2: English -> Target Indian Language state
   const [selectedEnglishTargetLang, setSelectedEnglishTargetLang] = useState<LanguageCode>(
     currentLanguage !== 'en' ? currentLanguage : 'hi'
   );
+  const [showEnglishTargetLangPicker, setShowEnglishTargetLangPicker] = useState(false);
   const [englishInput, setEnglishInput] = useState('');
   const [englishResult, setEnglishResult] = useState('');
   const [isTranslatingEnglish, setIsTranslatingEnglish] = useState(false);
@@ -99,13 +100,11 @@ export default function PatientHelpScreen() {
     setIsTranslatingEnglish(true);
     setEnglishError(null);
 
-    const targetLang = currentLanguage !== 'en' ? currentLanguage : selectedEnglishTargetLang;
-
     try {
       const translated = await TranslationService.translate(
         textToTranslate,
         'en',
-        targetLang
+        selectedEnglishTargetLang
       );
       setEnglishResult(translated);
     } catch (err: any) {
@@ -121,12 +120,11 @@ export default function PatientHelpScreen() {
   const currentAppLangInfo =
     INDIAN_LANGUAGES.find((l) => l.code === currentLanguage) || INDIAN_LANGUAGES[0];
 
-  const targetLang = currentLanguage !== 'en' ? currentLanguage : selectedEnglishTargetLang;
   const targetLangInfo =
-    INDIAN_LANGUAGES.find((l) => l.code === targetLang) || INDIAN_LANGUAGES[6];
+    INDIAN_LANGUAGES.find((l) => l.code === selectedEnglishTargetLang) || INDIAN_LANGUAGES[6];
 
   const isRegionalInputRtl = isRTLLanguage(selectedRegionalLang);
-  const isFeature2TargetRtl = isRTLLanguage(targetLang);
+  const isFeature2TargetRtl = isRTLLanguage(selectedEnglishTargetLang);
 
   return (
     <ScreenContainer scrollable={true} style={styles.container}>
@@ -215,7 +213,7 @@ export default function PatientHelpScreen() {
             { backgroundColor: isHc ? COLORS.hcCardBackground : '#FEE2E2', borderColor: '#FCA5A5' },
           ]}
         >
-          <View style={[styles.iconCircleBadge, { backgroundColor: '#DCFCE7' }]}>
+          <View style={[styles.iconCircleBadge, { backgroundColor: '#DC2626' }]}>
             <AlertTriangle size={32} color="#FFFFFF" />
           </View>
 
@@ -473,7 +471,7 @@ export default function PatientHelpScreen() {
           </View>
         </View>
 
-        {/* FEATURE 2: English → Current App Language */}
+        {/* FEATURE 2: English → Target Indian Language */}
         <View
           style={[
             styles.featureCard,
@@ -482,22 +480,62 @@ export default function PatientHelpScreen() {
         >
           <View style={styles.featureTitleRow}>
             <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-              {t('english_to_app_lang')}
+              English → Target Indian Language
             </Typography>
           </View>
 
-          {/* Current App Language Badge Indicator */}
-          <View style={styles.currentLangBadgeRow}>
-            <Typography size="xs" weight="bold" color={COLORS.textMuted}>
-              {t('current_app_lang')}{' '}
+          {/* Target Language Selector Dropdown Pill */}
+          <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: SPACING.xs }}>
+            Select Target Indian Language:
+          </Typography>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setShowEnglishTargetLangPicker(!showEnglishTargetLangPicker)}
+            style={[
+              styles.langSelectorPill,
+              { backgroundColor: isHc ? '#1F2937' : '#F8FAFC', borderColor: '#C084FC' },
+            ]}
+          >
+            <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#6D28D9'}>
+              {targetLangInfo.name} — {targetLangInfo.nativeName}
             </Typography>
-            <View style={styles.appLangPill}>
-              <Sparkles size={14} color="#7C3AED" style={{ marginRight: 4 }} />
-              <Typography size="xs" weight="bold" color="#6D28D9">
-                {currentAppLangInfo.name} ({currentAppLangInfo.nativeName})
-              </Typography>
-            </View>
-          </View>
+            <ChevronDown size={20} color={isHc ? COLORS.hcTextPrimary : COLORS.textMuted} />
+          </TouchableOpacity>
+
+          {/* Dropdown Options List */}
+          {showEnglishTargetLangPicker && (
+            <ScrollView style={styles.pickerScrollList} nestedScrollEnabled>
+              {REGIONAL_LANGUAGES.map((lang) => {
+                const isSelected = selectedEnglishTargetLang === lang.code;
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      setSelectedEnglishTargetLang(lang.code);
+                      setShowEnglishTargetLangPicker(false);
+                      setEnglishResult('');
+                      setEnglishError(null);
+                    }}
+                    style={[
+                      styles.pickerOptionItem,
+                      isSelected ? { backgroundColor: '#EDE9FE' } : null,
+                    ]}
+                  >
+                    <Typography
+                      size="sm"
+                      weight={isSelected ? 'bold' : 'medium'}
+                      color={isSelected ? '#6D28D9' : '#0F172A'}
+                    >
+                      {lang.name} — {lang.nativeName}
+                    </Typography>
+                    {isSelected && <Check size={18} color="#6D28D9" />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
 
           {/* English Text Input */}
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginTop: SPACING.md, marginBottom: 4 }}>
@@ -510,25 +548,37 @@ export default function PatientHelpScreen() {
               activeOpacity={0.7}
               onPress={() => {
                 setSelectedEnglishTargetLang('hi');
-                setEnglishInput('Please take your blood pressure medication after breakfast.');
+                setEnglishInput('It is time for your medicine');
                 setEnglishResult('');
                 setEnglishError(null);
               }}
               style={{ backgroundColor: '#F3E8FF', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE' }}
             >
-              <Text style={{ fontSize: 12, color: '#6B21A8', fontWeight: '700' }}>{t('sample_text')}: Meds</Text>
+              <Text style={{ fontSize: 12, color: '#6B21A8', fontWeight: '700' }}>{t('sample_text')}: Medicine</Text>
             </TouchableOpacity>
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => {
                 setSelectedEnglishTargetLang('te');
-                setEnglishInput('I have to go to the doctor today.');
+                setEnglishInput('Drink water');
                 setEnglishResult('');
                 setEnglishError(null);
               }}
               style={{ backgroundColor: '#ECFDF5', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#6EE7B7' }}
             >
-              <Text style={{ fontSize: 12, color: '#047857', fontWeight: '700' }}>{t('sample_text')}: Doctor</Text>
+              <Text style={{ fontSize: 12, color: '#047857', fontWeight: '700' }}>{t('sample_text')}: Water (Telugu)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                setSelectedEnglishTargetLang('ta');
+                setEnglishInput('Good morning');
+                setEnglishResult('');
+                setEnglishError(null);
+              }}
+              style={{ backgroundColor: '#E0F2FE', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#7DD3FC' }}
+            >
+              <Text style={{ fontSize: 12, color: '#0369A1', fontWeight: '700' }}>{t('sample_text')}: Tamil</Text>
             </TouchableOpacity>
           </View>
 
