@@ -23,21 +23,22 @@ import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 
 interface PictureItem {
   id: string;
-  title: string;
+  titleKey: string;
+  fallbackTitle: string;
   iconName: string;
   isTarget: boolean;
 }
 
 const ALL_PICTURES: PictureItem[] = [
-  { id: '1', title: 'Apple', iconName: 'Apple', isTarget: true },
-  { id: '2', title: 'Chair', iconName: 'HomeIcon', isTarget: true },
-  { id: '3', title: 'Flower', iconName: 'Flower2', isTarget: true },
-  { id: '4', title: 'Car', iconName: 'Car', isTarget: false },
-  { id: '5', title: 'Beach Ball', iconName: 'CircleDot', isTarget: false },
-  { id: '6', title: 'Umbrella', iconName: 'Umbrella', isTarget: false },
-  { id: '7', title: 'Tree', iconName: 'Trees', isTarget: false },
-  { id: '8', title: 'Cup', iconName: 'Coffee', isTarget: false },
-  { id: '9', title: 'Clock', iconName: 'Clock', isTarget: false },
+  { id: '1', titleKey: 'apple', fallbackTitle: 'Apple', iconName: 'Apple', isTarget: true },
+  { id: '2', titleKey: 'chair', fallbackTitle: 'Chair', iconName: 'HomeIcon', isTarget: true },
+  { id: '3', titleKey: 'flower', fallbackTitle: 'Flower', iconName: 'Flower2', isTarget: true },
+  { id: '4', titleKey: 'car', fallbackTitle: 'Car', iconName: 'Car', isTarget: false },
+  { id: '5', titleKey: 'beach_ball', fallbackTitle: 'Beach Ball', iconName: 'CircleDot', isTarget: false },
+  { id: '6', titleKey: 'umbrella', fallbackTitle: 'Umbrella', iconName: 'Umbrella', isTarget: false },
+  { id: '7', titleKey: 'tree', fallbackTitle: 'Tree', iconName: 'Trees', isTarget: false },
+  { id: '8', titleKey: 'cup', fallbackTitle: 'Cup', iconName: 'Coffee', isTarget: false },
+  { id: '9', titleKey: 'clock', fallbackTitle: 'Clock', iconName: 'Clock', isTarget: false },
 ];
 
 const renderIcon = (name: string, size: number, color: string) => {
@@ -67,7 +68,7 @@ const renderIcon = (name: string, size: number, color: string) => {
 
 export default function RememberPicturesGameScreen() {
   const router = useRouter();
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const [phase, setPhase] = useState<'LOOK' | 'TEST' | 'RESULT'>('LOOK');
@@ -115,7 +116,7 @@ export default function RememberPicturesGameScreen() {
   return (
     <ScreenContainer scrollable>
       <AppHeader
-        title="Remember Pictures"
+        title={t('remember_pictures')}
         showBack
       />
 
@@ -123,10 +124,10 @@ export default function RememberPicturesGameScreen() {
       <Card style={styles.instructionCard}>
         <Typography size="lg" weight="bold" align="center" color={COLORS.primaryDark}>
           {phase === 'LOOK'
-            ? 'Look at the pictures carefully for 5 seconds.'
+            ? t('memorize_pictures_instruction')
             : phase === 'TEST'
-            ? 'What did you see? Tap on the pictures.'
-            : 'Game Result'}
+            ? t('what_did_you_see')
+            : t('game_result')}
         </Typography>
       </Card>
 
@@ -135,6 +136,7 @@ export default function RememberPicturesGameScreen() {
         {ALL_PICTURES.map((item) => {
           const isSelected = selectedIds.includes(item.id);
           const iconColor = isSelected ? COLORS.primary : isHc ? COLORS.hcTextPrimary : COLORS.textPrimary;
+          const displayTitle = t(item.titleKey) || item.fallbackTitle;
 
           return (
             <TouchableOpacity
@@ -150,7 +152,7 @@ export default function RememberPicturesGameScreen() {
             >
               {renderIcon(item.iconName, 36, iconColor)}
               <Typography size="xs" weight="bold" align="center" style={{ marginTop: 4 }}>
-                {item.title}
+                {displayTitle}
               </Typography>
             </TouchableOpacity>
           );
@@ -166,7 +168,7 @@ export default function RememberPicturesGameScreen() {
             </Typography>
           </View>
           <Typography size="base" weight="semibold" color={COLORS.textMuted} style={{ marginTop: SPACING.xs }}>
-            Get ready...
+            {t('get_ready')}
           </Typography>
         </View>
       ) : null}
@@ -190,7 +192,7 @@ export default function RememberPicturesGameScreen() {
 
           {/* Submit Button */}
           <Button
-            title="Submit"
+            title={t('submit')}
             variant="primary"
             disabled={selectedIds.length !== 3}
             onPress={handleSubmit}
@@ -203,14 +205,14 @@ export default function RememberPicturesGameScreen() {
       {phase === 'RESULT' ? (
         <Card style={styles.resultCard}>
           <Typography size="xxl" weight="bold" align="center" color={COLORS.primary}>
-            Score: {score} / 3
+            {t('score_label')}: {score} / 3
           </Typography>
           <Typography size="base" color={COLORS.textMuted} align="center" style={{ marginTop: 4 }}>
-            {score === 3 ? 'Perfect Memory!' : 'Keep practicing every day.'}
+            {score === 3 ? t('perfect_memory') : t('keep_practicing')}
           </Typography>
 
           <Button
-            title="Play Again"
+            title={t('play_again')}
             variant="primary"
             icon={<RefreshCw size={22} color="#FFFFFF" />}
             onPress={handleRestart}

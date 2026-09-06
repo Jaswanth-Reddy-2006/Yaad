@@ -9,7 +9,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const [identifier, setIdentifier] = useState('');
@@ -30,7 +30,7 @@ export default function ForgotPasswordScreen() {
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.backButton}
@@ -41,17 +41,17 @@ export default function ForgotPasswordScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-          Forgot Password
+          {t('forgot_password') || 'Forgot Password'}
         </Typography>
         <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 4, marginBottom: SPACING.lg, lineHeight: 20 }}>
-          Enter your email or phone number and we'll send you a link to reset your password.
+          {t('forgot_password_desc') || "Enter your email or phone number and we'll send you a link to reset your password."}
         </Typography>
 
         {sent ? (
           <View style={styles.successBanner}>
             <CheckCircle2 size={24} color={COLORS.primary} style={{ marginRight: 8 }} />
             <Typography size="xs" color={COLORS.primaryDark} style={{ flex: 1 }}>
-              Reset link sent! Please check your inbox or SMS messages.
+              {t('reset_link_sent') || 'Reset link sent! Please check your inbox or SMS messages.'}
             </Typography>
           </View>
         ) : null}
@@ -59,7 +59,7 @@ export default function ForgotPasswordScreen() {
         {/* Input */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Email or Phone Number
+            {t('email_or_phone') || 'Email or Phone Number'}
           </Typography>
           <View style={styles.inputWrapper}>
             <Mail size={20} color={COLORS.textMuted} style={{ marginLeft: 12, marginRight: 8 }} />
@@ -75,7 +75,7 @@ export default function ForgotPasswordScreen() {
         </View>
 
         <Button
-          title={loading ? 'Sending...' : 'Send Reset Link'}
+          title={loading ? (t('loading') || 'Sending...') : (t('send_reset_link') || 'Send Reset Link')}
           variant="primary"
           disabled={loading || sent}
           onPress={handleSendLink}
@@ -95,9 +95,9 @@ export default function ForgotPasswordScreen() {
           style={styles.loginLink}
         >
           <Typography size="sm" color={COLORS.textMuted} align="center">
-            Remember your password?{' '}
+            {t('remember_password_q') || 'Remember your password?'}{' '}
             <Typography size="sm" weight="bold" color={COLORS.primary}>
-              Login Now
+              {t('login_now') || 'Login Now'}
             </Typography>
           </Typography>
         </TouchableOpacity>

@@ -9,7 +9,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
 export default function RegistrationSuccessScreen() {
   const router = useRouter();
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   return (
@@ -26,15 +26,15 @@ export default function RegistrationSuccessScreen() {
         </View>
 
         <Typography size="xxl" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} style={{ marginTop: SPACING.lg }}>
-          Registration Successful!
+          {t('registration_success') || 'Registration Successful!'}
         </Typography>
 
         <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: SPACING.xs, lineHeight: 22, paddingHorizontal: SPACING.md }}>
-          Welcome to Yaad. You can now login and start your journey of care and connection.
+          {t('registration_success_desc') || 'Welcome to Yaad. You can now login and start your journey of care and connection.'}
         </Typography>
 
         <Button
-          title="Go to Login"
+          title={t('go_to_login') || 'Go to Login'}
           variant="primary"
           onPress={() => router.replace('/auth/login')}
           style={styles.goToLoginBtn}

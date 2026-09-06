@@ -11,7 +11,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const [identifier, setIdentifier] = useState('');
@@ -72,10 +72,10 @@ export default function LoginScreen() {
         </View>
 
         <Typography size="xxl" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} style={{ marginTop: SPACING.md }}>
-          Welcome Back
+          {t('welcome_back') || 'Welcome Back'}
         </Typography>
         <Typography size="xs" color={COLORS.textMuted} align="center" style={{ marginTop: 4, marginBottom: SPACING.lg }}>
-          Login to continue your journey of care and connection
+          {t('login_subtitle') || 'Login to continue your journey of care and connection'}
         </Typography>
 
         {/* Input 1: Email or Phone */}
@@ -88,7 +88,7 @@ export default function LoginScreen() {
                 setIdentifier(text);
                 if (errorMsg) setErrorMsg('');
               }}
-              placeholder="Email or Phone Number"
+              placeholder={t('email_or_phone') || 'Email or Phone Number'}
               placeholderTextColor={COLORS.textMuted}
               autoCapitalize="none"
               style={[styles.input, { flex: 1, borderWidth: 0 }]}
@@ -106,7 +106,7 @@ export default function LoginScreen() {
                 setPassword(text);
                 if (errorMsg) setErrorMsg('');
               }}
-              placeholder="Password"
+              placeholder={t('password') || 'Password'}
               placeholderTextColor={COLORS.textMuted}
               secureTextEntry={!showPassword}
               style={[styles.input, { flex: 1, borderWidth: 0 }]}
@@ -140,20 +140,20 @@ export default function LoginScreen() {
               <Square size={18} color={COLORS.textMuted} style={{ marginRight: 6 }} />
             )}
             <Typography size="xs" color={COLORS.textMuted}>
-              Remember me
+              {t('remember_me') || 'Remember me'}
             </Typography>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
             <Typography size="xs" weight="semibold" color={COLORS.gameBlue}>
-              Forgot Password?
+              {t('forgot_password_q') || 'Forgot Password?'}
             </Typography>
           </TouchableOpacity>
         </View>
 
         {/* Primary Login Button */}
         <Button
-          title={loading ? 'Logging in...' : 'Login'}
+          title={loading ? (t('loading') || 'Logging in...') : (t('login') || 'Login')}
           variant="primary"
           disabled={loading}
           onPress={handleLogin}
@@ -164,7 +164,7 @@ export default function LoginScreen() {
         <View style={styles.dividerRow}>
           <View style={styles.dividerLine} />
           <Typography size="xs" color={COLORS.textMuted} style={{ marginHorizontal: SPACING.md }}>
-            or continue with
+            {t('or_continue_with') || 'or continue with'}
           </Typography>
           <View style={styles.dividerLine} />
         </View>
@@ -191,9 +191,9 @@ export default function LoginScreen() {
           style={styles.signupLink}
         >
           <Typography size="sm" color={COLORS.textMuted} align="center">
-            Don't have an account?{' '}
+            {t('dont_have_account') || "Don't have an account?"}{' '}
             <Typography size="sm" weight="bold" color={COLORS.gameBlue}>
-              Sign Up
+              {t('sign_up') || 'Sign Up'}
             </Typography>
           </Typography>
         </TouchableOpacity>

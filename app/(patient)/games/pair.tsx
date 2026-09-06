@@ -69,7 +69,7 @@ export default function PairGameScreen() {
       {/* Header */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={handleBackPress}
           style={styles.backBtn}
@@ -78,7 +78,7 @@ export default function PairGameScreen() {
         </TouchableOpacity>
 
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} style={{ marginLeft: SPACING.xs }}>
-          {t('play_game')} • Match Pair ({difficulty})
+          {t('play_game')} • {t('match_the_pair')} ({difficulty})
         </Typography>
       </View>
 
@@ -86,7 +86,7 @@ export default function PairGameScreen() {
       <View style={styles.statsBar}>
         <View style={styles.statBox}>
           <Typography size="xs" color={COLORS.textMuted}>
-            Matched
+            {t('matched')}
           </Typography>
           <Typography size="lg" weight="bold" color="#16A34A">
             {gameState.matchesCount} / {gameState.totalRequiredMatches}
@@ -95,7 +95,7 @@ export default function PairGameScreen() {
 
         <View style={styles.statBox}>
           <Typography size="xs" color={COLORS.textMuted}>
-            Time
+            {t('time')}
           </Typography>
           <Typography size="lg" weight="bold" color="#2563EB">
             {formatTimer(gameState.elapsedSeconds)}
@@ -110,7 +110,7 @@ export default function PairGameScreen() {
         >
           <Sparkles size={18} color={hintDisabled ? COLORS.textMuted : '#D97706'} style={{ marginRight: 4 }} />
           <Typography size="xs" weight="bold" color={hintDisabled ? COLORS.textMuted : '#B45309'}>
-            Hint ({3 - gameState.hintsUsed})
+            {t('hint')} ({3 - gameState.hintsUsed})
           </Typography>
         </TouchableOpacity>
       </View>
@@ -132,7 +132,7 @@ export default function PairGameScreen() {
       <View style={styles.encouragementBox}>
         <Award size={20} color="#16A34A" style={{ marginRight: 8 }} />
         <Typography size="xs" color="#166534" weight="bold">
-          Great job! Take your time and flip matching pictures.
+          {t('great_job_encouragement')}
         </Typography>
       </View>
 
@@ -142,10 +142,10 @@ export default function PairGameScreen() {
           <View style={styles.modalCard}>
             <LogOut size={40} color="#DC2626" />
             <Typography size="xl" weight="bold" align="center" style={{ marginTop: SPACING.md }}>
-              Leave this game?
+              {t('leave_game_title')}
             </Typography>
             <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: 4 }}>
-              Your current progress will not be saved as completed.
+              {t('leave_game_desc')}
             </Typography>
 
             <View style={{ flexDirection: 'row', marginTop: SPACING.lg, gap: SPACING.sm }}>
@@ -155,7 +155,7 @@ export default function PairGameScreen() {
                 style={[styles.modalActionBtn, { backgroundColor: COLORS.surfaceVariant }]}
               >
                 <Typography size="sm" weight="bold" color="#0F172A">
-                  Continue Game
+                  {t('continue_game')}
                 </Typography>
               </TouchableOpacity>
               <TouchableOpacity
@@ -164,7 +164,7 @@ export default function PairGameScreen() {
                 style={[styles.modalActionBtn, { backgroundColor: '#DC2626' }]}
               >
                 <Typography size="sm" weight="bold" color="#FFFFFF">
-                  Leave
+                  {t('leave')}
                 </Typography>
               </TouchableOpacity>
             </View>
@@ -181,11 +181,11 @@ export default function PairGameScreen() {
             </View>
 
             <Typography size="xxl" weight="bold" align="center" style={{ marginTop: SPACING.md }}>
-              Wonderful Job!
+              {t('wonderful_job')}
             </Typography>
 
             <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: 4 }}>
-              You matched all {gameState.totalRequiredMatches} pairs in {formatTimer(gameState.elapsedSeconds)}!
+              {t('matched_all_pairs')} ({formatTimer(gameState.elapsedSeconds)})
             </Typography>
 
             <TouchableOpacity
@@ -195,7 +195,7 @@ export default function PairGameScreen() {
             >
               <RotateCcw size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
               <Typography size="base" weight="bold" color="#FFFFFF">
-                Play Next Level
+                {t('play_next_level')}
               </Typography>
             </TouchableOpacity>
 
@@ -205,7 +205,7 @@ export default function PairGameScreen() {
               style={{ marginTop: SPACING.md }}
             >
               <Typography size="sm" color={COLORS.textMuted} weight="bold">
-                Back to Games
+                {t('back_to_games')}
               </Typography>
             </TouchableOpacity>
           </View>

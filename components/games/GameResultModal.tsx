@@ -20,7 +20,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
   onPlayAgain,
   onGoHome,
 }) => {
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   if (!result) return null;
@@ -43,15 +43,15 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
 
           {/* Congratulations Title & Subtitle */}
           <Typography size="xxl" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-            Great Job!
+            {t('great_job')}
           </Typography>
 
           <Typography size="base" align="center" color={COLORS.textSecondary} style={{ marginTop: 4 }}>
-            You matched all the pairs.
+            {t('matched_all_pairs')}
           </Typography>
 
           <Typography size="lg" weight="bold" align="center" color={COLORS.primary} style={{ marginTop: 2 }}>
-            Well done!
+            {t('well_done')}
           </Typography>
 
           {/* 4-Stat Metric Performance Card (Matching Reference UI Image) */}
@@ -65,10 +65,10 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
                 </View>
                 <View style={{ marginLeft: SPACING.xs }}>
                   <Typography size="xs" color={COLORS.textMuted}>
-                    Your Score
+                    {t('your_score')}
                   </Typography>
                   <Typography size="xl" weight="bold" color={COLORS.primary}>
-                    {score} <Typography size="xs" weight="bold" color={COLORS.primary}>pts</Typography>
+                    {score} <Typography size="xs" weight="bold" color={COLORS.primary}>{t('pts')}</Typography>
                   </Typography>
                 </View>
               </View>
@@ -82,7 +82,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
                 </View>
                 <View style={{ marginLeft: SPACING.xs }}>
                   <Typography size="xs" color={COLORS.textMuted}>
-                    Accuracy
+                    {t('accuracy')}
                   </Typography>
                   <Typography size="xl" weight="bold" color={COLORS.gameBlue}>
                     {accuracy}%
@@ -102,10 +102,10 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
                 </View>
                 <View style={{ marginLeft: SPACING.xs }}>
                   <Typography size="xs" color={COLORS.textMuted}>
-                    Time Taken
+                    {t('time_taken')}
                   </Typography>
                   <Typography size="xl" weight="bold" color={COLORS.memoryPurple}>
-                    {timeSecs} <Typography size="xs" weight="bold" color={COLORS.memoryPurple}>sec</Typography>
+                    {timeSecs} <Typography size="xs" weight="bold" color={COLORS.memoryPurple}>{t('sec')}</Typography>
                   </Typography>
                 </View>
               </View>
@@ -119,7 +119,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
                 </View>
                 <View style={{ marginLeft: SPACING.xs }}>
                   <Typography size="xs" color={COLORS.textMuted}>
-                    Hints Used
+                    {t('hints_used')}
                   </Typography>
                   <Typography size="xl" weight="bold" color={COLORS.warning}>
                     {hints}
@@ -136,10 +136,10 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
             </View>
             <View style={{ flex: 1, marginLeft: SPACING.sm }}>
               <Typography size="base" weight="bold" color="#92400E">
-                Keep it up!
+                {t('keep_it_up')}
               </Typography>
               <Typography size="xs" color="#B45309" style={{ marginTop: 2, lineHeight: 18 }}>
-                You're doing amazing. Every game makes your brain stronger!
+                {t('brain_stronger_msg')}
               </Typography>
             </View>
           </View>
@@ -148,7 +148,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
           <View style={styles.actionButtonsContainer}>
             {/* Primary Solid Green: Play Again */}
             <Button
-              title="Play Again"
+              title={t('play_again')}
               variant="primary"
               icon={<RefreshCw size={22} color="#FFFFFF" />}
               onPress={onPlayAgain}
@@ -157,7 +157,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
 
             {/* Outline Green: Back to Home */}
             <Button
-              title="Back to Home"
+              title={t('back_to_home')}
               variant="outline"
               icon={<Home size={22} color={COLORS.primary} />}
               onPress={onGoHome}

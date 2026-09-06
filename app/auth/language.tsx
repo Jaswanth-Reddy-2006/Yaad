@@ -6,35 +6,25 @@ import { Typography } from '../../components/common/Typography';
 import { Button } from '../../components/common/Button';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useAccessibilityStore } from '../../store/useAccessibilityStore';
-
-interface LangOption {
-  id: string;
-  nativeName: string;
-  englishName: string;
-  isDefault?: boolean;
-}
-
-const LANGUAGES: LangOption[] = [
-  { id: 'en', nativeName: 'English', englishName: 'English', isDefault: true },
-  { id: 'hi', nativeName: 'हिंदी', englishName: 'Hindi' },
-  { id: 'mr', nativeName: 'मराठी', englishName: 'Marathi' },
-  { id: 'ta', nativeName: 'தமிழ்', englishName: 'Tamil' },
-  { id: 'te', nativeName: 'తెలుగు', englishName: 'Telugu' },
-  { id: 'bn', nativeName: 'বাংলা', englishName: 'Bengali' },
-];
+import { INDIAN_LANGUAGES, LanguageCode } from '../../constants/translations';
 
 export default function LanguageSelectScreen() {
   const router = useRouter();
-  const [selectedLang, setSelectedLang] = useState('en');
-  const { preferences } = useAccessibilityStore();
+  const { preferences, currentLanguage, setLanguage, t } = useAccessibilityStore();
+  const [selectedLang, setSelectedLang] = useState<LanguageCode>(currentLanguage || 'en');
   const isHc = preferences.highContrast;
+
+  const handleContinue = () => {
+    setLanguage(selectedLang);
+    router.push('/auth/role-select');
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: isHc ? COLORS.hcBackground : COLORS.background }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.backButton}
@@ -45,20 +35,21 @@ export default function LanguageSelectScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-          Choose Language
+          {t('choose_language')}
         </Typography>
         <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 4, marginBottom: SPACING.lg }}>
-          Select your preferred language
+          {t('select_language')} ({INDIAN_LANGUAGES.length})
         </Typography>
 
         {/* Radio Cards List */}
-        {LANGUAGES.map((lang) => {
-          const isSelected = selectedLang === lang.id;
+        {INDIAN_LANGUAGES.map((lang) => {
+          const isSelected = selectedLang === lang.code;
+          const isDefault = lang.code === 'en';
           return (
             <TouchableOpacity
-              key={lang.id}
+              key={lang.code}
               activeOpacity={0.8}
-              onPress={() => setSelectedLang(lang.id)}
+              onPress={() => setSelectedLang(lang.code)}
               style={[
                 styles.langCard,
                 isSelected ? styles.selectedCard : null,
@@ -76,14 +67,14 @@ export default function LanguageSelectScreen() {
                   {lang.nativeName}
                 </Typography>
                 <Typography size="xs" color={COLORS.textMuted}>
-                  {lang.englishName}
+                  {lang.name}
                 </Typography>
               </View>
 
-              {lang.isDefault ? (
+              {isDefault ? (
                 <View style={styles.defaultTag}>
                   <Typography size="xs" weight="bold" color={COLORS.primaryDark}>
-                    Default
+                    {t('default')}
                   </Typography>
                 </View>
               ) : null}
@@ -92,9 +83,9 @@ export default function LanguageSelectScreen() {
         })}
 
         <Button
-          title="Continue"
+          title={t('continue')}
           variant="primary"
-          onPress={() => router.push('/auth/role-select')}
+          onPress={handleContinue}
           style={styles.continueBtn}
         />
       </ScrollView>

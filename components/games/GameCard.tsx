@@ -71,7 +71,7 @@ export const GameCardComponent: React.FC<GameCardProps> = ({
   onSelect,
   disabled = false,
 }) => {
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const rotation = useSharedValue(0);
@@ -135,10 +135,12 @@ export const GameCardComponent: React.FC<GameCardProps> = ({
     ? COLORS.success
     : isHc ? COLORS.hcTextPrimary : COLORS.primary;
 
+  const displayTitle = t(card.symbolId) || card.title;
+
   const accessibleLabel = card.isMatched
-    ? `Matched ${card.title} card`
+    ? `Matched ${displayTitle} card`
     : isRevealed
-    ? `${card.title} card, position ${positionIndex + 1}`
+    ? `${displayTitle} card, position ${positionIndex + 1}`
     : `Hidden card, position ${positionIndex + 1}`;
 
   return (
@@ -175,7 +177,7 @@ export const GameCardComponent: React.FC<GameCardProps> = ({
         >
           <HelpCircle size={32} color={isHc ? COLORS.hcPrimary : COLORS.primary} />
           <Typography size="xs" weight="bold" color={isHc ? COLORS.hcPrimary : COLORS.primary} style={{ marginTop: 4 }}>
-            TAP
+            {t('tap')}
           </Typography>
         </Animated.View>
 
@@ -194,7 +196,7 @@ export const GameCardComponent: React.FC<GameCardProps> = ({
         >
           {renderIcon(card.iconName, 36, iconColor)}
           <Typography size="xs" weight="bold" color={iconColor} style={{ marginTop: 4 }}>
-            {card.title}
+            {displayTitle}
           </Typography>
         </Animated.View>
       </View>

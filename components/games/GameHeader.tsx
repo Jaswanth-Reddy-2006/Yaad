@@ -23,8 +23,8 @@ export interface GameHeaderProps {
 }
 
 export const GameHeader: React.FC<GameHeaderProps> = ({
-  title = 'Match the Pair',
-  subtitle = 'Find and match all the pairs!',
+  title,
+  subtitle,
   formattedTime,
   elapsedSeconds = 0,
   matchedPairs,
@@ -33,8 +33,11 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   totalRequiredMatches = 4,
 }) => {
   const router = useRouter();
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
+
+  const displayTitle = title || t('match_the_pair');
+  const displaySubtitle = subtitle || t('match_pair_sub');
 
   const displayTime = formattedTime || (() => {
     const mins = Math.floor(elapsedSeconds / 60);
@@ -50,7 +53,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
       {/* Top Header Row with Back Arrow, Centered Title, and Pink Brain Character */}
       <View style={styles.headerTopRow}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.backButton}
@@ -60,10 +63,10 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
 
         <View style={styles.titleWrapper}>
           <Typography size="xxl" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-            {title}
+            {displayTitle}
           </Typography>
           <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: 2 }}>
-            {subtitle}
+            {displaySubtitle}
           </Typography>
         </View>
 
@@ -85,7 +88,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
           </View>
           <View style={{ marginLeft: SPACING.xs }}>
             <Typography size="xs" color={COLORS.textMuted}>
-              Time
+              {t('time')}
             </Typography>
             <Typography size="xl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
               {displayTime}
@@ -102,7 +105,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
           </View>
           <View style={{ marginLeft: SPACING.xs }}>
             <Typography size="xs" color={COLORS.textMuted}>
-              Pairs Matched
+              {t('pairs_matched')}
             </Typography>
             <Typography size="xl" weight="bold" color={COLORS.primary}>
               {currentMatched} <Typography size="lg" color={COLORS.textMuted}>/ {currentTotal}</Typography>

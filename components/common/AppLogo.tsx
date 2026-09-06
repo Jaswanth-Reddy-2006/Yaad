@@ -10,7 +10,7 @@ export interface AppLogoProps {
 }
 
 export const AppLogo: React.FC<AppLogoProps> = ({ size = 'normal' }) => {
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const iconSize = size === 'large' ? 32 : 24;
@@ -31,7 +31,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({ size = 'normal' }) => {
         color={isHc ? COLORS.hcTextPrimary : COLORS.primary}
         style={{ marginLeft: SPACING.xs }}
       >
-        Yaad
+        {t('app_name')}
       </Typography>
     </View>
   );

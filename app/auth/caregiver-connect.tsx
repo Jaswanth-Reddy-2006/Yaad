@@ -9,7 +9,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
 export default function CaregiverConnectScreen() {
   const router = useRouter();
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const [code, setCode] = useState('');
@@ -45,11 +45,11 @@ export default function CaregiverConnectScreen() {
         </View>
 
         <Typography size="xxl" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-          Connect with Patient
+          {t('connect_with_patient') || 'Connect with Patient'}
         </Typography>
 
         <Typography size="xs" color={COLORS.textMuted} align="center" style={{ marginTop: 4, marginBottom: SPACING.lg, paddingHorizontal: SPACING.md }}>
-          As a caregiver, please connect with your patient by entering their 10-minute valid Connection Code or scanning their QR code.
+          {t('caregiver_connect_desc') || 'As a caregiver, please connect with your patient by entering their 10-minute valid Connection Code or scanning their QR code.'}
         </Typography>
 
         {success ? (
@@ -73,7 +73,7 @@ export default function CaregiverConnectScreen() {
         {/* Input: Connection Code */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Enter Patient Connection Code
+            {t('enter_patient_connection_code') || 'Enter Patient Connection Code'}
           </Typography>
           <TextInput
             value={code}
@@ -100,13 +100,13 @@ export default function CaregiverConnectScreen() {
         >
           <QrCode size={20} color={COLORS.primary} style={{ marginRight: 8 }} />
           <Typography size="sm" weight="bold" color={COLORS.primary}>
-            Scan Patient QR Code
+            {t('scan_patient_qr') || 'Scan Patient QR Code'}
           </Typography>
         </TouchableOpacity>
 
         {/* Pair Patient Action */}
         <Button
-          title={loading ? 'Verifying Code...' : 'Connect to Patient'}
+          title={loading ? (t('loading') || 'Verifying Code...') : (t('connect_to_patient') || 'Connect to Patient')}
           variant="primary"
           disabled={loading || success}
           onPress={handlePairing}

@@ -21,7 +21,7 @@ export default function SettingsScreen() {
       {/* Header: Back Arrow on Left + Bold Settings Title */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
-          accessibilityLabel="Go Back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.backBtn}
@@ -43,7 +43,7 @@ export default function SettingsScreen() {
           </View>
 
           <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} style={styles.cardTitleText}>
-            {isHc ? 'Dark Mode' : 'Light Mode'}
+            {isHc ? t('dark_mode') : t('light_mode')}
           </Typography>
 
           <Switch
