@@ -142,6 +142,8 @@ export const TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
     "remember_pictures_desc": "Look carefully and remember.",
     "find_three": "Find Three",
     "find_three_desc": "Find three pictures that belong together.",
+    "object_location": "Object–Location Memory",
+    "object_location_desc": "Memorize where each object is placed in the room, then recall its spot.",
     "story_recall": "Story Recall",
     "story_recall_desc": "Look at a short picture story, then answer simple questions about people, objects, and events.",
     "count_the_sheep": "Count the Sheep",

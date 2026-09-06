@@ -14,6 +14,7 @@ import {
   FollowTheCupBannerIllustration,
   CountSheepBannerIllustration,
   StoryRecallBannerIllustration,
+  ObjectLocationBannerIllustration,
 } from '../../../components/illustrations';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
@@ -37,6 +38,18 @@ export default function GamesHomeScreen() {
   const isHc = preferences.highContrast;
 
   const gamesList: GameItem[] = [
+    {
+      id: 'object-location',
+      name: t('object_location') || 'Object–Location Memory',
+      description: t('object_location_desc') || 'Memorize where each object is placed in the room, then recall its spot.',
+      speechText: 'Object–Location Memory. Look closely at where items are placed, and remember their locations in the room.',
+      cardBg: '#F0FDFA',
+      borderColor: '#99F6E4',
+      titleColor: '#0D9488',
+      btnBg: '#0D9488',
+      route: '/(patient)/games/object-location',
+      renderBanner: () => <ObjectLocationBannerIllustration height={130} />,
+    },
     {
       id: 'story-recall',
       name: t('story_recall') || 'Story Recall',

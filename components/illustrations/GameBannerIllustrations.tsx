@@ -608,6 +608,89 @@ export const StoryRecallBannerIllustration: React.FC<BannerProps> = ({ height = 
   </View>
 );
 
+/**
+ * 9. Object-Location Memory: Illustrated cozy room layout with spatial slots, objects placed on furniture, and location markers.
+ */
+export const ObjectLocationBannerIllustration: React.FC<BannerProps> = ({ height = 120 }) => (
+  <View style={[styles.container, { height }]}>
+    <Svg width="100%" height="100%" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet">
+      <Defs>
+        <LinearGradient id="olBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#F0FDFA" />
+          <Stop offset="50%" stopColor="#CCFBF1" />
+          <Stop offset="100%" stopColor="#99F6E4" />
+        </LinearGradient>
+        <LinearGradient id="slotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#FFFFFF" />
+          <Stop offset="100%" stopColor="#F0FDFA" />
+        </LinearGradient>
+      </Defs>
+
+      {/* Card Background */}
+      <Rect width="280" height="120" rx="14" fill="url(#olBg)" />
+
+      {/* Grid Floor Line Guide */}
+      <Path d="M 20 60 L 260 60" stroke="#5EEAD4" strokeWidth="1.5" strokeDasharray="4 4" />
+      <Path d="M 140 10 L 140 110" stroke="#5EEAD4" strokeWidth="1.5" strokeDasharray="4 4" />
+
+      {/* Spatial Slot 1: Top-Left (Bookshelf with Book) */}
+      <G transform="translate(30, 16)">
+        <Rect width="52" height="42" rx="8" fill="url(#slotGrad)" stroke="#0D9488" strokeWidth="2" />
+        {/* Bookshelf Icon Base */}
+        <Rect x="8" y="28" width="36" height="4" rx="1" fill="#78350F" />
+        {/* Red Book */}
+        <Rect x="14" y="14" width="10" height="14" rx="2" fill="#EF4444" />
+        <Rect x="26" y="12" width="12" height="16" rx="2" fill="#3B82F6" />
+      </G>
+
+      {/* Spatial Slot 2: Top-Right (Window with Flower) */}
+      <G transform="translate(198, 16)">
+        <Rect width="52" height="42" rx="8" fill="url(#slotGrad)" stroke="#0D9488" strokeWidth="2" />
+        {/* Flower pot */}
+        <Path d="M 18 26 L 34 26 L 31 36 L 21 36 Z" fill="#D97706" />
+        <Circle cx="26" cy="18" r="7" fill="#EC4899" />
+        <Circle cx="26" cy="18" r="3" fill="#FDE047" />
+      </G>
+
+      {/* Spatial Slot 3: Center Table (with Glasses) */}
+      <G transform="translate(114, 38)">
+        <Rect width="52" height="44" rx="8" fill="#FFFFFF" stroke="#0F766E" strokeWidth="2.5" />
+        {/* Table top icon */}
+        <Ellipse cx="26" cy="30" rx="20" ry="7" fill="#FED7AA" stroke="#EA580C" strokeWidth="1" />
+        {/* Glasses */}
+        <Circle cx="19" cy="23" r="4.5" stroke="#4F46E5" strokeWidth="1.5" fill="#EEF2FF" />
+        <Circle cx="33" cy="23" r="4.5" stroke="#4F46E5" strokeWidth="1.5" fill="#EEF2FF" />
+        <Path d="M 23.5 23 L 28.5 23" stroke="#4F46E5" strokeWidth="1.5" />
+      </G>
+
+      {/* Spatial Slot 4: Bottom-Left (Sofa with Apple) */}
+      <G transform="translate(30, 68)">
+        <Rect width="52" height="42" rx="8" fill="url(#slotGrad)" stroke="#0D9488" strokeWidth="2" />
+        {/* Sofa cushion */}
+        <Rect x="8" y="24" width="36" height="10" rx="3" fill="#3B82F6" />
+        {/* Apple */}
+        <Circle cx="26" cy="18" r="8" fill="#EF4444" />
+        <Path d="M 26 10 Q 28 6 30 7" stroke="#15803D" strokeWidth="1.5" fill="none" />
+      </G>
+
+      {/* Spatial Slot 5: Bottom-Right (Floor Rug with Cup) */}
+      <G transform="translate(198, 68)">
+        <Rect width="52" height="42" rx="8" fill="url(#slotGrad)" stroke="#0D9488" strokeWidth="2" />
+        {/* Rug */}
+        <Ellipse cx="26" cy="28" rx="18" ry="8" fill="#FBCFE8" stroke="#DB2777" strokeWidth="1" />
+        {/* Tea Cup */}
+        <Rect x="20" y="16" width="12" height="10" rx="2" fill="#D97706" />
+      </G>
+
+      {/* Memory Location Pin in center top */}
+      <G transform="translate(133, 10)">
+        <Circle cx="7" cy="7" r="7" fill="#F59E0B" />
+        <Path d="M 3 6 C 3 4 11 4 11 6 C 11 9 7 9 7 11 M 7 13 L 7 14" stroke="#FFFFFF" strokeWidth="1.5" fill="none" />
+      </G>
+    </Svg>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',
