@@ -50,7 +50,7 @@ type GamePhase = 'REVEAL' | 'COVER' | 'SHUFFLE' | 'PICK' | 'RESULT';
 /**
  * Solid 100% Opaque Purple Colored Glass SVG Illustration
  */
-const PurpleCupIllustration: React.FC<{ size: number }> = ({ size = 90 }) => (
+const PurpleCupIllustration: React.FC<{ size: number; isLifted?: boolean }> = ({ size = 90, isLifted = false }) => (
   <Svg width={size} height={size * 1.18} viewBox="0 0 100 118">
     <Defs>
       <LinearGradient id="purpleBody" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -96,7 +96,10 @@ const PurpleCupIllustration: React.FC<{ size: number }> = ({ size = 90 }) => (
 
     {/* Bottom Rim (Touching Table Surface) */}
     <Ellipse cx="50" cy="104" rx="42" ry="7" fill="#4C1D95" stroke="#3B0764" strokeWidth="3" />
-    <Ellipse cx="50" cy="104" rx="38" ry="5" fill="none" stroke="url(#goldRing)" strokeWidth="1.8" />
+    {/* Golden opening edge is visible ONLY when lifted up */}
+    {isLifted && (
+      <Ellipse cx="50" cy="104" rx="38" ry="5" fill="none" stroke="url(#goldRing)" strokeWidth="2.5" />
+    )}
   </Svg>
 );
 
@@ -501,6 +504,10 @@ export default function FollowTheCupGameScreen() {
               const isCorrect = isSelected && cup.isWinner;
               const isWrongChoice = isSelected && !cup.isWinner;
 
+              const isCupLifted =
+                (phase === 'REVEAL' && cup.isWinner) ||
+                (phase === 'RESULT' && (selectedCupId === cup.id || (isWrong && cup.isWinner)));
+
               return (
                 <Animated.View
                   key={`cup-${cup.id}`}
@@ -537,7 +544,7 @@ export default function FollowTheCupGameScreen() {
                         },
                       ]}
                     >
-                      <PurpleCupIllustration size={cupSize} />
+                      <PurpleCupIllustration size={cupSize} isLifted={isCupLifted} />
                     </Animated.View>
 
                     {/* Result Badges */}

@@ -397,6 +397,7 @@ export const FollowTheCupBannerIllustration: React.FC<BannerProps> = ({ height =
         <Path d="M 12 36 L 48 36" stroke="#F59E0B" strokeWidth="2.5" />
         <Ellipse cx="30" cy="8" rx="16" ry="4" fill="#A855F7" />
         <Ellipse cx="30" cy="50" rx="22" ry="6" fill="#3B0764" />
+        <Ellipse cx="30" cy="50" rx="19" ry="4" fill="none" stroke="#F59E0B" strokeWidth="2" />
       </G>
 
       {/* Right Purple Glass (Down) */}
