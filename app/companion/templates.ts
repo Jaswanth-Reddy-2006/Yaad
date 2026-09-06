@@ -1,10 +1,15 @@
 import { CompanionIntent, PatientContext } from './types';
 
+const UNKNOWN_VARIANTS = [
+  "I'm not sure I understood. Please ask me again.",
+  "I didn't quite understand that. Could you ask me again?",
+  "I'm not sure about that yet. Please try asking in another way.",
+];
+
 /**
- * Formats a clean, short, dementia-friendly response for a given intent and patient context.
- * Missing patient data produces gentle, safe, truthful fallbacks without inventing facts.
+ * Formats a clean, short, dementia-friendly response for a single intent.
  */
-export function generateResponse(
+export function generateSingleIntentResponse(
   intent: CompanionIntent,
   context: PatientContext = {}
 ): string {
@@ -42,6 +47,12 @@ export function generateResponse(
         return `Your caregiver is ${caregiverName}.`;
       }
       return 'Your caregiver is right here taking care of you.';
+
+    case 'WHERE_IS_CAREGIVER':
+      if (caregiverName) {
+        return `${caregiverName} is nearby and taking good care of you.`;
+      }
+      return 'Your caregiver is nearby and looking out for you.';
 
     case 'WHERE_AM_I':
       return location
@@ -105,6 +116,14 @@ export function generateResponse(
     case 'CONFUSED':
       return 'Take your time. You are safe, and everything is okay.';
 
+    case 'CANNOT_REMEMBER':
+      return 'It is completely okay to forget. I am right here with you.';
+
+    case 'LONELY':
+      return caregiverName
+        ? `I am right here with you, and ${caregiverName} is nearby.`
+        : 'I am right here with you, and you are surrounded by care.';
+
     case 'SCARED':
       return "You're safe. I'm here with you.";
 
@@ -114,7 +133,30 @@ export function generateResponse(
         : 'I am here to help you. You are safe.';
 
     case 'UNKNOWN':
-    default:
-      return "I'm not sure I understood. Please ask me again.";
+    default: {
+      const idx = Math.floor(Math.random() * UNKNOWN_VARIANTS.length);
+      return UNKNOWN_VARIANTS[idx] || UNKNOWN_VARIANTS[0];
+    }
   }
+}
+
+/**
+ * Generates a response, supporting multi-intent combinations and single intents.
+ */
+export function generateResponse(
+  intent: CompanionIntent,
+  context: PatientContext = {},
+  subIntents?: CompanionIntent[]
+): string {
+  if (intent === 'MULTI_INTENT' && subIntents && subIntents.length === 2) {
+    const resp1 = generateSingleIntentResponse(subIntents[0], context).replace(/\.$/, '');
+    let resp2 = generateSingleIntentResponse(subIntents[1], context);
+    // Lowercase the start of the second sentence for smooth conjunction
+    if (resp2.length > 0) {
+      resp2 = resp2.charAt(0).toLowerCase() + resp2.slice(1);
+    }
+    return `${resp1}, and ${resp2}`;
+  }
+
+  return generateSingleIntentResponse(intent, context);
 }

@@ -2,6 +2,7 @@ export type CompanionIntent =
   | 'GREETING'
   | 'WHO_AM_I'
   | 'WHO_IS_CAREGIVER'
+  | 'WHERE_IS_CAREGIVER'
   | 'WHERE_AM_I'
   | 'NEXT_MEDICINE'
   | 'WHAT_MEDICINE'
@@ -14,9 +15,21 @@ export type CompanionIntent =
   | 'GOOD_MORNING'
   | 'GOOD_NIGHT'
   | 'CONFUSED'
+  | 'CANNOT_REMEMBER'
   | 'SCARED'
+  | 'LONELY'
   | 'NEEDS_HELP'
+  | 'PERSON_QUERY'
+  | 'MULTI_INTENT'
   | 'UNKNOWN';
+
+export interface ExtractedEntities {
+  medicine?: string;
+  person?: string;
+  timeSlot?: 'morning' | 'afternoon' | 'evening' | 'night';
+  emotion?: string;
+  location?: string;
+}
 
 export interface PatientContext {
   patientName?: string;
@@ -33,17 +46,35 @@ export interface PatientContext {
   lastResponse?: string;
 }
 
+export interface ConversationTurn {
+  query: string;
+  normalizedQuery: string;
+  intent: CompanionIntent;
+  response: string;
+  entities?: ExtractedEntities;
+  timestamp: number;
+}
+
+export interface ConversationState {
+  history: ConversationTurn[];
+  previousIntent?: CompanionIntent;
+  previousTopic?: 'medicine' | 'caregiver' | 'identity' | 'location' | 'schedule' | 'game' | 'emotion';
+  previousEntities?: ExtractedEntities;
+}
+
 export interface CompanionResult {
   intent: CompanionIntent;
   confidence: number;
   response: string;
   normalizedQuery: string;
+  subIntents?: CompanionIntent[];
+  entities?: ExtractedEntities;
+  conversationState?: ConversationState;
 }
 
-export interface IntentRule {
+export interface MatchEvaluation {
   intent: CompanionIntent;
-  priority: number;
-  exactMatches?: string[];
-  patterns?: RegExp[];
-  requiredKeywords?: string[][]; // Array of keyword groups; all words in at least one group must be present
+  confidence: number;
+  entities?: ExtractedEntities;
+  subIntents?: CompanionIntent[];
 }

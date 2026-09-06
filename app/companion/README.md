@@ -1,55 +1,41 @@
 # Offline Dementia Companion Engine
 
-An isolated, lightweight, 100% deterministic offline companion engine connected safely to the local SQLite database.
+An isolated, lightweight, 100% deterministic offline companion engine connected safely to the local SQLite database, featuring advanced intent scoring, typo resilience, conversation context, entity extraction, and multi-intent reasoning.
 
 ## Architecture
 
 ```
 User Question
       ↓
-Normalize Question (lower, contractions, punctuation)
+Normalize & Typo Correction (lower, contractions, typos, punctuation)
       ↓
-Intent Detection (Exact match > Regex pattern > Keyword combinations + priority score)
+Multi-Intent / Follow-Up Detection (with rolling conversation context)
+      ↓
+Advanced Intent Scoring (Exact match > RegEx pattern > Synonym group synergy)
       ↓
 Existing Local Database (via PatientContextProvider)
       ↓
-Patient Context (display_name, reminders, daily_tasks, schedules)
+Personalized Dementia-Friendly Template Response
       ↓
-Response Generation (Dementia-friendly 1-sentence calm & reassuring template)
+Conversation Memory Update
       ↓
 Patient Response
 ```
 
-## Features
+## Key Capabilities
 - **100% Offline**: Zero external APIs, zero LLMs, zero ML weights, zero network calls.
-- **Fail-Safe Local DB Access**: Safe queries to existing SQLite tables (`patient_profile`, `reminders`, `daily_tasks`). Catches all errors gracefully without crashing or throwing.
-- **Truthful & Dementia-Friendly**: Never fabricates or hallucinates facts when data is missing; provides soothing single-sentence responses.
-- **Modular Separation**: The engine (`OfflineCompanionEngine.ts`) is completely separated from the data adapter (`PatientContextProvider.ts`).
-
-## Supported Intents
-1. `GREETING`
-2. `WHO_AM_I`
-3. `WHO_IS_CAREGIVER`
-4. `WHERE_AM_I`
-5. `NEXT_MEDICINE`
-6. `WHAT_MEDICINE`
-7. `NEXT_REMINDER`
-8. `TODAY_PLAN`
-9. `RECOMMEND_GAME`
-10. `RECOMMEND_ACTIVITY`
-11. `REPEAT`
-12. `THANK_YOU`
-13. `GOOD_MORNING`
-14. `GOOD_NIGHT`
-15. `CONFUSED`
-16. `SCARED`
-17. `NEEDS_HELP`
-18. `UNKNOWN`
+- **Typo & Phrasing Resilience**: Automatically handles common typing errors (e.g. `"whn is my medicne?"`), verb variations, and colloquial expressions.
+- **Multi-Turn Conversation Memory**: Resolves contextual follow-ups (e.g., *"When is my medicine?"* followed by *"What is it?"* or *"Who is my caregiver?"* followed by *"Where is she?"*).
+- **Compound / Multi-Intent Questions**: Understands dual requests (e.g., *"When is my medicine and who is my caregiver?"*) and synthesizes a smooth, calm single response.
+- **Dementia & Emotional Support**: Gentle, reassuring handling of confusion, fear (*"I'm scared"*), memory gaps (*"I can't remember"*), and loneliness (*"Nobody is here"*).
+- **Safe & Truthful Fallbacks**: Never hallucinates missing patient records or medical prescriptions; selects from a variety of gentle, safe unknown responses.
 
 ## Files in `app/companion/`
-- `PatientContextProvider.ts`: Reads real patient data safely from the local SQLite database.
-- `OfflineCompanionEngine.ts`: Unified engine class with `.process(query, context)` and async `.processWithDatabase(query)`.
-- `types.ts`: Core data structures and intent definitions.
-- `intents.ts`: Query normalization, intent matching rules, and confidence evaluation.
-- `templates.ts`: Dementia-friendly response templates and patient context interpolation with missing-data fallbacks.
-- `test_companion.ts`: Automated test suite covering seeded DB context, missing data, and DB error fallbacks.
+- `OfflineCompanionEngine.ts`: Unified entry point with sync/async pipelines and conversation state management.
+- `PatientContextProvider.ts`: Reads real patient data safely from local SQLite tables.
+- `intents.ts`: Advanced scoring engine, typo correction, multi-intent splitter, entity extractor, follow-up resolver.
+- `templates.ts`: Natural response variants, multi-intent combination, dementia-safe fallbacks.
+- `synonyms.ts`: Dictionaries for contractions, common typos, and structured synonym/phrase groups.
+- `context.ts`: Bounded rolling conversation history and topic manager.
+- `types.ts`: Core data structures, intent definitions, entity interfaces, and conversation states.
+- `test_companion.ts`: Comprehensive test suite testing all phrasings, typos, follow-ups, emotional queries, and multi-intent questions.
