@@ -463,7 +463,7 @@ export default function DailyRoutineRecallGameScreen() {
                   {/* Activity Details */}
                   <View style={{ flex: 1 }}>
                     <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#1E293B'}>
-                      {activity.name}
+                      {t(activity.id) || activity.name}
                     </Typography>
                     <View style={styles.timeTag}>
                       <Clock size={12} color="#64748B" style={{ marginRight: 4 }} />
@@ -554,7 +554,7 @@ export default function DailyRoutineRecallGameScreen() {
                     <>
                       <Typography size="lg" style={{ marginTop: 2 }}>{placed.icon}</Typography>
                       <Typography size="xs" weight="bold" numberOfLines={1} color="#15803D" style={{ marginTop: 2 }}>
-                        {placed.name}
+                        {t(placed.id) || placed.name}
                       </Typography>
                     </>
                   ) : (
@@ -616,7 +616,7 @@ export default function DailyRoutineRecallGameScreen() {
 
                   <View style={{ flex: 1 }}>
                     <Typography size="base" weight="bold" color={textColor}>
-                      {activity.name}
+                      {t(activity.id) || activity.name}
                     </Typography>
                     <Typography size="xs" color={COLORS.textSecondary}>
                       {activity.time}

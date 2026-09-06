@@ -185,9 +185,9 @@ export default function ColorSequenceScreen() {
           <ArrowLeft size={24} color="#15803D" strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Typography size="lg" weight="bold" color="#0F172A" align="center">Color Sequence</Typography>
+          <Typography size="lg" weight="bold" color="#0F172A" align="center">{t('color_sequence')}</Typography>
           <Typography size="xs" color={COLORS.textMuted} align="center">
-            {phase === 'WATCHING' ? 'Watch carefully...' : phase === 'TAPPING' ? `Tap ${playerTaps.length + 1} of ${sequence.length}` : phase === 'CORRECT_ROUND' ? '✓ Well done!' : ''}
+            {phase === 'WATCHING' ? t('watch_carefully') : phase === 'TAPPING' ? `${t('tap')} ${playerTaps.length + 1} / ${sequence.length}` : phase === 'CORRECT_ROUND' ? `✓ ${t('well_done')}` : ''}
           </Typography>
         </View>
         <ListenButton textToSpeak="Color Sequence. Watch the tiles light up then tap them in the same order!" size="sm" variant="secondary" />
@@ -195,12 +195,12 @@ export default function ColorSequenceScreen() {
       
       {/* Mistake indicators */}
       <View style={styles.mistakesRow}>
-        <Typography size="sm" color={COLORS.textSecondary}>Mistakes: </Typography>
+        <Typography size="sm" color={COLORS.textSecondary}>{t('mistakes')}: </Typography>
         {[0,1,2].map(i => (
           <View key={i} style={[styles.mistakeDot, { backgroundColor: i < mistakes ? '#EF4444' : '#E2E8F0' }]} />
         ))}
         <View style={styles.roundBadge}>
-          <Typography size="sm" weight="bold" color="#15803D">Round {correctRounds + 1}</Typography>
+          <Typography size="sm" weight="bold" color="#15803D">{t('round')} {correctRounds + 1}</Typography>
         </View>
       </View>
       
@@ -240,10 +240,10 @@ export default function ColorSequenceScreen() {
       
       {/* Status message */}
       <View style={styles.statusBox}>
-        {phase === 'READY' && <Typography size="base" color="#15803D" align="center">Get ready!</Typography>}
-        {phase === 'WATCHING' && <Typography size="base" weight="semibold" color="#D97706" align="center">👀 Watch the sequence...</Typography>}
-        {phase === 'TAPPING' && <Typography size="base" weight="semibold" color="#2563EB" align="center">👆 Tap in the same order!</Typography>}
-        {phase === 'CORRECT_ROUND' && <Typography size="lg" weight="bold" color="#16A34A" align="center">✓ Excellent!</Typography>}
+        {phase === 'READY' && <Typography size="base" color="#15803D" align="center">{t('get_ready')}</Typography>}
+        {phase === 'WATCHING' && <Typography size="base" weight="semibold" color="#D97706" align="center">👀 {t('watch_the_sequence')}</Typography>}
+        {phase === 'TAPPING' && <Typography size="base" weight="semibold" color="#2563EB" align="center">👆 {t('tap_in_same_order')}</Typography>}
+        {phase === 'CORRECT_ROUND' && <Typography size="lg" weight="bold" color="#16A34A" align="center">✓ {t('excellent')}</Typography>}
       </View>
       
       <LeaveGameModal

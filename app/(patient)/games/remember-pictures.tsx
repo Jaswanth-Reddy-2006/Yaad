@@ -278,7 +278,6 @@ export default function RememberPicturesGameScreen() {
 
         <ListenButton
           textToSpeak={currentSpeech}
-          label="LISTEN"
           size="sm"
           variant="secondary"
         />

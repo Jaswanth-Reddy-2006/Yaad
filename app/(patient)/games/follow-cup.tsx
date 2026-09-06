@@ -35,14 +35,14 @@ interface LevelConfig {
   cupCount: number; // 2, 3, or 4
   swapCount: number; // 3, 4, 5, 6
   swapDuration: number; // ms per swap
-  label: string;
+  labelKey: string;
 }
 
 const LEVEL_CONFIGS: Record<number, LevelConfig> = {
-  1: { level: 1, cupCount: 2, swapCount: 3, swapDuration: 750, label: 'Level 1 • 2 Glasses' },
-  2: { level: 2, cupCount: 3, swapCount: 4, swapDuration: 700, label: 'Level 2 • 3 Glasses' },
-  3: { level: 3, cupCount: 3, swapCount: 5, swapDuration: 600, label: 'Level 3 • 3 Glasses' },
-  4: { level: 4, cupCount: 4, swapCount: 6, swapDuration: 550, label: 'Level 4 • 4 Glasses' },
+  1: { level: 1, cupCount: 2, swapCount: 3, swapDuration: 750, labelKey: 'level_1_two_glasses' },
+  2: { level: 2, cupCount: 3, swapCount: 4, swapDuration: 700, labelKey: 'level_2_three_glasses' },
+  3: { level: 3, cupCount: 3, swapCount: 5, swapDuration: 600, labelKey: 'level_3_three_glasses' },
+  4: { level: 4, cupCount: 4, swapCount: 6, swapDuration: 550, labelKey: 'level_4_four_glasses' },
 };
 
 type GamePhase = 'REVEAL' | 'COVER' | 'SHUFFLE' | 'PICK' | 'RESULT';
@@ -441,17 +441,17 @@ export default function FollowTheCupGameScreen() {
 
         <View style={styles.headerCenter}>
           <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
-            {t('follow_the_cup') || 'Follow the Glass'}
+            {t('follow_the_cup')}
           </Typography>
           <View style={styles.levelPill}>
             <Typography size="xs" weight="bold" color="#6B21A8">
-              {activeConfig.label}
+              {t(activeConfig.labelKey)}
             </Typography>
           </View>
         </View>
 
         <ListenButton
-          textToSpeak={`Follow the Glass. ${activeConfig.label}. Watch where the ball is placed, follow the glasses as they move, and guess where it is.`}
+          textToSpeak={`${t('follow_the_cup')}. ${t(activeConfig.labelKey)}. ${t('watch_star_get_covered')}`}
           size="sm"
           variant="secondary"
         />
@@ -463,33 +463,33 @@ export default function FollowTheCupGameScreen() {
           <View style={styles.wrongBanner}>
             <AlertCircle size={22} color="#DC2626" />
             <Typography size="sm" weight="bold" color="#DC2626" style={{ marginLeft: 8 }}>
-              Not this glass! Look where it was.
+              {t('where_is_star')}
             </Typography>
           </View>
         ) : phase === 'REVEAL' ? (
           <View style={styles.phasePill}>
             <Eye size={18} color="#6B21A8" style={{ marginRight: 6 }} />
             <Typography size="sm" weight="bold" color="#6B21A8">
-              👀 Look at the ball! It is under this glass.
+              {t('watch_star_get_covered')}
             </Typography>
           </View>
         ) : phase === 'COVER' ? (
           <View style={[styles.phasePill, { backgroundColor: '#F3E8FF', borderColor: '#E9D5FF' }]}>
             <Lock size={18} color="#6B21A8" style={{ marginRight: 6 }} />
             <Typography size="sm" weight="bold" color="#6B21A8">
-              🔒 Glass lowered! Get ready...
+              {t('watch_glasses_carefully')}
             </Typography>
           </View>
         ) : phase === 'SHUFFLE' ? (
           <View style={[styles.phasePill, { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' }]}>
             <Sparkles size={18} color="#D97706" style={{ marginRight: 6 }} />
             <Typography size="sm" weight="bold" color="#B45309">
-              🔀 Shuffling the glasses... Keep your eyes on it!
+              {t('glasses_shuffling')}
             </Typography>
           </View>
         ) : (
           <Typography size="base" weight="bold" color="#0F172A" align="center">
-            🌟 Where is the ball? Tap the glass!
+            {t('tap_glass_with_star')}
           </Typography>
         )}
       </View>

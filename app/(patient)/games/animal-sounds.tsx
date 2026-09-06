@@ -146,14 +146,14 @@ interface LevelConfig {
   level: number;
   animalCount: number;
   cols: number;
-  label: string;
+  labelKey: string;
 }
 
 const LEVEL_CONFIGS: Record<number, LevelConfig> = {
-  1: { level: 1, animalCount: 2, cols: 2, label: 'Level 1 • 2 Animals' },
-  2: { level: 2, animalCount: 3, cols: 3, label: 'Level 2 • 3 Animals' },
-  3: { level: 3, animalCount: 4, cols: 2, label: 'Level 3 • 4 Animals' },
-  4: { level: 4, animalCount: 4, cols: 2, label: 'Level 4 • 4 Animals' },
+  1: { level: 1, animalCount: 2, cols: 2, labelKey: 'level_1_two_animals' },
+  2: { level: 2, animalCount: 3, cols: 3, labelKey: 'level_2_three_animals' },
+  3: { level: 3, animalCount: 4, cols: 2, labelKey: 'level_3_four_animals' },
+  4: { level: 4, animalCount: 4, cols: 2, labelKey: 'level_4_four_animals' },
 };
 
 export default function AnimalSoundsGameScreen() {
@@ -298,17 +298,17 @@ export default function AnimalSoundsGameScreen() {
 
         <View style={styles.headerCenter}>
           <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
-            {t('animal_sounds') || 'Animal Sounds'}
+            {t('animal_sounds')}
           </Typography>
           <View style={styles.levelPill}>
             <Typography size="xs" weight="bold" color="#D97706">
-              {activeLevelConfig.label}
+              {t(activeLevelConfig.labelKey)}
             </Typography>
           </View>
         </View>
 
         <ListenButton
-          textToSpeak={`Animal Sounds. ${activeLevelConfig.label}. Listen to the sound and tap the animal that made it.`}
+          textToSpeak={`${t('animal_sounds')}. ${t(activeLevelConfig.labelKey)}. ${t('listen_to_animal_sound')}`}
           size="sm"
           variant="secondary"
         />
@@ -329,10 +329,10 @@ export default function AnimalSoundsGameScreen() {
           </View>
           <View style={styles.soundTextCol}>
             <Typography size="base" weight="bold" color="#92400E">
-              🔊 Listen to the Sound
+              🔊 {t('listen_to_animal_sound')}
             </Typography>
             <Typography size="xs" color="#B45309" style={{ marginTop: 2 }}>
-              Tap here to hear it again
+              {t('listen')}
             </Typography>
           </View>
           <RotateCcw size={20} color="#D97706" />
@@ -345,12 +345,12 @@ export default function AnimalSoundsGameScreen() {
           <View style={styles.wrongBanner}>
             <AlertCircle size={22} color="#DC2626" />
             <Typography size="sm" weight="bold" color="#DC2626" style={{ marginLeft: 8 }}>
-              Wrong animal, try again!
+              {t('tap_matching_animal')}
             </Typography>
           </View>
         ) : (
           <Typography size="base" weight="bold" color="#0F172A" align="center">
-            🐾 Which animal made this noise?
+            🐾 {t('tap_matching_animal')}
           </Typography>
         )}
       </View>
@@ -407,7 +407,7 @@ export default function AnimalSoundsGameScreen() {
                   }
                   style={{ marginTop: SPACING.xs }}
                 >
-                  {animal.name}
+                  {t(animal.id) || animal.name}
                 </Typography>
 
                 {/* Status Badges */}

@@ -577,10 +577,10 @@ export default function ObjectLocationMemoryGameScreen() {
             </View>
             <View style={{ flex: 1, marginLeft: SPACING.sm }}>
               <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#134E4A'}>
-                {t('memorize_placements') || 'Look at the Living Room!'}
+                {t('remember_object_placements')}
               </Typography>
               <Typography size="xs" color={COLORS.textSecondary} style={{ marginTop: 2 }}>
-                {t('memorize_sub') || 'Remember where each item is placed.'}
+                {t('remember_object_placements')}
               </Typography>
             </View>
           </View>
@@ -591,11 +591,10 @@ export default function ObjectLocationMemoryGameScreen() {
             <View style={[styles.canvasWrapper, { width: sceneWidth, height: sceneHeight }]}>
               <LivingRoomSceneCanvas width={sceneWidth} height={sceneHeight} />
 
-              {/* Placed Objects Anchors Overlaid Directly on the Scene */}
-              {activeSlots.map((slot) => {
-                const matchedPlacement = placements.find((p) => p.location.id === slot.id);
-                if (!matchedPlacement) return null;
-                const ObjectComp = matchedPlacement.object.component;
+              {/* Render placed items as exact SVG illustrations */}
+              {placements.map((p) => {
+                const slot = p.location;
+                const ObjectComp = p.object.component;
                 const posX = slot.posX * scale;
                 const posY = slot.posY * scale;
                 const itemSize = Math.max(38, Math.round(48 * scale));
@@ -632,7 +631,7 @@ export default function ObjectLocationMemoryGameScreen() {
           >
             <Sparkles size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
             <Typography size="base" weight="bold" color="#FFFFFF">
-              {t('i_remember_btn') || "I'm Ready! Tap Questions 🎯"}
+              {t('ready_to_test')}
             </Typography>
           </TouchableOpacity>
         </View>
@@ -660,7 +659,7 @@ export default function ObjectLocationMemoryGameScreen() {
                 QUESTION {currentQuestionIdx + 1} OF {placements.length}
               </Typography>
               <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#1E1B4B'} style={{ marginTop: 2 }}>
-                Where was this item located?
+                {t('where_was_the_item')}
               </Typography>
             </View>
           </View>

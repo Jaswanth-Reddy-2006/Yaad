@@ -184,7 +184,7 @@ export default function PatientHelpScreen() {
               minimumFontScale={0.65}
               style={[styles.cardTitleText, { color: isHc ? COLORS.hcTextPrimary : '#B45309' }]}
             >
-              Testing Translation
+              {t('translation_test')}
             </Text>
           </View>
 

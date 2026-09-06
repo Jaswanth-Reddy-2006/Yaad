@@ -47,14 +47,14 @@ interface LevelConfig {
   exitCount: number;
   walkDurationMs: number;
   pauseBetweenSheepMs: number;
-  label: string;
+  labelKey: string;
 }
 
 const LEVEL_CONFIGS: Record<number, LevelConfig> = {
-  1: { level: 1, enterCount: 4, exitCount: 0, walkDurationMs: 2500, pauseBetweenSheepMs: 650, label: 'Level 1 • Going In' },
-  2: { level: 2, enterCount: 5, exitCount: 1, walkDurationMs: 2300, pauseBetweenSheepMs: 600, label: 'Level 2 • 1 Sheep Leaves' },
-  3: { level: 3, enterCount: 6, exitCount: 2, walkDurationMs: 2100, pauseBetweenSheepMs: 550, label: 'Level 3 • 2 Sheep Leave' },
-  4: { level: 4, enterCount: 7, exitCount: 3, walkDurationMs: 1900, pauseBetweenSheepMs: 500, label: 'Level 4 • 3 Sheep Leave' },
+  1: { level: 1, enterCount: 4, exitCount: 0, walkDurationMs: 2500, pauseBetweenSheepMs: 650, labelKey: 'level_1_going_in' },
+  2: { level: 2, enterCount: 5, exitCount: 1, walkDurationMs: 2300, pauseBetweenSheepMs: 600, labelKey: 'level_2_one_leaves' },
+  3: { level: 3, enterCount: 6, exitCount: 2, walkDurationMs: 2100, pauseBetweenSheepMs: 550, labelKey: 'level_3_two_leave' },
+  4: { level: 4, enterCount: 7, exitCount: 3, walkDurationMs: 1900, pauseBetweenSheepMs: 500, labelKey: 'level_4_three_leave' },
 };
 
 type GamePhase = 'WALK_IN' | 'WALK_OUT' | 'GUESS' | 'RESULT';
@@ -617,17 +617,17 @@ export default function SheepCountGameScreen() {
 
           <View style={styles.headerCenter}>
             <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
-              {t('count_the_sheep') || 'Count the Sheep'}
+              {t('count_the_sheep')}
             </Typography>
             <View style={styles.levelPill}>
               <Typography size="xs" weight="bold" color="#15803D">
-                {activeConfig.label}
+                {t(activeConfig.labelKey)}
               </Typography>
             </View>
           </View>
 
           <ListenButton
-            textToSpeak={`Count the Sheep. ${activeConfig.label}. Watch the sheep enter from the right, note any that leave to the left, and count how many remain inside.`}
+            textToSpeak={`${t('count_the_sheep')}. ${t(activeConfig.labelKey)}. ${t('watch_sheep_carefully')}`}
             size="sm"
             variant="secondary"
           />
@@ -646,21 +646,21 @@ export default function SheepCountGameScreen() {
             <View style={styles.phasePill}>
               <ArrowRight size={18} color="#15803D" style={{ marginRight: 6, transform: [{ rotate: '180deg' }] }} />
               <Typography size="sm" weight="bold" color="#15803D">
-                ⬅️ Sheep entering from the right...
+                {t('sheep_entering_right')}
               </Typography>
             </View>
           ) : phase === 'WALK_OUT' ? (
             <View style={[styles.phasePill, { backgroundColor: '#FFF7ED', borderColor: '#FED7AA' }]}>
               <ArrowLeftIcon size={18} color="#EA580C" style={{ marginRight: 6 }} />
               <Typography size="sm" weight="bold" color="#C2410C">
-                ⬅️ Watch! Sheep leaving to the left...
+                {t('sheep_leaving_left')}
               </Typography>
             </View>
           ) : (
             <View style={[styles.phasePill, { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' }]}>
               <HelpCircle size={18} color="#D97706" style={{ marginRight: 6 }} />
               <Typography size="sm" weight="bold" color="#B45309">
-                🏠 How many sheep are left inside?
+                {t('how_many_sheep_left_inside')}
               </Typography>
             </View>
           )}
@@ -716,7 +716,7 @@ export default function SheepCountGameScreen() {
         <View style={styles.choicesContainer}>
           <View style={styles.promptPill}>
             <Typography size="sm" color="#14532D" align="center" weight="bold">
-              {phase === 'GUESS' ? '🤔 Tap how many sheep are left inside:' : '👀 Watch the sheep carefully...'}
+              {phase === 'GUESS' ? t('tap_how_many_sheep_left') : t('watch_sheep_carefully')}
             </Typography>
           </View>
 

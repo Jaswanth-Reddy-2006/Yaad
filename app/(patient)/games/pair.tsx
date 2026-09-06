@@ -147,7 +147,6 @@ export default function PairGameScreen() {
 
         <ListenButton
           textToSpeak={voiceInstructions}
-          label="LISTEN"
           size="sm"
           variant="secondary"
         />

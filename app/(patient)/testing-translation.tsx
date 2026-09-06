@@ -21,7 +21,7 @@ const REGIONAL_LANGUAGES = INDIAN_LANGUAGES.filter((l) => l.code !== 'en');
 
 export default function TestingTranslationScreen() {
   const router = useRouter();
-  const { preferences, currentLanguage } = useAccessibilityStore();
+  const { preferences, currentLanguage, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   // Active translation tab mode: 'REGIONAL_TO_EN' | 'EN_TO_REGIONAL'
@@ -103,7 +103,7 @@ export default function TestingTranslationScreen() {
       {/* Top Header with Back Arrow */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.backSquareBtn}
@@ -112,7 +112,7 @@ export default function TestingTranslationScreen() {
         </TouchableOpacity>
 
         <Text style={[styles.headerTitleText, { color: isHc ? COLORS.hcTextPrimary : '#0F172A' }]}>
-          Testing Translation
+          {t('translation_test')}
         </Text>
       </View>
 
@@ -132,7 +132,7 @@ export default function TestingTranslationScreen() {
               activeTab === 'REGIONAL_TO_EN' ? styles.tabButtonTextActive : null,
             ]}
           >
-            Regional → English
+            {t('regional_to_english')}
           </Text>
         </TouchableOpacity>
 
@@ -150,7 +150,7 @@ export default function TestingTranslationScreen() {
               activeTab === 'EN_TO_REGIONAL' ? styles.tabButtonTextActive : null,
             ]}
           >
-            English → Regional
+            {t('english_to_regional')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -242,12 +242,12 @@ export default function TestingTranslationScreen() {
             {isTranslatingRegional ? (
               <View style={styles.btnRow}>
                 <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.btnText}>Translating...</Text>
+                <Text style={styles.btnText}>{t('translating')}</Text>
               </View>
             ) : (
               <View style={styles.btnRow}>
                 <Sparkles size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.btnText}>Translate to English</Text>
+                <Text style={styles.btnText}>{t('translate_to_english')}</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -276,7 +276,7 @@ export default function TestingTranslationScreen() {
               </Typography>
             ) : (
               <Typography size="sm" color={COLORS.textMuted} style={{ fontStyle: 'italic' }}>
-                Translation output...
+                {t('translation_placeholder_result')}
               </Typography>
             )}
           </View>
@@ -370,13 +370,13 @@ export default function TestingTranslationScreen() {
             {isTranslatingEnglish ? (
               <View style={styles.btnRow}>
                 <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.btnText}>Translating...</Text>
+                <Text style={styles.btnText}>{t('translating')}</Text>
               </View>
             ) : (
               <View style={styles.btnRow}>
                 <Sparkles size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
                 <Text style={styles.btnText}>
-                  Translate to {targetLangInfo.name}
+                  {t('translate_to')} {targetLangInfo.nativeName || targetLangInfo.name}
                 </Text>
               </View>
             )}
@@ -407,7 +407,7 @@ export default function TestingTranslationScreen() {
               </Typography>
             ) : (
               <Typography size="sm" color={COLORS.textMuted} style={{ fontStyle: 'italic' }}>
-                Translation output...
+                {t('translation_placeholder_result')}
               </Typography>
             )}
           </View>

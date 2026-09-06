@@ -286,7 +286,7 @@ export default function WordMatchGameScreen() {
                       : '#1E293B'
                   }
                 >
-                  {choice.name}
+                  {t(choice.id) || choice.name}
                 </Typography>
 
                 {isThisWrong && <XCircle size={24} color="#DC2626" />}

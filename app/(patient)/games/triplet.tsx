@@ -131,7 +131,6 @@ export default function MatchTripletGameScreen() {
 
         <ListenButton
           textToSpeak={voiceInstructions}
-          label="LISTEN"
           size="sm"
           variant="secondary"
         />

@@ -162,8 +162,8 @@ export default function GamesHomeScreen() {
     },
     {
       id: 'color-sequence',
-      name: 'Color Sequence',
-      description: 'Watch the colors light up one by one, then tap them back in the same order. Train your short-term memory!',
+      name: t('color_sequence') || 'Color Sequence',
+      description: t('color_sequence_desc') || 'Watch the colors light up one by one, then tap them back in order.',
       speechText: 'Color Sequence. Watch the colored tiles light up and remember the order. Then tap them back the same way!',
       cardBg: '#F0FDF4',
       borderColor: '#BBF7D0',

@@ -85,307 +85,309 @@ export interface StoryData {
   questions: StoryQuestion[];
 }
 
-const STORIES: StoryData[] = [
-  {
-    id: 'story-1',
-    title: "Grandpa's Morning Garden",
-    subtitle: 'A peaceful stroll among morning flowers',
-    badgeColor: '#16A34A',
-    cardBg: '#F0FDF4',
-    scenes: [
-      {
-        id: 's1-p1',
-        text: 'Early in the morning, Grandpa Anand wore his straw hat and stepped outside into the sunny garden.',
-        illustration: GrandpaGardenScene1,
-      },
-      {
-        id: 's1-p2',
-        text: 'He picked up his bright green watering can and gently watered the blooming red roses.',
-        illustration: GrandpaGardenScene2,
-      },
-      {
-        id: 's1-p3',
-        text: 'As Grandpa smiled, a friendly yellow butterfly fluttered down and landed right on his shoulder.',
-        illustration: GrandpaGardenScene3,
-      },
-    ],
-    questions: [
-      {
-        id: 'q1-1',
-        category: 'PEOPLE',
-        categoryLabel: 'Person',
-        categoryColor: '#2563EB',
-        questionText: 'Who went out into the sunny morning garden?',
-        options: [
-          { id: 'opt-1', label: 'Grandpa Anand', icon: '👴', isCorrect: true },
-          { id: 'opt-2', label: 'A young school teacher', icon: '👨‍🏫', isCorrect: false },
-          { id: 'opt-3', label: 'The village doctor', icon: '👨‍⚕️', isCorrect: false },
-        ],
-        explanation: 'Grandpa Anand walked into the morning garden.',
-      },
-      {
-        id: 'q1-2',
-        category: 'OBJECT',
-        categoryLabel: 'Object',
-        categoryColor: '#16A34A',
-        questionText: 'What color was Grandpa’s watering can?',
-        options: [
-          { id: 'opt-2', label: 'Dark Purple', icon: '💜', isCorrect: false },
-          { id: 'opt-1', label: 'Bright Green', icon: '💚', isCorrect: true },
-          { id: 'opt-3', label: 'Shiny Silver', icon: '🤍', isCorrect: false },
-        ],
-        explanation: 'Grandpa used a bright green watering can.',
-      },
-      {
-        id: 'q1-3',
-        category: 'OBJECT',
-        categoryLabel: 'Flowers',
-        categoryColor: '#E11D48',
-        questionText: 'Which flowers was Grandpa watering in the garden?',
-        options: [
-          { id: 'opt-2', label: 'Yellow Sunflowers', icon: '🌻', isCorrect: false },
-          { id: 'opt-3', label: 'White Lilies', icon: '🪷', isCorrect: false },
-          { id: 'opt-1', label: 'Blooming Red Roses', icon: '🌹', isCorrect: true },
-        ],
-        explanation: 'Grandpa watered the blooming red roses.',
-      },
-      {
-        id: 'q1-4',
-        category: 'EVENT',
-        categoryLabel: 'Event',
-        categoryColor: '#D97706',
-        questionText: 'What gentle creature landed on Grandpa’s shoulder?',
-        options: [
-          { id: 'opt-1', label: 'A Yellow Butterfly', icon: '🦋', isCorrect: true },
-          { id: 'opt-2', label: 'A Little Blue Bird', icon: '🐦', isCorrect: false },
-          { id: 'opt-3', label: 'A Green Grasshopper', icon: '🦗', isCorrect: false },
-        ],
-        explanation: 'A friendly yellow butterfly landed on his shoulder.',
-      },
-    ],
-  },
-  {
-    id: 'story-2',
-    title: "Maya's Cozy Afternoon Tea",
-    subtitle: 'A warm tea break with a furry friend',
-    badgeColor: '#7C3AED',
-    cardBg: '#FAF5FF',
-    scenes: [
-      {
-        id: 's2-p1',
-        text: 'On a quiet afternoon, Maya sat comfortably in her cozy blue armchair wearing her purple cardigan.',
-        illustration: MayaTeaScene1,
-      },
-      {
-        id: 's2-p2',
-        text: 'She poured warm chai from a golden teapot into her white cup and enjoyed a crispy biscuit.',
-        illustration: MayaTeaScene2,
-      },
-      {
-        id: 's2-p3',
-        text: 'Her fluffy ginger cat Leo curled up peacefully on the soft pink rug near her feet and fell fast asleep.',
-        illustration: MayaTeaScene3,
-      },
-    ],
-    questions: [
-      {
-        id: 'q2-1',
-        category: 'PEOPLE',
-        categoryLabel: 'Person',
-        categoryColor: '#2563EB',
-        questionText: 'What was the name of the lady enjoying tea?',
-        options: [
-          { id: 'opt-2', label: 'Sunita', icon: '👩‍🦱', isCorrect: false },
-          { id: 'opt-1', label: 'Maya', icon: '👩', isCorrect: true },
-          { id: 'opt-3', label: 'Radha', icon: '👵', isCorrect: false },
-        ],
-        explanation: 'Maya was sitting in the cozy armchair.',
-      },
-      {
-        id: 'q2-2',
-        category: 'OBJECT',
-        categoryLabel: 'Furniture',
-        categoryColor: '#0284C7',
-        questionText: 'What color was the cozy armchair Maya sat in?',
-        options: [
-          { id: 'opt-2', label: 'Green Wooden Bench', icon: '🪵', isCorrect: false },
-          { id: 'opt-3', label: 'Red Rocking Chair', icon: '🪑', isCorrect: false },
-          { id: 'opt-1', label: 'Blue Armchair', icon: '🛋️', isCorrect: true },
-        ],
-        explanation: 'Maya sat in a cozy blue armchair.',
-      },
-      {
-        id: 'q2-3',
-        category: 'EVENT',
-        categoryLabel: 'Animal',
-        categoryColor: '#EA580C',
-        questionText: 'Who curled up to sleep by Maya’s feet on the rug?',
-        options: [
-          { id: 'opt-1', label: 'Ginger Cat Leo', icon: '🐱', isCorrect: true },
-          { id: 'opt-2', label: 'Puppy Bruno', icon: '🐶', isCorrect: false },
-          { id: 'opt-3', label: 'A pet parrot', icon: '🦜', isCorrect: false },
-        ],
-        explanation: 'Her fluffy ginger cat Leo curled up to sleep.',
-      },
-      {
-        id: 'q2-4',
-        category: 'OBJECT',
-        categoryLabel: 'Food',
-        categoryColor: '#B45309',
-        questionText: 'What snack did Maya enjoy with her warm tea?',
-        options: [
-          { id: 'opt-2', label: 'A Fresh Apple', icon: '🍎', isCorrect: false },
-          { id: 'opt-1', label: 'A Crispy Biscuit', icon: '🍪', isCorrect: true },
-          { id: 'opt-3', label: 'A Bowl of Ice Cream', icon: '🍨', isCorrect: false },
-        ],
-        explanation: 'Maya enjoyed a crispy biscuit with her tea.',
-      },
-    ],
-  },
-  {
-    id: 'story-3',
-    title: "Raju's Picnic in the Park",
-    subtitle: 'A bicycle ride and lunch under the oak tree',
-    badgeColor: '#0284C7',
-    cardBg: '#F0F9FF',
-    scenes: [
-      {
-        id: 's3-p1',
-        text: 'Young Raju packed a red picnic basket with sweet yellow bananas and cold water for a fun outing.',
-        illustration: RajuPicnicScene1,
-      },
-      {
-        id: 's3-p2',
-        text: 'He rode his bright green bicycle down the park path all the way to the big oak tree by the pond.',
-        illustration: RajuPicnicScene2,
-      },
-      {
-        id: 's3-p3',
-        text: 'Under the cool shade of the tree, Raju spread a blue checkered blanket and shared bananas with his friend.',
-        illustration: RajuPicnicScene3,
-      },
-    ],
-    questions: [
-      {
-        id: 'q3-1',
-        category: 'OBJECT',
-        categoryLabel: 'Vehicle',
-        categoryColor: '#16A34A',
-        questionText: 'What color was the bicycle that Raju rode to the park?',
-        options: [
-          { id: 'opt-2', label: 'Dark Blue', icon: '🚲', isCorrect: false },
-          { id: 'opt-3', label: 'Bright Orange', icon: '🚲', isCorrect: false },
-          { id: 'opt-1', label: 'Bright Green', icon: '🚲', isCorrect: true },
-        ],
-        explanation: 'Raju rode his bright green bicycle.',
-      },
-      {
-        id: 'q3-2',
-        category: 'OBJECT',
-        categoryLabel: 'Food',
-        categoryColor: '#CA8A04',
-        questionText: 'What sweet fruit did Raju pack inside his red picnic basket?',
-        options: [
-          { id: 'opt-1', label: 'Sweet Yellow Bananas', icon: '🍌', isCorrect: true },
-          { id: 'opt-2', label: 'Red Apples', icon: '🍎', isCorrect: false },
-          { id: 'opt-3', label: 'Juicy Oranges', icon: '🍊', isCorrect: false },
-        ],
-        explanation: 'Raju packed sweet yellow bananas.',
-      },
-      {
-        id: 'q3-3',
-        category: 'EVENT',
-        categoryLabel: 'Place',
-        categoryColor: '#15803D',
-        questionText: 'Where did Raju stop and spread his picnic blanket?',
-        options: [
-          { id: 'opt-2', label: 'Inside a camping tent', icon: '⛺', isCorrect: false },
-          { id: 'opt-1', label: 'Under the Big Oak Tree', icon: '🌳', isCorrect: true },
-          { id: 'opt-3', label: 'On a rowboat in the lake', icon: '🚣', isCorrect: false },
-        ],
-        explanation: 'Raju stopped under the shade of the big oak tree.',
-      },
-      {
-        id: 'q3-4',
-        category: 'DETAIL',
-        categoryLabel: 'Pattern',
-        categoryColor: '#2563EB',
-        questionText: 'What color pattern was on the picnic blanket?',
-        options: [
-          { id: 'opt-2', label: 'Yellow Polka Dots', icon: '🟡', isCorrect: false },
-          { id: 'opt-3', label: 'Plain Red', icon: '🟥', isCorrect: false },
-          { id: 'opt-1', label: 'Blue Checkered', icon: '🟦', isCorrect: true },
-        ],
-        explanation: 'Raju spread a blue checkered blanket.',
-      },
-    ],
-  },
-  {
-    id: 'story-4',
-    title: "Anita's Sweet Mango Treat",
-    subtitle: 'Making homemade dessert in the sunny kitchen',
-    badgeColor: '#EA580C',
-    cardBg: '#FFF7ED',
-    scenes: [
-      {
-        id: 's4-p1',
-        text: 'Anita put on her bright orange apron and stepped into the sunlit kitchen ready to make a dessert.',
-        illustration: AnitaMangoScene1,
-      },
-      {
-        id: 's4-p2',
-        text: 'From a wooden bowl on the table, she selected three ripe, golden mangoes smelling sweet and fresh.',
-        illustration: AnitaMangoScene2,
-      },
-      {
-        id: 's4-p3',
-        text: 'She blended them with milk into delicious cold mango kulfi in glasses topped with green pistachios.',
-        illustration: AnitaMangoScene3,
-      },
-    ],
-    questions: [
-      {
-        id: 'q4-1',
-        category: 'PEOPLE',
-        categoryLabel: 'Clothing',
-        categoryColor: '#EA580C',
-        questionText: 'What color apron was Anita wearing in the kitchen?',
-        options: [
-          { id: 'opt-2', label: 'Dark Navy Blue', icon: '🟦', isCorrect: false },
-          { id: 'opt-1', label: 'Bright Orange', icon: '🟧', isCorrect: true },
-          { id: 'opt-3', label: 'Pure White', icon: '⬜', isCorrect: false },
-        ],
-        explanation: 'Anita wore a bright orange apron.',
-      },
-      {
-        id: 'q4-2',
-        category: 'DETAIL',
-        categoryLabel: 'Count',
-        categoryColor: '#CA8A04',
-        questionText: 'How many ripe golden mangoes did Anita pick from the bowl?',
-        options: [
-          { id: 'opt-2', label: 'One (1) Mango', icon: '🥭', isCorrect: false },
-          { id: 'opt-3', label: 'Five (5) Mangoes', icon: '🥭', isCorrect: false },
-          { id: 'opt-1', label: 'Three (3) Mangoes', icon: '🥭', isCorrect: true },
-        ],
-        explanation: 'Anita selected three ripe golden mangoes.',
-      },
-      {
-        id: 'q4-3',
-        category: 'EVENT',
-        categoryLabel: 'Dessert',
-        categoryColor: '#D97706',
-        questionText: 'What delicious sweet treat did Anita make for everyone?',
-        options: [
-          { id: 'opt-1', label: 'Cold Mango Kulfi', icon: '🍧', isCorrect: true },
-          { id: 'opt-2', label: 'Hot Chocolate Cake', icon: '🍫', isCorrect: false },
-          { id: 'opt-3', label: 'Warm Rice Pudding', icon: '🥣', isCorrect: false },
-        ],
-        explanation: 'Anita made delicious cold mango kulfi.',
-      },
-    ],
-  },
-];
+export function getStories(t: (key: string) => string): StoryData[] {
+  return [
+    {
+      id: 'story-1',
+      title: t('story_1_title'),
+      subtitle: t('story_1_sub'),
+      badgeColor: '#16A34A',
+      cardBg: '#F0FDF4',
+      scenes: [
+        {
+          id: 's1-p1',
+          text: t('story_1_s1'),
+          illustration: GrandpaGardenScene1,
+        },
+        {
+          id: 's1-p2',
+          text: t('story_1_s2'),
+          illustration: GrandpaGardenScene2,
+        },
+        {
+          id: 's1-p3',
+          text: t('story_1_s3'),
+          illustration: GrandpaGardenScene3,
+        },
+      ],
+      questions: [
+        {
+          id: 'q1-1',
+          category: 'PEOPLE',
+          categoryLabel: 'Person',
+          categoryColor: '#2563EB',
+          questionText: t('story_1_q1'),
+          options: [
+            { id: 'opt-1', label: t('grandpa_anand'), icon: '👴', isCorrect: true },
+            { id: 'opt-2', label: t('school_teacher'), icon: '👨‍🏫', isCorrect: false },
+            { id: 'opt-3', label: t('village_doctor'), icon: '👨‍⚕️', isCorrect: false },
+          ],
+          explanation: t('grandpa_anand'),
+        },
+        {
+          id: 'q1-2',
+          category: 'OBJECT',
+          categoryLabel: 'Object',
+          categoryColor: '#16A34A',
+          questionText: t('story_1_q2'),
+          options: [
+            { id: 'opt-2', label: t('dark_purple'), icon: '💜', isCorrect: false },
+            { id: 'opt-1', label: t('bright_green'), icon: '💚', isCorrect: true },
+            { id: 'opt-3', label: t('shiny_silver'), icon: '🤍', isCorrect: false },
+          ],
+          explanation: t('bright_green'),
+        },
+        {
+          id: 'q1-3',
+          category: 'OBJECT',
+          categoryLabel: 'Flowers',
+          categoryColor: '#E11D48',
+          questionText: t('story_1_q3'),
+          options: [
+            { id: 'opt-2', label: t('yellow_sunflowers'), icon: '🌻', isCorrect: false },
+            { id: 'opt-3', label: t('white_lilies'), icon: '🪷', isCorrect: false },
+            { id: 'opt-1', label: t('blooming_red_roses'), icon: '🌹', isCorrect: true },
+          ],
+          explanation: t('blooming_red_roses'),
+        },
+        {
+          id: 'q1-4',
+          category: 'EVENT',
+          categoryLabel: 'Event',
+          categoryColor: '#D97706',
+          questionText: t('story_1_q4'),
+          options: [
+            { id: 'opt-1', label: t('yellow_butterfly'), icon: '🦋', isCorrect: true },
+            { id: 'opt-2', label: t('blue_bird'), icon: '🐦', isCorrect: false },
+            { id: 'opt-3', label: t('green_grasshopper'), icon: '🦗', isCorrect: false },
+          ],
+          explanation: t('yellow_butterfly'),
+        },
+      ],
+    },
+    {
+      id: 'story-2',
+      title: t('story_2_title'),
+      subtitle: t('story_2_sub'),
+      badgeColor: '#7C3AED',
+      cardBg: '#FAF5FF',
+      scenes: [
+        {
+          id: 's2-p1',
+          text: t('story_2_s1'),
+          illustration: MayaTeaScene1,
+        },
+        {
+          id: 's2-p2',
+          text: t('story_2_s2'),
+          illustration: MayaTeaScene2,
+        },
+        {
+          id: 's2-p3',
+          text: t('story_2_s3'),
+          illustration: MayaTeaScene3,
+        },
+      ],
+      questions: [
+        {
+          id: 'q2-1',
+          category: 'PEOPLE',
+          categoryLabel: 'Person',
+          categoryColor: '#2563EB',
+          questionText: t('story_2_q1'),
+          options: [
+            { id: 'opt-2', label: 'Sunita', icon: '👩‍🦱', isCorrect: false },
+            { id: 'opt-1', label: 'Maya', icon: '👩', isCorrect: true },
+            { id: 'opt-3', label: 'Radha', icon: '👵', isCorrect: false },
+          ],
+          explanation: 'Maya',
+        },
+        {
+          id: 'q2-2',
+          category: 'OBJECT',
+          categoryLabel: 'Furniture',
+          categoryColor: '#0284C7',
+          questionText: t('story_2_q2'),
+          options: [
+            { id: 'opt-2', label: 'Wooden Bench', icon: '🪵', isCorrect: false },
+            { id: 'opt-3', label: 'Rocking Chair', icon: '🪑', isCorrect: false },
+            { id: 'opt-1', label: t('blue_armchair'), icon: '🛋️', isCorrect: true },
+          ],
+          explanation: t('blue_armchair'),
+        },
+        {
+          id: 'q2-3',
+          category: 'EVENT',
+          categoryLabel: 'Animal',
+          categoryColor: '#EA580C',
+          questionText: t('story_2_q3'),
+          options: [
+            { id: 'opt-1', label: t('ginger_cat_leo'), icon: '🐱', isCorrect: true },
+            { id: 'opt-2', label: 'Puppy Bruno', icon: '🐶', isCorrect: false },
+            { id: 'opt-3', label: 'Pet Parrot', icon: '🦜', isCorrect: false },
+          ],
+          explanation: t('ginger_cat_leo'),
+        },
+        {
+          id: 'q2-4',
+          category: 'OBJECT',
+          categoryLabel: 'Food',
+          categoryColor: '#B45309',
+          questionText: t('story_2_q4'),
+          options: [
+            { id: 'opt-2', label: 'Fresh Apple', icon: '🍎', isCorrect: false },
+            { id: 'opt-1', label: t('crispy_biscuit'), icon: '🍪', isCorrect: true },
+            { id: 'opt-3', label: 'Ice Cream', icon: '🍨', isCorrect: false },
+          ],
+          explanation: t('crispy_biscuit'),
+        },
+      ],
+    },
+    {
+      id: 'story-3',
+      title: t('story_3_title'),
+      subtitle: t('story_3_sub'),
+      badgeColor: '#0284C7',
+      cardBg: '#F0F9FF',
+      scenes: [
+        {
+          id: 's3-p1',
+          text: t('story_3_s1'),
+          illustration: RajuPicnicScene1,
+        },
+        {
+          id: 's3-p2',
+          text: t('story_3_s2'),
+          illustration: RajuPicnicScene2,
+        },
+        {
+          id: 's3-p3',
+          text: t('story_3_s3'),
+          illustration: RajuPicnicScene3,
+        },
+      ],
+      questions: [
+        {
+          id: 'q3-1',
+          category: 'OBJECT',
+          categoryLabel: 'Vehicle',
+          categoryColor: '#16A34A',
+          questionText: t('story_3_q1'),
+          options: [
+            { id: 'opt-2', label: 'Dark Blue', icon: '🚲', isCorrect: false },
+            { id: 'opt-3', label: 'Bright Orange', icon: '🚲', isCorrect: false },
+            { id: 'opt-1', label: t('bright_green_bike'), icon: '🚲', isCorrect: true },
+          ],
+          explanation: t('bright_green_bike'),
+        },
+        {
+          id: 'q3-2',
+          category: 'OBJECT',
+          categoryLabel: 'Food',
+          categoryColor: '#CA8A04',
+          questionText: t('story_3_q2'),
+          options: [
+            { id: 'opt-1', label: t('sweet_yellow_bananas'), icon: '🍌', isCorrect: true },
+            { id: 'opt-2', label: 'Red Apples', icon: '🍎', isCorrect: false },
+            { id: 'opt-3', label: 'Juicy Oranges', icon: '🍊', isCorrect: false },
+          ],
+          explanation: t('sweet_yellow_bananas'),
+        },
+        {
+          id: 'q3-3',
+          category: 'EVENT',
+          categoryLabel: 'Place',
+          categoryColor: '#15803D',
+          questionText: t('story_3_q3'),
+          options: [
+            { id: 'opt-2', label: 'Inside a tent', icon: '⛺', isCorrect: false },
+            { id: 'opt-1', label: t('under_oak_tree'), icon: '🌳', isCorrect: true },
+            { id: 'opt-3', label: 'On a boat', icon: '🚣', isCorrect: false },
+          ],
+          explanation: t('under_oak_tree'),
+        },
+        {
+          id: 'q3-4',
+          category: 'DETAIL',
+          categoryLabel: 'Pattern',
+          categoryColor: '#2563EB',
+          questionText: t('story_3_q4'),
+          options: [
+            { id: 'opt-2', label: 'Yellow Polka Dots', icon: '🟡', isCorrect: false },
+            { id: 'opt-3', label: 'Plain Red', icon: '🟥', isCorrect: false },
+            { id: 'opt-1', label: t('blue_checkered'), icon: '🟦', isCorrect: true },
+          ],
+          explanation: t('blue_checkered'),
+        },
+      ],
+    },
+    {
+      id: 'story-4',
+      title: t('story_4_title'),
+      subtitle: t('story_4_sub'),
+      badgeColor: '#EA580C',
+      cardBg: '#FFF7ED',
+      scenes: [
+        {
+          id: 's4-p1',
+          text: t('story_4_s1'),
+          illustration: AnitaMangoScene1,
+        },
+        {
+          id: 's4-p2',
+          text: t('story_4_s2'),
+          illustration: AnitaMangoScene2,
+        },
+        {
+          id: 's4-p3',
+          text: t('story_4_s3'),
+          illustration: AnitaMangoScene3,
+        },
+      ],
+      questions: [
+        {
+          id: 'q4-1',
+          category: 'PEOPLE',
+          categoryLabel: 'Clothing',
+          categoryColor: '#EA580C',
+          questionText: t('story_4_q1'),
+          options: [
+            { id: 'opt-2', label: 'Dark Navy Blue', icon: '🟦', isCorrect: false },
+            { id: 'opt-1', label: t('bright_orange_apron'), icon: '🟧', isCorrect: true },
+            { id: 'opt-3', label: 'Pure White', icon: '⬜', isCorrect: false },
+          ],
+          explanation: t('bright_orange_apron'),
+        },
+        {
+          id: 'q4-2',
+          category: 'DETAIL',
+          categoryLabel: 'Count',
+          categoryColor: '#CA8A04',
+          questionText: t('story_4_q2'),
+          options: [
+            { id: 'opt-2', label: 'One (1) Mango', icon: '🥭', isCorrect: false },
+            { id: 'opt-3', label: 'Five (5) Mangoes', icon: '🥭', isCorrect: false },
+            { id: 'opt-1', label: t('three_mangoes'), icon: '🥭', isCorrect: true },
+          ],
+          explanation: t('three_mangoes'),
+        },
+        {
+          id: 'q4-3',
+          category: 'EVENT',
+          categoryLabel: 'Dessert',
+          categoryColor: '#D97706',
+          questionText: t('story_4_q3'),
+          options: [
+            { id: 'opt-1', label: t('cold_mango_kulfi'), icon: '🍧', isCorrect: true },
+            { id: 'opt-2', label: 'Chocolate Cake', icon: '🍫', isCorrect: false },
+            { id: 'opt-3', label: 'Rice Pudding', icon: '🥣', isCorrect: false },
+          ],
+          explanation: t('cold_mango_kulfi'),
+        },
+      ],
+    },
+  ];
+}
 
 type GamePhase = 'STORY' | 'QUESTIONS' | 'COMPLETED';
 
@@ -413,7 +415,8 @@ export default function StoryRecallGameScreen() {
   const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false);
 
   const startTimeRef = useRef<number>(Date.now());
-  const currentStory = STORIES[storyIndex] || STORIES[0];
+  const stories = getStories(t);
+  const currentStory = stories[storyIndex] || stories[0];
   const currentScene = currentStory.scenes[sceneIndex] || currentStory.scenes[0];
   const currentQuestion = currentStory.questions[questionIndex] || currentStory.questions[0];
 
@@ -531,7 +534,7 @@ export default function StoryRecallGameScreen() {
   };
 
   const handleNextStory = () => {
-    const nextIndex = (storyIndex + 1) % STORIES.length;
+    const nextIndex = (storyIndex + 1) % stories.length;
     setStoryIndex(nextIndex);
     setSceneIndex(0);
     setPhase('STORY');

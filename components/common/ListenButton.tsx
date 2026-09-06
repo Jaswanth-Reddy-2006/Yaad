@@ -5,6 +5,8 @@ import { Typography } from './Typography';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { voiceService } from '../../services/VoiceService';
 
+import { useAccessibilityStore } from '../../store/useAccessibilityStore';
+
 export interface ListenButtonProps {
   textToSpeak: string;
   label?: string;
@@ -19,11 +21,12 @@ export interface ListenButtonProps {
  */
 export const ListenButton: React.FC<ListenButtonProps> = ({
   textToSpeak,
-  label = 'LISTEN',
+  label,
   size = 'md',
   variant = 'secondary',
   style,
 }) => {
+  const { t } = useAccessibilityStore();
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handlePress = async () => {
@@ -63,6 +66,8 @@ export const ListenButton: React.FC<ListenButtonProps> = ({
     outline: '#86EFAC',
   };
 
+  const buttonText = isPlaying ? (t('stop') || 'STOP') : (label || t('listen') || 'LISTEN');
+
   return (
     <TouchableOpacity
       activeOpacity={0.82}
@@ -92,7 +97,7 @@ export const ListenButton: React.FC<ListenButtonProps> = ({
         color={textColors[variant]}
         style={{ letterSpacing: 0.5 }}
       >
-        {isPlaying ? 'STOP' : label}
+        {buttonText}
       </Typography>
     </TouchableOpacity>
   );
