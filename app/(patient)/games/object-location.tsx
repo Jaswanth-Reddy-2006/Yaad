@@ -147,10 +147,11 @@ export const LivingRoomSceneCanvas: React.FC<{ width: number; height: number }> 
       <Path d="M 148 20 Q 166 54 156 112 L 148 112 Z" fill="url(#curtainGrad)" opacity="0.92" />
       <Path d="M 272 20 Q 254 54 264 112 L 272 112 Z" fill="url(#curtainGrad)" opacity="0.92" />
       <Rect x="140" y="112" width="140" height="12" rx="3" fill="#D97706" stroke="#92400E" strokeWidth="2" />
-      <G transform="translate(244, 90)">
-        <Path d="M 4 22 L 18 22 L 16 32 L 6 32 Z" fill="#EA580C" />
-        <Path d="M 11 22 C 6 14 10 6 11 6 C 12 6 16 14 11 22 Z" fill="#22C55E" />
-        <Path d="M 11 16 C 4 14 2 10 2 10 C 2 10 6 12 11 16 Z" fill="#16A34A" />
+      {/* Small Potted Plant sitting ON the window sill bar */}
+      <G transform="translate(198, 102)">
+        <Path d="M 10 20 L 14 28 L 6 28 Z" fill="#EA580C" />
+        <Path d="M 10 20 C 4 12 8 4 10 4 C 12 4 16 12 10 20 Z" fill="#22C55E" />
+        <Path d="M 10 14 C 2 12 0 8 0 8 C 0 8 4 10 10 14 Z" fill="#16A34A" />
       </G>
     </G>
 
@@ -250,8 +251,8 @@ export const ROOM_LOCATIONS: LocationSlot[] = [
     shortName: 'Shelf',
     iconLabel: '📚',
     color: '#7C3AED',
-    posX: 50,
-    posY: 105,
+    posX: 50,   // center of bookshelf (x: 12 to 88, center = 50)
+    posY: 140,  // middle shelf surface (y: 122+6 = 128, items sit just above = 135)
   },
   {
     id: 'window',
@@ -259,17 +260,17 @@ export const ROOM_LOCATIONS: LocationSlot[] = [
     shortName: 'Window',
     iconLabel: '🪴',
     color: '#059669',
-    posX: 210,
-    posY: 80,
+    posX: 210,  // center of window
+    posY: 120,  // window sill bar is at y=112 in SVG, item sits on top = 118
   },
   {
     id: 'nightstand',
     name: 'Bedside Table',
-    shortName: 'Bedside',
+    shortName: 'Side Table',
     iconLabel: '🛏️',
     color: '#EA580C',
-    posX: 360,
-    posY: 130,
+    posX: 360,  // side table center (x: 320+8=328 to 320+74=394, center = 361)
+    posY: 122,  // top surface of the cabinet (y: 80+46=126 in scene SVG)
   },
   {
     id: 'sofa',
@@ -277,8 +278,8 @@ export const ROOM_LOCATIONS: LocationSlot[] = [
     shortName: 'Sofa',
     iconLabel: '🛋️',
     color: '#2563EB',
-    posX: 115,
-    posY: 198,
+    posX: 115,  // sofa center (x: 42+12=54 to 42+136=178, center = 116)
+    posY: 205,  // sofa seat cushion top surface (y: 160+52=212)
   },
   {
     id: 'table',
@@ -286,8 +287,8 @@ export const ROOM_LOCATIONS: LocationSlot[] = [
     shortName: 'Table',
     iconLabel: '🪵',
     color: '#D97706',
-    posX: 275,
-    posY: 210,
+    posX: 275,  // table center (x: 208+67=275)
+    posY: 208,  // table top surface (y: 185+34=219 ellipse center, top edge ~200)
   },
   {
     id: 'rug',
@@ -295,8 +296,8 @@ export const ROOM_LOCATIONS: LocationSlot[] = [
     shortName: 'Rug',
     iconLabel: '🧺',
     color: '#DB2777',
-    posX: 210,
-    posY: 280,
+    posX: 210,  // rug center (x: 118+92=210)
+    posY: 270,  // rug surface center (y: 252+33=285, slightly above center)
   },
 ];
 
