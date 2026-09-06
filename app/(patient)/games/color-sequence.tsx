@@ -48,7 +48,12 @@ export default function ColorSequenceScreen() {
   const isHc = preferences.highContrast;
   const router = useRouter();
 
-  const tileAnims = [useSharedValue(0), useSharedValue(0), useSharedValue(0), useSharedValue(0)];
+  // Each shared value declared individually at top level — array literal violates Rules of Hooks
+  const tileAnim0 = useSharedValue(0);
+  const tileAnim1 = useSharedValue(0);
+  const tileAnim2 = useSharedValue(0);
+  const tileAnim3 = useSharedValue(0);
+  const tileAnims = [tileAnim0, tileAnim1, tileAnim2, tileAnim3];
 
   const generateSequence = (length: number): number[] => {
     const seq: number[] = [];
@@ -212,7 +217,7 @@ export default function ColorSequenceScreen() {
       )}
       
       {/* Main 2x2 Tile Grid */}
-      <View style={styles.tileGrid} pointerEvents={phase === 'TAPPING' ? 'auto' : 'none'}>
+      <View style={[styles.tileGrid, phase !== 'TAPPING' ? styles.tileGridDisabled : null]}>
         {[0, 1, 2, 3].map(i => {
           const tile = TILES[i];
           const isLit = litTileIndex === i;
@@ -265,10 +270,11 @@ const styles = StyleSheet.create({
   headerCenter: { flex: 1, alignItems: 'center', paddingHorizontal: SPACING.xs },
   mistakesRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm, gap: 6 },
   mistakeDot: { width: 14, height: 14, borderRadius: 7 },
-  roundBadge: { marginLeft: 'auto', backgroundColor: '#DCFCE7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.full },
+  roundBadge: { flex: 1, alignItems: 'flex-end', backgroundColor: '#DCFCE7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.full },
   sequenceDots: { flexDirection: 'row', gap: 6, justifyContent: 'center', marginBottom: SPACING.md, flexWrap: 'wrap' },
   seqDot: { height: 10, borderRadius: 5 },
   tileGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'center', alignItems: 'center', flex: 1 },
+  tileGridDisabled: { opacity: 0.85 },
   tileWrapper: { width: '44%', aspectRatio: 1 },
   tile: { flex: 1, borderRadius: 20, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 8, overflow: 'hidden' },
   tileLitOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: 0.35, borderRadius: 20 },
