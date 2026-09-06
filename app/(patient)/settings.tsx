@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Switch, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Sun, Moon, Globe, ChevronDown, Check, ArrowLeft } from 'lucide-react-native';
+import { Sun, Moon, Globe, ChevronDown, Check, ArrowLeft, Mic } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { Typography } from '../../components/common/Typography';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
@@ -17,7 +17,7 @@ export default function SettingsScreen() {
   const currentLangObj = INDIAN_LANGUAGES.find((l) => l.code === currentLanguage) || INDIAN_LANGUAGES[0];
 
   return (
-    <ScreenContainer scrollable={false} style={styles.container}>
+    <ScreenContainer scrollable={true} style={styles.container}>
       {/* Header: Back Arrow on Left + Bold Settings Title */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
@@ -34,7 +34,7 @@ export default function SettingsScreen() {
         </Typography>
       </View>
 
-      {/* Cards Container matching media_1788281204076.png EXACTLY (ONLY 2 CARDS) */}
+      {/* Cards Container */}
       <View style={styles.cardsContainer}>
         {/* Card 1: Light Mode / Dark Mode Toggle */}
         <View style={[styles.settingsCard, { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF' }]}>
@@ -105,6 +105,26 @@ export default function SettingsScreen() {
             </ScrollView>
           ) : null}
         </View>
+
+        {/* Card 3: Developer Voice Test Screen */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => router.push('/(patient)/voice-test')}
+          style={[styles.settingsCard, { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF' }]}
+        >
+          <View style={[styles.iconCircleBadge, { backgroundColor: '#DCFCE7' }]}>
+            <Mic size={26} color="#16A34A" />
+          </View>
+
+          <View style={{ flex: 1, marginLeft: SPACING.md }}>
+            <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
+              Voice Test Screen
+            </Typography>
+            <Typography size="sm" color={COLORS.textMuted}>
+              Phase 1 Developer Test
+            </Typography>
+          </View>
+        </TouchableOpacity>
       </View>
     </ScreenContainer>
   );

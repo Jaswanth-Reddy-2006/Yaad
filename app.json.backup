@@ -26,15 +26,13 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "expo-secure-store",
-      "expo-speech-recognition"
+      "expo-secure-store"
     ],
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "824067ba-2444-4c5e-abbf-b67101bad618"
+        "projectId": "8a3e54f4-b155-4d8d-ba6d-ba4f8096efc9"
       }
-    },
-    "owner": "codecrew_11"
+    }
   }
 }

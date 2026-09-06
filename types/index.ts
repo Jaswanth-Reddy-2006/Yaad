@@ -107,3 +107,6 @@ export interface EmergencyContact {
   phone: string;
   isPrimary: boolean;
 }
+
+export * from './voice';
+
