@@ -60,12 +60,14 @@ const LEVEL_CONFIGS: Record<number, LevelConfig> = {
 type GamePhase = 'WALK_IN' | 'WALK_OUT' | 'GUESS' | 'RESULT';
 
 /**
- * Open Meadow Pasture Scenery (No card box - expansive natural farm environment)
+ * Open Meadow Pasture Scenery (Edge-to-edge full screen natural farm environment)
  */
-const OpenPastureBackdrop: React.FC<{ width: number; height: number; barnCenterDoorX: number }> = ({
+const OpenPastureBackdrop: React.FC<{ width: number; height: number; barnCenterDoorX: number; barnLeftX: number; barnSize: number }> = ({
   width,
   height,
   barnCenterDoorX,
+  barnLeftX,
+  barnSize,
 }) => (
   <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={StyleSheet.absoluteFill}>
     <Defs>
@@ -93,23 +95,22 @@ const OpenPastureBackdrop: React.FC<{ width: number; height: number; barnCenterD
       </LinearGradient>
     </Defs>
 
-    {/* Expansive Sky */}
+    {/* Expansive Edge-to-Edge Sky */}
     <Rect width={width} height={height} fill="url(#meadowSky)" />
 
     {/* Warm Morning Sun with Aura */}
-    <Circle cx={44} cy={34} r={26} fill="#FEF08A" opacity={0.5} />
-    <Circle cx={44} cy={34} r={18} fill="#FDE047" />
+    <Circle cx={width * 0.12} cy={38} r={28} fill="#FEF08A" opacity={0.5} />
+    <Circle cx={width * 0.12} cy={38} r={19} fill="#FDE047" />
 
-    {/* Soft Fluffy Cloud 1 */}
-    <G fill="#FFFFFF" opacity={0.75} transform="translate(90, 20)">
+    {/* Soft Fluffy Clouds */}
+    <G fill="#FFFFFF" opacity={0.75} transform={`translate(${width * 0.22}, 20)`}>
       <Circle cx={12} cy={12} r={10} />
       <Circle cx={24} cy={8} r={14} />
       <Circle cx={38} cy={12} r={11} />
       <Rect x={12} y={10} width={26} height={12} rx={6} />
     </G>
 
-    {/* Soft Fluffy Cloud 2 */}
-    <G fill="#FFFFFF" opacity={0.65} transform={`translate(${width - 90}, 16)`}>
+    <G fill="#FFFFFF" opacity={0.65} transform={`translate(${width * 0.78}, 16)`}>
       <Circle cx={10} cy={10} r={8} />
       <Circle cx={20} cy={6} r={11} />
       <Circle cx={32} cy={10} r={9} />
@@ -117,53 +118,66 @@ const OpenPastureBackdrop: React.FC<{ width: number; height: number; barnCenterD
 
     {/* Distant Rolling Hills */}
     <Path
-      d={`M -20 95 Q ${width * 0.25} 70 ${width * 0.55} 90 Q ${width * 0.8} 75 ${width + 20} 95 L ${width + 20} ${height} L -20 ${height} Z`}
+      d={`M -20 100 Q ${width * 0.25} 75 ${width * 0.5} 95 Q ${width * 0.75} 80 ${width + 20} 100 L ${width + 20} ${height} L -20 ${height} Z`}
       fill="url(#hillBack)"
       opacity={0.65}
     />
 
-    {/* Distant Trees on Hilltop */}
+    {/* Distant Trees on Hilltops */}
     <G fill="#15803D" opacity={0.6}>
-      <Circle cx={width * 0.18} cy={76} r={14} />
-      <Circle cx={width * 0.23} cy={72} r={18} />
-      <Circle cx={width * 0.28} cy={78} r={13} />
-      <Circle cx={width * 0.82} cy={80} r={15} />
-      <Circle cx={width * 0.88} cy={75} r={17} />
+      <Circle cx={width * 0.08} cy={82} r={14} />
+      <Circle cx={width * 0.14} cy={78} r={18} />
+      <Circle cx={width * 0.86} cy={84} r={16} />
+      <Circle cx={width * 0.92} cy={80} r={18} />
     </G>
 
     {/* Main Lush Meadow Lawn */}
     <Path
-      d={`M -20 120 Q ${width * 0.3} 105 ${width * 0.6} 115 Q ${width * 0.85} 110 ${width + 20} 122 L ${width + 20} ${height} L -20 ${height} Z`}
+      d={`M -20 128 Q ${width * 0.3} 112 ${width * 0.55} 122 Q ${width * 0.85} 116 ${width + 20} 130 L ${width + 20} ${height} L -20 ${height} Z`}
       fill="url(#hillFront)"
     />
 
     {/* Left Pasture Wooden Fence */}
     <G stroke="#78350F" strokeWidth={2.2} fill="none">
-      {/* Horizontal Rails */}
-      <Path d={`M -10 112 L ${width * 0.42} 118 M -10 124 L ${width * 0.42} 130`} />
-      {/* Vertical Posts */}
-      <Path d="M 15 106 L 15 134 M 55 108 L 55 136 M 95 110 L 95 138 M 135 112 L 135 140" />
+      <Path d={`M -10 120 L ${Math.max(20, barnLeftX - 10)} 126 M -10 132 L ${Math.max(20, barnLeftX - 10)} 138`} />
+      <Path d={`M 15 114 L 15 142 M 55 116 L 55 144 M 95 118 L 95 146`} />
     </G>
 
-    {/* Cobblestone Walking Path directly leading into the Barn Door */}
+    {/* Right Pasture Wooden Fence */}
+    <G stroke="#78350F" strokeWidth={2.2} fill="none">
+      <Path d={`M ${barnLeftX + barnSize + 10} 126 L ${width + 10} 120 M ${barnLeftX + barnSize + 10} 138 L ${width + 10} 132`} />
+      <Path d={`M ${width - 95} 118 L ${width - 95} 146 M ${width - 55} 116 L ${width - 55} 144 M ${width - 15} 114 L ${width - 15} 142`} />
+    </G>
+
+    {/* CONTINUOUS COBBLESTONE ROAD PASSING THROUGH THE BARN */}
+    {/* Left Exit Path (From Barn Doorway to Left Screen Edge) */}
     <Path
-      d={`M -20 ${height - 10} Q ${width * 0.25} ${height - 20} ${barnCenterDoorX} ${height - 22} L ${barnCenterDoorX + 38} ${height - 22} Q ${width * 0.28} ${height} -20 ${height + 15} Z`}
+      d={`M -20 ${height - 12} Q ${width * 0.22} ${height - 24} ${barnCenterDoorX + 10} ${height - 26} L ${barnCenterDoorX + 38} ${height - 26} Q ${width * 0.25} ${height} -20 ${height + 15} Z`}
       fill="url(#pathGrad)"
       stroke="#94A3B8"
       strokeWidth={1.5}
     />
 
-    {/* Stepping Stones on Path */}
-    <Ellipse cx={30} cy={height - 14} rx={9} ry={3.5} fill="#94A3B8" opacity={0.6} />
-    <Ellipse cx={70} cy={height - 18} rx={11} ry={4} fill="#94A3B8" opacity={0.6} />
-    <Ellipse cx={115} cy={height - 20} rx={10} ry={3.5} fill="#94A3B8" opacity={0.6} />
+    {/* Right Entry Path (From Right Screen Edge into Barn Doorway) */}
+    <Path
+      d={`M ${width + 20} ${height - 12} Q ${width * 0.78} ${height - 24} ${barnCenterDoorX + 28} ${height - 26} L ${barnCenterDoorX} ${height - 26} Q ${width * 0.75} ${height} ${width + 20} ${height + 15} Z`}
+      fill="url(#pathGrad)"
+      stroke="#94A3B8"
+      strokeWidth={1.5}
+    />
 
-    {/* Colorful Meadow Flowers in Grass */}
-    <Circle cx={22} cy={height - 35} r={3.5} fill="#F43F5E" />
-    <Circle cx={22} cy={height - 35} r={1.5} fill="#FEF08A" />
-    <Circle cx={42} cy={height - 28} r={3} fill="#FACC15" />
-    <Circle cx={width - 45} cy={height - 25} r={3.5} fill="#EC4899" />
-    <Circle cx={width - 25} cy={height - 38} r={3.5} fill="#38BDF8" />
+    {/* Stepping Stones on Paths */}
+    <Ellipse cx={35} cy={height - 16} rx={10} ry={4} fill="#94A3B8" opacity={0.6} />
+    <Ellipse cx={75} cy={height - 20} rx={11} ry={4} fill="#94A3B8" opacity={0.6} />
+    <Ellipse cx={width - 35} cy={height - 16} rx={10} ry={4} fill="#94A3B8" opacity={0.6} />
+    <Ellipse cx={width - 75} cy={height - 20} rx={11} ry={4} fill="#94A3B8" opacity={0.6} />
+
+    {/* Colorful Wildflowers across the Lawn */}
+    <Circle cx={24} cy={height - 40} r={3.5} fill="#F43F5E" />
+    <Circle cx={24} cy={height - 40} r={1.5} fill="#FEF08A" />
+    <Circle cx={50} cy={height - 32} r={3} fill="#FACC15" />
+    <Circle cx={width - 50} cy={height - 32} r={3.5} fill="#EC4899" />
+    <Circle cx={width - 24} cy={height - 42} r={3.5} fill="#38BDF8" />
   </Svg>
 );
 
@@ -186,12 +200,9 @@ const SheepBarnBackdrop: React.FC<{ size: number }> = ({ size }) => (
         <Stop offset="100%" stopColor="#451A03" />
       </LinearGradient>
     </Defs>
-    {/* Dark Cozy Interior Space */}
     <Rect x="48" y="68" width="74" height="82" fill="url(#barnDarkInterior)" rx="3" />
     <Path d="M 50 72 Q 85 62 120 72 L 120 148 L 50 148 Z" fill="url(#doorShadow)" />
-    {/* Golden Straw Bedding on Floor */}
     <Path d="M 48 130 L 122 130 L 122 150 L 48 150 Z" fill="url(#barnStrawGrad)" />
-    {/* Hay Stems */}
     <Path d="M 54 138 L 64 130 M 72 140 L 80 133 M 92 139 L 102 132 M 108 138 L 118 131" stroke="#B45309" strokeWidth="1.8" />
   </Svg>
 );
@@ -228,26 +239,21 @@ const SheepBarnFacade: React.FC<{
       strokeWidth="3.5"
       strokeLinejoin="round"
     />
-    {/* Eaves Trim */}
     <Path d="M 2 58 L 85 12 L 168 58" stroke="#D97706" strokeWidth="2.5" fill="none" />
-
-    {/* Upper Hayloft Triangular Wall */}
     <Path d="M 16 54 L 85 14 L 154 54 Z" fill="url(#barnWoodGrad)" />
 
-    {/* Hayloft Window with Golden Straw Spilling Out */}
+    {/* Hayloft Window */}
     <Rect x="72" y="24" width="26" height="24" rx="2" fill="#451A03" stroke="#F59E0B" strokeWidth="2" />
     <Path d="M 68 44 Q 85 52 102 44 Q 96 36 85 36 Q 74 36 68 44 Z" fill="url(#hayLoftGrad)" stroke="#B45309" strokeWidth="1" />
 
-    {/* Left Barn Wall (x: 14 to 52) */}
+    {/* Left Barn Wall */}
     <Rect x="14" y="54" width="38" height="94" fill="url(#barnWoodGrad)" stroke="#7F1D1D" strokeWidth="2" rx="2" />
     <Path d="M 18 64 L 48 138 M 18 138 L 48 64" stroke="#FDE68A" strokeWidth="2.5" opacity="0.85" />
-    {/* Left Wall Foundation */}
     <Rect x="10" y="146" width="44" height="6" rx="2" fill="#475569" stroke="#1E293B" strokeWidth="1" />
 
-    {/* Right Barn Wall (x: 118 to 156) */}
+    {/* Right Barn Wall */}
     <Rect x="118" y="54" width="38" height="94" fill="url(#barnWoodGrad)" stroke="#7F1D1D" strokeWidth="2" rx="2" />
     <Path d="M 122 64 L 152 138 M 122 138 L 152 64" stroke="#FDE68A" strokeWidth="2.5" opacity="0.85" />
-    {/* Right Wall Foundation */}
     <Rect x="116" y="146" width="44" height="6" rx="2" fill="#475569" stroke="#1E293B" strokeWidth="1" />
 
     {/* Top Header Beam Above Doorway */}
@@ -259,7 +265,7 @@ const SheepBarnFacade: React.FC<{
     <Rect x="114" y="70" width="6" height="78" fill="#78350F" stroke="#451A03" strokeWidth="1.5" />
     <Path d="M 50 72 Q 85 62 120 72" stroke="#78350F" strokeWidth="4" fill="none" />
 
-    {/* Closed Barn Gates (Rendered when door is closed) */}
+    {/* Closed Barn Gates (when closed) */}
     {!isDoorOpen && (
       <G>
         <Rect x="56" y="74" width="28" height="74" fill="#9A3412" stroke="#451A03" strokeWidth="2" />
@@ -293,17 +299,17 @@ export default function SheepCountGameScreen() {
 
   const activeConfig = LEVEL_CONFIGS[currentLevel] || LEVEL_CONFIGS[1];
 
-  // Stage Sizing
-  const stageWidth = Math.min(windowWidth - 32, 460);
-  const stageHeight = 240;
+  // Full Screen Edge-to-Edge Stage Sizing
+  const stageWidth = windowWidth;
+  const stageHeight = 270;
   const barnSize = Math.max(145, Math.min(185, stageWidth * 0.44));
   const sheepSize = Math.max(48, Math.min(62, stageWidth * 0.16));
 
-  // Barn placement on stage
-  const barnLeftX = (stageWidth - barnSize) / 2 + 10;
+  // Centered Barn placement on stage
+  const barnLeftX = (stageWidth - barnSize) / 2;
   const barnCenterDoorX = barnLeftX + barnSize * 0.5 - sheepSize * 0.5;
 
-  // Smooth single-axis translation value + subtle vertical trot bob
+  // Single-axis translation value + subtle vertical trot bob
   const sheepTrackX = useRef(new Animated.Value(0)).current;
   const sheepBobY = useRef(new Animated.Value(0)).current;
 
@@ -351,23 +357,24 @@ export default function SheepCountGameScreen() {
     return arr.sort(() => Math.random() - 0.5);
   };
 
-  // Full sequential walk sequence: Enter -> (optional Pause) -> Exit -> Guess
+  // Sequential walk sequence: Enter from RIGHT -> (Pause) -> Exit to LEFT -> Guess
   const startFullSequence = (enters: number, exits: number, config: LevelConfig) => {
     let inIndex = 0;
-    const startXLeft = -sheepSize - 20;
+    const startXRight = stageWidth + 20; // Starts off-screen on the right side
+    const startXLeft = -sheepSize - 30; // Exits off-screen on the left side
 
-    // Step 1: Walk in sequence
+    // Step 1: Walk in sequence (Entering from RIGHT into the Barn Doorway)
     const walkNextEnteringSheep = () => {
       if (!isMountedRef.current) return;
 
       if (inIndex >= enters) {
         stopTrotBob();
-        // Finished entering! If exits > 0, proceed to walk out sequence
+        // Finished entering! If exits > 0, proceed to walk out sequence to the left
         if (exits > 0) {
           setTimeout(() => {
             if (!isMountedRef.current) return;
             setPhase('WALK_OUT');
-            voiceService.speak('Look! Some sheep are leaving the barn.');
+            voiceService.speak('Look! Some sheep are leaving the barn to the left.');
             setTimeout(() => startExitSequence(exits, config), 600);
           }, 800);
         } else {
@@ -383,12 +390,12 @@ export default function SheepCountGameScreen() {
 
       setWalkingDirection('IN');
       setCurrentSheepIndex(inIndex);
-      sheepTrackX.setValue(startXLeft);
+      sheepTrackX.setValue(startXRight);
       startTrotBob();
 
-      // Smooth horizontal walk across pasture right through the barn doorway
+      // Smooth horizontal walk from RIGHT side into the barn doorway
       Animated.timing(sheepTrackX, {
-        toValue: barnCenterDoorX + 18, // Steps right through the door opening into the interior
+        toValue: barnCenterDoorX - 10, // Steps directly into the doorway from the right
         duration: config.walkDurationMs,
         easing: Easing.linear,
         useNativeDriver: true,
@@ -401,7 +408,7 @@ export default function SheepCountGameScreen() {
       });
     };
 
-    // Step 2: Walk out sequence (Levels 2+)
+    // Step 2: Walk out sequence (Exiting from Barn Doorway to LEFT side)
     const startExitSequence = (totalExits: number, cfg: LevelConfig) => {
       let outIndex = 0;
 
@@ -424,7 +431,7 @@ export default function SheepCountGameScreen() {
         sheepTrackX.setValue(barnCenterDoorX);
         startTrotBob();
 
-        // Smooth horizontal walk OUT of barn through the doorway to the left pasture
+        // Smooth horizontal walk OUT of barn through the doorway to the LEFT edge
         Animated.timing(sheepTrackX, {
           toValue: startXLeft,
           duration: cfg.walkDurationMs,
@@ -465,9 +472,9 @@ export default function SheepCountGameScreen() {
     startTimeRef.current = Date.now();
 
     if (exits > 0) {
-      voiceService.speak(`Watch closely! ${enters} sheep enter, and ${exits} sheep will leave. Count how many stay inside.`);
+      voiceService.speak(`Watch closely! ${enters} sheep enter from the right, and ${exits} sheep leave to the left. Count how many stay inside.`);
     } else {
-      voiceService.speak('Watch closely! Count the sheep as they walk into the barn.');
+      voiceService.speak('Watch closely! Count the sheep as they walk into the barn from the right.');
     }
 
     startFullSequence(enters, exits, config);
@@ -492,7 +499,7 @@ export default function SheepCountGameScreen() {
       // Correct!
       setIsWrong(false);
       if (exitCount > 0) {
-        voiceService.speak(`Wonderful! ${enterCount} went in and ${exitCount} left, leaving exactly ${remainingCount} inside the barn.`);
+        voiceService.speak(`Wonderful! ${enterCount} entered and ${exitCount} left, leaving exactly ${remainingCount} inside the barn.`);
       } else {
         voiceService.speak(`That's right! Exactly ${remainingCount} sheep went into the barn. Wonderful focus!`);
       }
@@ -580,7 +587,7 @@ export default function SheepCountGameScreen() {
         </View>
 
         <ListenButton
-          textToSpeak={`Count the Sheep. ${activeConfig.label}. Watch the sheep walk into the barn, note any that leave, and count how many remain inside.`}
+          textToSpeak={`Count the Sheep. ${activeConfig.label}. Watch the sheep enter from the right, note any that leave to the left, and count how many remain inside.`}
           size="sm"
           variant="secondary"
         />
@@ -597,16 +604,16 @@ export default function SheepCountGameScreen() {
           </View>
         ) : phase === 'WALK_IN' ? (
           <View style={styles.phasePill}>
-            <ArrowRight size={18} color="#15803D" style={{ marginRight: 6 }} />
+            <ArrowRight size={18} color="#15803D" style={{ marginRight: 6, transform: [{ rotate: '180deg' }] }} />
             <Typography size="sm" weight="bold" color="#15803D">
-              ➡️ Sheep walking into the barn...
+              ⬅️ Sheep entering from the right...
             </Typography>
           </View>
         ) : phase === 'WALK_OUT' ? (
           <View style={[styles.phasePill, { backgroundColor: '#FFF7ED', borderColor: '#FED7AA' }]}>
             <ArrowLeftIcon size={18} color="#EA580C" style={{ marginRight: 6 }} />
             <Typography size="sm" weight="bold" color="#C2410C">
-              ⬅️ Watch! Sheep walking back out...
+              ⬅️ Watch! Sheep leaving to the left...
             </Typography>
           </View>
         ) : (
@@ -619,18 +626,24 @@ export default function SheepCountGameScreen() {
         )}
       </View>
 
-      {/* Open Farm Pasture Stage (Completely Open - No boxed card border) */}
+      {/* Edge-to-Edge Open Farm Pasture Stage (Complete screen background, no borders) */}
       <View style={styles.stageWrapper}>
         <View style={[styles.openStageContainer, { width: stageWidth, height: stageHeight }]}>
           {/* Natural Farm Pasture Scenery Background */}
-          <OpenPastureBackdrop width={stageWidth} height={stageHeight} barnCenterDoorX={barnCenterDoorX} />
+          <OpenPastureBackdrop
+            width={stageWidth}
+            height={stageHeight}
+            barnCenterDoorX={barnCenterDoorX}
+            barnLeftX={barnLeftX}
+            barnSize={barnSize}
+          />
 
-          {/* LAYER 1 (BACK): Sheep Barn Interior & Golden Straw Bedding */}
+          {/* LAYER 1 (BACK): Barn Interior & Straw Bedding */}
           <View style={[styles.barnLayerAnchor, { left: barnLeftX, bottom: 12, zIndex: 1 }]}>
             <SheepBarnBackdrop size={barnSize} />
           </View>
 
-          {/* LAYER 2 (MIDDLE): Animated Walking Sheep with Trot Bobbing */}
+          {/* LAYER 2 (MIDDLE): Animated Walking Sheep with Trot Bobbing (Facing left) */}
           {(phase === 'WALK_IN' || phase === 'WALK_OUT') && currentSheepIndex >= 0 && (
             <Animated.View
               style={[
@@ -644,12 +657,12 @@ export default function SheepCountGameScreen() {
             >
               <WalkingSheepIllustration
                 size={sheepSize}
-                facing={walkingDirection === 'IN' ? 'right' : 'left'}
+                facing="left"
               />
             </Animated.View>
           )}
 
-          {/* LAYER 3 (FRONT): Barn Facade, Timber Walls & Open Doorway Arch */}
+          {/* LAYER 3 (FRONT): Barn Facade, Timber Walls & Doorway Arch */}
           <View
             pointerEvents="none"
             style={[styles.barnLayerAnchor, { left: barnLeftX, bottom: 12, zIndex: 10 }]}
@@ -671,7 +684,7 @@ export default function SheepCountGameScreen() {
       </View>
 
       {/* Answer Choice Section */}
-      <View style={[styles.choicesContainer, { width: stageWidth }]}>
+      <View style={styles.choicesContainer}>
         <Typography size="sm" color={COLORS.textSecondary} align="center" weight="medium" style={{ marginBottom: 10 }}>
           {phase === 'GUESS' ? 'Tap how many sheep are left inside:' : 'Watch carefully...'}
         </Typography>
@@ -802,20 +815,20 @@ export default function SheepCountGameScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: SPACING.md,
     paddingBottom: SPACING.xl,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
     marginBottom: SPACING.xs,
   },
   backSquareBtn: {
     width: 44,
     height: 44,
-    borderRadius: RADIUS.md,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
@@ -831,13 +844,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#DCFCE7',
     paddingHorizontal: 10,
     paddingVertical: 2,
-    borderRadius: RADIUS.full,
+    borderRadius: 4,
     marginTop: 2,
   },
   promptContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    marginBottom: SPACING.xs,
   },
   phasePill: {
     flexDirection: 'row',
@@ -845,7 +859,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDF4',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: RADIUS.full,
+    borderRadius: 6,
     borderWidth: 1.5,
     borderColor: '#BBF7D0',
   },
@@ -855,19 +869,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEE2E2',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: RADIUS.full,
+    borderRadius: 6,
     borderWidth: 1.5,
     borderColor: '#FECDD3',
   },
   stageWrapper: {
     width: '100%',
     alignItems: 'center',
-    marginVertical: SPACING.xs,
+    marginVertical: 0,
   },
   openStageContainer: {
     position: 'relative',
     overflow: 'hidden',
-    borderRadius: RADIUS.xl,
   },
   barnLayerAnchor: {
     position: 'absolute',
@@ -885,18 +898,20 @@ const styles = StyleSheet.create({
   choicesContainer: {
     alignItems: 'center',
     marginTop: SPACING.md,
-    alignSelf: 'center',
+    paddingHorizontal: SPACING.md,
+    width: '100%',
   },
   choicesGrid: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 12,
     width: '100%',
+    maxWidth: 420,
   },
   choiceNumberBtn: {
     flex: 1,
     height: 64,
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -923,7 +938,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 8,
     padding: SPACING.lg,
     alignItems: 'center',
     shadowColor: '#000',
@@ -935,7 +950,7 @@ const styles = StyleSheet.create({
   modalIconCircle: {
     width: 56,
     height: 56,
-    borderRadius: 14,
+    borderRadius: 8,
     backgroundColor: '#FEE2E2',
     alignItems: 'center',
     justifyContent: 'center',
@@ -949,7 +964,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#16A34A',
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#16A34A',
@@ -964,7 +979,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#FECDD3',
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
