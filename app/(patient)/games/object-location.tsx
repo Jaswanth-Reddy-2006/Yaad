@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
-  Modal,
   ScrollView,
 } from 'react-native';
 import Svg, {
@@ -23,11 +22,9 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  LogOut,
   Sparkles,
   MapPin,
   Volume2,
-  HelpCircle,
 } from 'lucide-react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
 import { Typography } from '../../../components/common/Typography';
@@ -50,72 +47,38 @@ import { GameResult } from '../../../types';
 import { gameRepository } from '../../../repositories/GameRepository';
 
 // ==========================================
-// 1. Illustrated Furniture Vector Components
+// 1. Single Complete Living Room Scene Canvas
 // ==========================================
 
-export const BookshelfFurniture: React.FC<{ size?: number }> = ({ size = 76 }) => (
-  <Svg width={size} height={size * 0.88} viewBox="0 0 100 88">
+export const LivingRoomSceneCanvas: React.FC<{ width: number; height: number }> = ({ width, height }) => (
+  <Svg width={width} height={height} viewBox="0 0 420 330">
     <Defs>
+      <LinearGradient id="wallBg" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#FEF3C7" />
+        <Stop offset="100%" stopColor="#FDE68A" />
+      </LinearGradient>
+      <LinearGradient id="floorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#B45309" />
+        <Stop offset="40%" stopColor="#92400E" />
+        <Stop offset="100%" stopColor="#78350F" />
+      </LinearGradient>
+      <LinearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#38BDF8" />
+        <Stop offset="100%" stopColor="#BAE6FD" />
+      </LinearGradient>
+      <LinearGradient id="curtainGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <Stop offset="0%" stopColor="#F472B6" />
+        <Stop offset="100%" stopColor="#DB2777" />
+      </LinearGradient>
       <LinearGradient id="woodGrad" x1="0%" y1="0%" x2="0%" y2="100%">
         <Stop offset="0%" stopColor="#A16207" />
         <Stop offset="100%" stopColor="#78350F" />
       </LinearGradient>
       <LinearGradient id="shelfBack" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#FEF3C7" />
-        <Stop offset="100%" stopColor="#FDE68A" />
+        <Stop offset="0%" stopColor="#FEF9C3" />
+        <Stop offset="100%" stopColor="#FEF08A" />
       </LinearGradient>
-    </Defs>
-    <Rect x="8" y="8" width="84" height="74" rx="4" fill="url(#shelfBack)" stroke="url(#woodGrad)" strokeWidth="4" />
-    <Rect x="8" y="44" width="84" height="5" fill="url(#woodGrad)" />
-    <G transform="translate(14, 16)">
-      <Rect x="0" y="2" width="9" height="24" rx="2" fill="#DC2626" />
-      <Rect x="11" y="0" width="10" height="26" rx="2" fill="#2563EB" />
-      <Rect x="23" y="4" width="8" height="22" rx="2" fill="#16A34A" />
-      <Path d="M 33 26 L 41 8 L 48 11 L 40 26 Z" fill="#D97706" />
-    </G>
-    <G transform="translate(14, 51)">
-      <Rect x="0" y="2" width="10" height="24" rx="2" fill="#7C3AED" />
-      <Rect x="12" y="0" width="9" height="26" rx="2" fill="#0284C7" />
-      <Rect x="23" y="3" width="10" height="23" rx="2" fill="#EA580C" />
-      <Circle cx="52" cy="14" r="7" fill="#F59E0B" />
-    </G>
-  </Svg>
-);
-
-export const WindowSillFurniture: React.FC<{ size?: number }> = ({ size = 76 }) => (
-  <Svg width={size} height={size * 0.88} viewBox="0 0 100 88">
-    <Defs>
-      <LinearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#60A5FA" />
-        <Stop offset="100%" stopColor="#BAE6FD" />
-      </LinearGradient>
-      <LinearGradient id="curtainGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <Stop offset="0%" stopColor="#F472B6" />
-        <Stop offset="100%" stopColor="#EC4899" />
-      </LinearGradient>
-      <LinearGradient id="sillWood" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#D97706" />
-        <Stop offset="100%" stopColor="#B45309" />
-      </LinearGradient>
-    </Defs>
-    <Path d="M 16 68 L 16 32 C 16 14 32 8 50 8 C 68 8 84 14 84 32 L 84 68 Z" fill="url(#skyGrad)" stroke="#E2E8F0" strokeWidth="2.5" />
-    <Circle cx="64" cy="24" r="10" fill="#FEF08A" opacity="0.9" />
-    <Path d="M 28 32 Q 34 26 40 30 Q 48 26 52 32 Q 56 38 48 40 L 28 40 Z" fill="#FFFFFF" opacity="0.85" />
-    <Path d="M 50 10 L 50 68 M 18 38 L 82 38" stroke="#FFFFFF" strokeWidth="2.5" />
-    <Path d="M 16 14 Q 28 34 20 66 L 16 66 Z" fill="url(#curtainGrad)" opacity="0.9" />
-    <Path d="M 84 14 Q 72 34 80 66 L 84 66 Z" fill="url(#curtainGrad)" opacity="0.9" />
-    <Rect x="10" y="66" width="80" height="8" rx="2" fill="url(#sillWood)" />
-    <G transform="translate(66, 50)">
-      <Path d="M 2 16 L 14 16 L 12 22 L 4 22 Z" fill="#D97706" />
-      <Path d="M 8 16 C 4 10 8 4 8 4 C 8 4 12 10 8 16 Z" fill="#22C55E" />
-    </G>
-  </Svg>
-);
-
-export const SofaFurniture: React.FC<{ size?: number }> = ({ size = 76 }) => (
-  <Svg width={size} height={size * 0.88} viewBox="0 0 100 88">
-    <Defs>
-      <LinearGradient id="sofaBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <LinearGradient id="sofaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
         <Stop offset="0%" stopColor="#3B82F6" />
         <Stop offset="100%" stopColor="#1D4ED8" />
       </LinearGradient>
@@ -123,45 +86,11 @@ export const SofaFurniture: React.FC<{ size?: number }> = ({ size = 76 }) => (
         <Stop offset="0%" stopColor="#60A5FA" />
         <Stop offset="100%" stopColor="#2563EB" />
       </LinearGradient>
-    </Defs>
-    <Rect x="16" y="70" width="8" height="10" rx="2" fill="#78350F" />
-    <Rect x="76" y="70" width="8" height="10" rx="2" fill="#78350F" />
-    <Path d="M 14 34 C 14 18 28 12 50 12 C 72 12 86 18 86 34 L 86 60 L 14 60 Z" fill="url(#sofaBody)" />
-    <Circle cx="35" cy="28" r="2.5" fill="#1E40AF" />
-    <Circle cx="50" cy="28" r="2.5" fill="#1E40AF" />
-    <Circle cx="65" cy="28" r="2.5" fill="#1E40AF" />
-    <Rect x="12" y="48" width="76" height="24" rx="6" fill="url(#cushionGrad)" stroke="#1E40AF" strokeWidth="1.5" />
-    <Rect x="8" y="38" width="14" height="34" rx="6" fill="url(#sofaBody)" stroke="#1E40AF" strokeWidth="1.5" />
-    <Rect x="78" y="38" width="14" height="34" rx="6" fill="url(#sofaBody)" stroke="#1E40AF" strokeWidth="1.5" />
-  </Svg>
-);
-
-export const CoffeeTableFurniture: React.FC<{ size?: number }> = ({ size = 76 }) => (
-  <Svg width={size} height={size * 0.88} viewBox="0 0 100 88">
-    <Defs>
       <LinearGradient id="tableTop" x1="0%" y1="0%" x2="100%" y2="0%">
         <Stop offset="0%" stopColor="#F59E0B" />
         <Stop offset="50%" stopColor="#D97706" />
         <Stop offset="100%" stopColor="#B45309" />
       </LinearGradient>
-      <LinearGradient id="tableLeg" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#B45309" />
-        <Stop offset="100%" stopColor="#78350F" />
-      </LinearGradient>
-    </Defs>
-    <Rect x="18" y="44" width="8" height="34" rx="2" fill="#78350F" opacity="0.7" />
-    <Rect x="74" y="44" width="8" height="34" rx="2" fill="#78350F" opacity="0.7" />
-    <Rect x="12" y="44" width="9" height="36" rx="2" fill="url(#tableLeg)" />
-    <Rect x="79" y="44" width="9" height="36" rx="2" fill="url(#tableLeg)" />
-    <Rect x="14" y="62" width="72" height="4" rx="1" fill="url(#tableLeg)" />
-    <Ellipse cx="50" cy="40" rx="44" ry="16" fill="url(#tableTop)" stroke="#92400E" strokeWidth="2" />
-    <Ellipse cx="50" cy="37" rx="38" ry="12" fill="#FBBF24" opacity="0.4" />
-  </Svg>
-);
-
-export const BedsideTableFurniture: React.FC<{ size?: number }> = ({ size = 76 }) => (
-  <Svg width={size} height={size * 0.88} viewBox="0 0 100 88">
-    <Defs>
       <LinearGradient id="cabWood" x1="0%" y1="0%" x2="0%" y2="100%">
         <Stop offset="0%" stopColor="#FB923C" />
         <Stop offset="100%" stopColor="#C2410C" />
@@ -170,22 +99,6 @@ export const BedsideTableFurniture: React.FC<{ size?: number }> = ({ size = 76 }
         <Stop offset="0%" stopColor="#FEF08A" />
         <Stop offset="100%" stopColor="#FACC15" />
       </LinearGradient>
-    </Defs>
-    <Rect x="24" y="74" width="6" height="8" rx="2" fill="#7C2D12" />
-    <Rect x="70" y="74" width="6" height="8" rx="2" fill="#7C2D12" />
-    <Rect x="20" y="42" width="60" height="34" rx="4" fill="url(#cabWood)" stroke="#9A3412" strokeWidth="2" />
-    <Rect x="25" y="46" width="50" height="12" rx="2" fill="#FED7AA" stroke="#EA580C" strokeWidth="1" />
-    <Circle cx="50" cy="52" r="2.5" fill="#7C2D12" />
-    <Rect x="25" y="61" width="50" height="11" rx="2" fill="#7C2D12" opacity="0.4" />
-    <Rect x="48" y="24" width="4" height="18" rx="1" fill="#D97706" />
-    <Path d="M 36 24 L 42 10 L 58 10 L 64 24 Z" fill="url(#lampShade)" stroke="#CA8A04" strokeWidth="1.5" />
-    <Circle cx="50" cy="18" r="12" fill="#FEF08A" opacity="0.5" />
-  </Svg>
-);
-
-export const FloorRugFurniture: React.FC<{ size?: number }> = ({ size = 76 }) => (
-  <Svg width={size} height={size * 0.88} viewBox="0 0 100 88">
-    <Defs>
       <LinearGradient id="rugGrad" x1="0%" y1="0%" x2="100%" y2="100%">
         <Stop offset="0%" stopColor="#F43F5E" />
         <Stop offset="100%" stopColor="#BE123C" />
@@ -195,11 +108,132 @@ export const FloorRugFurniture: React.FC<{ size?: number }> = ({ size = 76 }) =>
         <Stop offset="100%" stopColor="#FBBF24" />
       </LinearGradient>
     </Defs>
-    <Rect x="6" y="24" width="88" height="42" rx="4" fill="#FEF3C7" stroke="#D97706" strokeWidth="1" strokeDasharray="2 2" />
-    <Rect x="10" y="26" width="80" height="38" rx="4" fill="url(#rugGrad)" />
-    <Rect x="14" y="30" width="72" height="30" rx="2" fill="none" stroke="#FEF08A" strokeWidth="1.5" />
-    <Ellipse cx="50" cy="45" rx="16" ry="8" fill="url(#rugCenter)" />
-    <Path d="M 44 45 L 50 40 L 56 45 L 50 50 Z" fill="#9F1239" />
+
+    {/* 1. ROOM BACKGROUND: Wall & Floor */}
+    {/* Wall */}
+    <Rect x="0" y="0" width="420" height="200" fill="url(#wallBg)" />
+    {/* Ceiling Molding */}
+    <Rect x="0" y="0" width="420" height="8" fill="#FEF08A" opacity="0.6" />
+    <Path d="M 0 8 L 420 8" stroke="#FBBF24" strokeWidth="1.5" />
+    {/* Wall Pinstripes */}
+    <Path
+      d="M 30 8 L 30 196 M 70 8 L 70 196 M 110 8 L 110 196 M 310 8 L 310 196 M 350 8 L 350 196 M 390 8 L 390 196"
+      stroke="#FDE047"
+      strokeWidth="1"
+      opacity="0.35"
+    />
+    {/* Floor Baseboard */}
+    <Rect x="0" y="194" width="420" height="10" fill="#78350F" />
+    <Rect x="0" y="194" width="420" height="2.5" fill="#A16207" />
+    {/* Wood Parquet Floor */}
+    <Rect x="0" y="204" width="420" height="126" fill="url(#floorGrad)" />
+    {/* Floor Planks Perspective Lines */}
+    <Path
+      d="M 40 204 L 0 330 M 110 204 L 70 330 M 180 204 L 160 330 M 240 204 L 260 330 M 310 204 L 350 330 M 380 204 L 420 330"
+      stroke="#78350F"
+      strokeWidth="1.5"
+      opacity="0.45"
+    />
+    <Path d="M 0 240 L 420 240 M 0 280 L 420 280" stroke="#78350F" strokeWidth="1" opacity="0.3" />
+
+    {/* 2. FRAMED WALL ART */}
+    <Rect x="94" y="32" width="34" height="42" rx="3" fill="#FFFBEB" stroke="#92400E" strokeWidth="2.5" />
+    <Circle cx="111" cy="50" r="10" fill="#FDE68A" />
+    <Path d="M 98 68 L 106 56 L 115 65 L 122 58 L 126 68 Z" fill="#16A34A" />
+
+    {/* 3. WINDOW IN CENTER (Location 2: window) */}
+    <G>
+      <Path
+        d="M 152 114 L 152 46 C 152 24 175 16 210 16 C 245 16 268 24 268 46 L 268 114 Z"
+        fill="url(#skyGrad)"
+        stroke="#FFFFFF"
+        strokeWidth="4"
+      />
+      <Circle cx="236" cy="40" r="14" fill="#FEF08A" opacity="0.9" />
+      <Path d="M 172 52 Q 180 44 190 48 Q 198 42 206 50 Q 212 56 202 60 L 172 60 Z" fill="#FFFFFF" opacity="0.85" />
+      <Path d="M 210 18 L 210 114 M 154 64 L 266 64" stroke="#FFFFFF" strokeWidth="3" />
+      <Path d="M 148 20 Q 166 54 156 112 L 148 112 Z" fill="url(#curtainGrad)" opacity="0.92" />
+      <Path d="M 272 20 Q 254 54 264 112 L 272 112 Z" fill="url(#curtainGrad)" opacity="0.92" />
+      <Rect x="140" y="112" width="140" height="12" rx="3" fill="#D97706" stroke="#92400E" strokeWidth="2" />
+      <G transform="translate(244, 90)">
+        <Path d="M 4 22 L 18 22 L 16 32 L 6 32 Z" fill="#EA580C" />
+        <Path d="M 11 22 C 6 14 10 6 11 6 C 12 6 16 14 11 22 Z" fill="#22C55E" />
+        <Path d="M 11 16 C 4 14 2 10 2 10 C 2 10 6 12 11 16 Z" fill="#16A34A" />
+      </G>
+    </G>
+
+    {/* 4. BOOKSHELF ON LEFT WALL (Location 1: bookshelf) */}
+    <G>
+      <Rect x="12" y="36" width="76" height="156" rx="4" fill="url(#shelfBack)" stroke="url(#woodGrad)" strokeWidth="4" />
+      <Rect x="12" y="78" width="76" height="6" fill="url(#woodGrad)" />
+      <Rect x="12" y="122" width="76" height="6" fill="url(#woodGrad)" />
+      <Rect x="12" y="164" width="76" height="6" fill="url(#woodGrad)" />
+      <G transform="translate(18, 46)">
+        <Rect x="0" y="2" width="9" height="28" rx="2" fill="#DC2626" />
+        <Rect x="11" y="0" width="10" height="30" rx="2" fill="#2563EB" />
+        <Rect x="23" y="4" width="8" height="26" rx="2" fill="#16A34A" />
+        <Path d="M 33 30 L 41 10 L 48 13 L 40 30 Z" fill="#D97706" />
+      </G>
+      <G transform="translate(18, 88)">
+        <Rect x="0" y="4" width="10" height="28" rx="2" fill="#7C3AED" />
+        <Rect x="12" y="0" width="9" height="32" rx="2" fill="#0284C7" />
+        <Rect x="23" y="5" width="10" height="27" rx="2" fill="#EA580C" />
+        <Circle cx="50" cy="18" r="8" fill="#F59E0B" />
+        <Rect x="49" y="26" width="3" height="6" fill="#78350F" />
+      </G>
+      <G transform="translate(18, 132)">
+        <Rect x="2" y="4" width="24" height="26" rx="3" fill="#D97706" />
+        <Rect x="30" y="2" width="10" height="28" rx="2" fill="#059669" />
+        <Rect x="42" y="0" width="11" height="30" rx="2" fill="#DC2626" />
+      </G>
+    </G>
+
+    {/* 5. BEDSIDE / SIDE TABLE ON RIGHT (Location 5: nightstand) */}
+    <G transform="translate(320, 80)">
+      <Rect x="12" y="86" width="7" height="24" rx="2" fill="#7C2D12" />
+      <Rect x="63" y="86" width="7" height="24" rx="2" fill="#7C2D12" />
+      <Rect x="8" y="46" width="66" height="42" rx="4" fill="url(#cabWood)" stroke="#9A3412" strokeWidth="2.5" />
+      <Rect x="14" y="51" width="54" height="15" rx="2" fill="#FED7AA" stroke="#EA580C" strokeWidth="1" />
+      <Circle cx="41" cy="58.5" r="3" fill="#7C2D12" />
+      <Rect x="14" y="69" width="54" height="14" rx="2" fill="#FED7AA" stroke="#EA580C" strokeWidth="1" />
+      <Circle cx="41" cy="76" r="3" fill="#7C2D12" />
+      <Rect x="38" y="26" width="6" height="22" rx="1" fill="#D97706" />
+      <Path d="M 24 26 L 33 6 L 49 6 L 58 26 Z" fill="url(#lampShade)" stroke="#CA8A04" strokeWidth="2" />
+      <Circle cx="41" cy="18" r="16" fill="#FEF08A" opacity="0.45" />
+    </G>
+
+    {/* 6. COZY SOFA (Location 3: sofa) */}
+    <G transform="translate(42, 160)">
+      <Rect x="16" y="80" width="10" height="14" rx="2" fill="#78350F" />
+      <Rect x="122" y="80" width="10" height="14" rx="2" fill="#78350F" />
+      <Path d="M 12 36 C 12 16 28 8 74 8 C 120 8 136 16 136 36 L 136 68 L 12 68 Z" fill="url(#sofaGrad)" />
+      <Circle cx="42" cy="28" r="3.5" fill="#1E40AF" />
+      <Circle cx="74" cy="28" r="3.5" fill="#1E40AF" />
+      <Circle cx="106" cy="28" r="3.5" fill="#1E40AF" />
+      <Rect x="12" y="52" width="124" height="30" rx="8" fill="url(#cushionGrad)" stroke="#1E40AF" strokeWidth="2" />
+      <Rect x="4" y="40" width="20" height="42" rx="8" fill="url(#sofaGrad)" stroke="#1E40AF" strokeWidth="2" />
+      <Rect x="124" y="40" width="20" height="42" rx="8" fill="url(#sofaGrad)" stroke="#1E40AF" strokeWidth="2" />
+    </G>
+
+    {/* 7. CENTER COFFEE TABLE (Location 4: table) */}
+    <G transform="translate(208, 185)">
+      <Rect x="18" y="38" width="10" height="38" rx="2" fill="#78350F" opacity="0.8" />
+      <Rect x="106" y="38" width="10" height="38" rx="2" fill="#78350F" opacity="0.8" />
+      <Rect x="10" y="38" width="12" height="42" rx="2" fill="#B45309" />
+      <Rect x="112" y="38" width="12" height="42" rx="2" fill="#B45309" />
+      <Rect x="14" y="58" width="106" height="5" rx="2" fill="#78350F" />
+      <Ellipse cx="67" cy="34" rx="64" ry="22" fill="url(#tableTop)" stroke="#92400E" strokeWidth="2.5" />
+      <Ellipse cx="67" cy="31" rx="56" ry="16" fill="#FBBF24" opacity="0.45" />
+    </G>
+
+    {/* 8. FLOOR RUG (Location 6: rug) */}
+    <G transform="translate(118, 252)">
+      <Rect x="0" y="0" width="184" height="66" rx="16" fill="#FEF3C7" stroke="#D97706" strokeWidth="1.5" strokeDasharray="3 3" />
+      <Rect x="6" y="4" width="172" height="58" rx="12" fill="url(#rugGrad)" />
+      <Rect x="12" y="8" width="160" height="50" rx="8" fill="none" stroke="#FEF08A" strokeWidth="2" />
+      <Ellipse cx="92" cy="33" rx="34" ry="16" fill="url(#rugCenter)" />
+      <Path d="M 80 33 L 92 24 L 104 33 L 92 42 Z" fill="#9F1239" />
+    </G>
   </Svg>
 );
 
@@ -215,7 +249,8 @@ export interface LocationSlot {
   color: string;
   cardBg: string;
   borderColor: string;
-  component: React.ComponentType<{ size?: number }>;
+  posX: number; // in 420 base coordinate space
+  posY: number; // in 330 base coordinate space
 }
 
 export const ROOM_LOCATIONS: LocationSlot[] = [
@@ -227,7 +262,8 @@ export const ROOM_LOCATIONS: LocationSlot[] = [
     color: '#7C3AED',
     cardBg: '#FAF5FF',
     borderColor: '#DDD6FE',
-    component: BookshelfFurniture,
+    posX: 50,
+    posY: 105,
   },
   {
     id: 'window',
@@ -237,27 +273,8 @@ export const ROOM_LOCATIONS: LocationSlot[] = [
     color: '#059669',
     cardBg: '#ECFDF5',
     borderColor: '#A7F3D0',
-    component: WindowSillFurniture,
-  },
-  {
-    id: 'sofa',
-    name: 'Cozy Sofa',
-    shortName: 'Sofa',
-    iconLabel: '🛋️',
-    color: '#2563EB',
-    cardBg: '#EFF6FF',
-    borderColor: '#BFDBFE',
-    component: SofaFurniture,
-  },
-  {
-    id: 'table',
-    name: 'Center Table',
-    shortName: 'Table',
-    iconLabel: '🪵',
-    color: '#D97706',
-    cardBg: '#FFFBEB',
-    borderColor: '#FDE68A',
-    component: CoffeeTableFurniture,
+    posX: 210,
+    posY: 80,
   },
   {
     id: 'nightstand',
@@ -267,7 +284,30 @@ export const ROOM_LOCATIONS: LocationSlot[] = [
     color: '#EA580C',
     cardBg: '#FFF7ED',
     borderColor: '#FED7AA',
-    component: BedsideTableFurniture,
+    posX: 360,
+    posY: 130,
+  },
+  {
+    id: 'sofa',
+    name: 'Cozy Sofa',
+    shortName: 'Sofa',
+    iconLabel: '🛋️',
+    color: '#2563EB',
+    cardBg: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    posX: 115,
+    posY: 198,
+  },
+  {
+    id: 'table',
+    name: 'Center Table',
+    shortName: 'Table',
+    iconLabel: '🪵',
+    color: '#D97706',
+    cardBg: '#FFFBEB',
+    borderColor: '#FDE68A',
+    posX: 275,
+    posY: 210,
   },
   {
     id: 'rug',
@@ -277,7 +317,8 @@ export const ROOM_LOCATIONS: LocationSlot[] = [
     color: '#DB2777',
     cardBg: '#FDF2F8',
     borderColor: '#FCE7F3',
-    component: FloorRugFurniture,
+    posX: 210,
+    posY: 280,
   },
 ];
 
@@ -328,6 +369,7 @@ type GamePhase = 'MEMORIZE' | 'RECALL' | 'COMPLETED';
 
 export default function ObjectLocationMemoryGameScreen() {
   const router = useRouter();
+  const { width: windowWidth } = useWindowDimensions();
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
@@ -353,6 +395,11 @@ export default function ObjectLocationMemoryGameScreen() {
 
   const currentLevelConfig = LEVEL_CONFIGS[currentLevel] || LEVEL_CONFIGS[1];
   const targetPlacement = placements[currentQuestionIdx] || placements[0];
+
+  // Responsive scene dimensions (viewBox is 420 x 330)
+  const sceneWidth = Math.min(windowWidth - 32, 420);
+  const sceneHeight = Math.round(sceneWidth * (330 / 420));
+  const scale = sceneWidth / 420;
 
   // Initialize round
   const initRound = (lvl: number) => {
@@ -387,7 +434,7 @@ export default function ObjectLocationMemoryGameScreen() {
     const speechItems = roundPlacements
       .map((p) => `${p.object.speechName} is on the ${p.location.name}`)
       .join(', and ');
-    voiceService.speak(`Look at the room! Notice where each item is placed: ${speechItems}.`);
+    voiceService.speak(`Look at the living room! Notice where each item is placed: ${speechItems}.`);
   };
 
   useEffect(() => {
@@ -548,7 +595,7 @@ export default function ObjectLocationMemoryGameScreen() {
         />
       </View>
 
-      {/* 2. Phase 1: Memorize the Big Picture */}
+      {/* 2. Phase 1: Memorize the Single Complete Room Scene */}
       {phase === 'MEMORIZE' && (
         <View style={styles.phaseContainer}>
           {/* Top Instruction Banner with Countdown Timer */}
@@ -576,67 +623,67 @@ export default function ObjectLocationMemoryGameScreen() {
             </View>
           </View>
 
-          {/* THE BIG PICTURE: Living Room Visual Scene */}
+          {/* THE COMPLETE PICTURE: Single Unified Living Room Image Canvas */}
           <View style={[styles.bigPictureFrame, { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFDF7' }]}>
-            {/* Room Title Header */}
             <View style={styles.roomSceneHeader}>
               <Typography size="xs" weight="bold" color="#0D9488">
-                🏡 LIVING ROOM SCENE
+                🏡 COMPLETE LIVING ROOM SCENE
               </Typography>
               <Typography size="xs" color={COLORS.textMuted}>
                 {placements.length} Items Placed
               </Typography>
             </View>
 
-            {/* Living Room Spatial Furniture Grid */}
-            <View style={styles.roomFurnitureGrid}>
+            {/* Single SVG Scene with Objects Placed in Location Context */}
+            <View style={[styles.canvasWrapper, { width: sceneWidth, height: sceneHeight }]}>
+              <LivingRoomSceneCanvas width={sceneWidth} height={sceneHeight} />
+
+              {/* Placed Objects Anchors Overlaid Directly on the Scene */}
               {activeSlots.map((slot) => {
                 const matchedPlacement = placements.find((p) => p.location.id === slot.id);
-                const ObjectComp = matchedPlacement?.object.component;
-                const FurnitureComp = slot.component;
+                if (!matchedPlacement) return null;
+                const ObjectComp = matchedPlacement.object.component;
+                const posX = slot.posX * scale;
+                const posY = slot.posY * scale;
+                const itemSize = Math.max(34, Math.round(44 * scale));
 
                 return (
                   <View
                     key={slot.id}
                     style={[
-                      styles.furnitureCard,
+                      styles.sceneObjectAnchor,
                       {
-                        backgroundColor: isHc ? '#1E293B' : slot.cardBg,
-                        borderColor: matchedPlacement ? slot.color : slot.borderColor,
-                        borderWidth: matchedPlacement ? 2.5 : 1.5,
+                        left: posX - 48,
+                        top: posY - 38,
+                        width: 96,
                       },
                     ]}
                   >
-                    {/* Location Badge */}
-                    <View style={[styles.locationBadge, { backgroundColor: slot.color }]}>
-                      <Typography size="xs" weight="bold" color="#FFFFFF">
-                        {slot.iconLabel} {slot.name}
-                      </Typography>
+                    {/* Item Card Floating over Furniture */}
+                    <View
+                      style={[
+                        styles.placedObjectCard,
+                        { borderColor: matchedPlacement.object.themeColor },
+                      ]}
+                    >
+                      <ObjectComp size={itemSize} />
+                      <View
+                        style={[
+                          styles.placedItemPill,
+                          { backgroundColor: matchedPlacement.object.themeColor },
+                        ]}
+                      >
+                        <Typography size="xs" weight="bold" color="#FFFFFF" numberOfLines={1}>
+                          {matchedPlacement.object.name}
+                        </Typography>
+                      </View>
                     </View>
 
-                    {/* Integrated Furniture + Object Display */}
-                    <View style={styles.furnitureStage}>
-                      <FurnitureComp size={76} />
-
-                      {/* Placed Object Overlay */}
-                      {ObjectComp ? (
-                        <View style={styles.placedItemAnchor}>
-                          <View style={styles.placedItemHalo}>
-                            <ObjectComp size={50} />
-                          </View>
-                          <View style={[styles.itemNameTag, { backgroundColor: matchedPlacement.object.themeColor }]}>
-                            <Typography size="xs" weight="bold" color="#FFFFFF">
-                              {matchedPlacement.object.name}
-                            </Typography>
-                          </View>
-                        </View>
-                      ) : (
-                        <View style={styles.emptyFurnitureTag}>
-                          <Typography size="xs" color="#94A3B8">
-                            (Empty)
-                          </Typography>
-                        </View>
-                      )}
+                    {/* Location Name Label */}
+                    <View style={[styles.locationTagPill, { backgroundColor: slot.color }]}>
+                      <Typography size="xs" weight="bold" color="#FFFFFF" numberOfLines={1}>
+                        {slot.iconLabel} {slot.shortName}
+                      </Typography>
                     </View>
                   </View>
                 );
@@ -674,7 +721,7 @@ export default function ObjectLocationMemoryGameScreen() {
             ]}
           >
             <View style={styles.targetObjectBadge}>
-              {TargetObjectComponent && <TargetObjectComponent size={56} />}
+              {TargetObjectComponent && <TargetObjectComponent size={54} />}
             </View>
 
             <View style={{ flex: 1, marginLeft: SPACING.sm }}>
@@ -687,37 +734,33 @@ export default function ObjectLocationMemoryGameScreen() {
             </View>
           </View>
 
-          {/* Interactive Living Room Big Picture */}
+          {/* Interactive Complete Living Room Scene Picture */}
           <View style={[styles.bigPictureFrame, { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFDF7' }]}>
             <View style={styles.roomSceneHeader}>
               <Typography size="xs" weight="bold" color="#4F46E5">
                 🏡 TAP THE SPOT ON THE ROOM PICTURE:
               </Typography>
+              <Typography size="xs" color={COLORS.textMuted}>
+                {solvedPlacements.length}/{placements.length} Found
+              </Typography>
             </View>
 
-            <View style={styles.roomFurnitureGrid}>
+            {/* Single Canvas with Interactive Hotspots directly on the Image */}
+            <View style={[styles.canvasWrapper, { width: sceneWidth, height: sceneHeight }]}>
+              <LivingRoomSceneCanvas width={sceneWidth} height={sceneHeight} />
+
+              {/* Hotspot Touch Targets Overlaid on each Furniture Location */}
               {activeSlots.map((slot) => {
                 const isSelected = selectedSlotId === slot.id;
                 const isSlotWrong = wrongSlotId === slot.id;
                 const isSlotCorrect = isSelected && targetPlacement?.location.id === slot.id;
-                const isAlreadySolved = solvedPlacements.includes(
-                  placements.find((p) => p.location.id === slot.id)?.object.id || ''
-                );
-
-                let cardBg = isHc ? '#1E293B' : slot.cardBg;
-                let borderColor = isHc ? COLORS.hcBorder : slot.borderColor;
-
-                if (isSlotCorrect || isAlreadySolved) {
-                  cardBg = '#DCFCE7';
-                  borderColor = '#16A34A';
-                } else if (isSlotWrong) {
-                  cardBg = '#FEE2E2';
-                  borderColor = '#DC2626';
-                }
-
                 const matchedPlacement = placements.find((p) => p.location.id === slot.id);
+                const isAlreadySolved = !!matchedPlacement && solvedPlacements.includes(matchedPlacement.object.id);
+
+                const posX = slot.posX * scale;
+                const posY = slot.posY * scale;
                 const SolvedComp = (isAlreadySolved || isSlotCorrect) && matchedPlacement ? matchedPlacement.object.component : null;
-                const FurnitureComp = slot.component;
+                const itemSize = Math.max(34, Math.round(44 * scale));
 
                 return (
                   <TouchableOpacity
@@ -727,60 +770,58 @@ export default function ObjectLocationMemoryGameScreen() {
                     accessibilityLabel={`Select ${slot.name}`}
                     onPress={() => handleSelectLocation(slot)}
                     style={[
-                      styles.furnitureCard,
+                      styles.sceneTouchTarget,
                       {
-                        backgroundColor: cardBg,
-                        borderColor: borderColor,
-                        borderWidth: isSelected || isSlotWrong || isAlreadySolved ? 3 : 1.8,
+                        left: posX - 44,
+                        top: posY - 36,
+                        width: 88,
                       },
                     ]}
                   >
-                    {/* Location Badge */}
-                    <View
-                      style={[
-                        styles.locationBadge,
-                        {
-                          backgroundColor: isSlotCorrect || isAlreadySolved ? '#16A34A' : isSlotWrong ? '#DC2626' : slot.color,
-                        },
-                      ]}
-                    >
-                      <Typography size="xs" weight="bold" color="#FFFFFF">
-                        {slot.iconLabel} {slot.name}
-                      </Typography>
-                    </View>
-
-                    {/* Furniture Stage with Interactive Prompt Anchor */}
-                    <View style={styles.furnitureStage}>
-                      <FurnitureComp size={76} />
-
-                      {/* Display Solved Object OR Tap Question Hotspot */}
-                      {SolvedComp && matchedPlacement ? (
-                        <View style={styles.placedItemAnchor}>
-                          <View style={styles.placedItemHalo}>
-                            <SolvedComp size={50} />
-                          </View>
-                          <View style={[styles.solvedBadge]}>
-                            <CheckCircle2 size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
-                            <Typography size="xs" weight="bold" color="#FFFFFF">
-                              {matchedPlacement.object.name}
-                            </Typography>
-                          </View>
+                    {SolvedComp && matchedPlacement ? (
+                      /* Solved Object State */
+                      <View style={styles.solvedContainer}>
+                        <View style={styles.solvedItemHalo}>
+                          <SolvedComp size={itemSize} />
                         </View>
-                      ) : isSlotWrong ? (
-                        <View style={styles.wrongSpotAnchor}>
-                          <XCircle size={36} color="#DC2626" />
-                        </View>
-                      ) : (
-                        <View style={styles.tapTargetSpotAnchor}>
-                          <View style={styles.tapTargetCircle}>
-                            <MapPin size={22} color={slot.color} />
-                          </View>
-                          <Typography size="xs" weight="bold" color="#64748B" style={{ marginTop: 2 }}>
-                            Tap Here
+                        <View style={styles.solvedPill}>
+                          <CheckCircle2 size={13} color="#FFFFFF" style={{ marginRight: 3 }} />
+                          <Typography size="xs" weight="bold" color="#FFFFFF" numberOfLines={1}>
+                            {matchedPlacement.object.name}
                           </Typography>
                         </View>
-                      )}
-                    </View>
+                      </View>
+                    ) : isSlotWrong ? (
+                      /* Wrong Attempt State */
+                      <View style={styles.wrongPinHalo}>
+                        <XCircle size={32} color="#DC2626" />
+                        <View style={styles.wrongPill}>
+                          <Typography size="xs" weight="bold" color="#FFFFFF">
+                            Wrong!
+                          </Typography>
+                        </View>
+                      </View>
+                    ) : (
+                      /* Interactive Hotspot Pin */
+                      <View style={styles.hotspotPinContainer}>
+                        <View
+                          style={[
+                            styles.hotspotPinCircle,
+                            {
+                              borderColor: isSelected ? '#16A34A' : slot.color,
+                              backgroundColor: isSelected ? '#DCFCE7' : '#FFFFFF',
+                            },
+                          ]}
+                        >
+                          <MapPin size={20} color={slot.color} />
+                        </View>
+                        <View style={[styles.hotspotTagPill, { backgroundColor: slot.color }]}>
+                          <Typography size="xs" weight="bold" color="#FFFFFF" numberOfLines={1}>
+                            {slot.iconLabel} {slot.shortName}
+                          </Typography>
+                        </View>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -796,6 +837,64 @@ export default function ObjectLocationMemoryGameScreen() {
               </Typography>
             </View>
           )}
+
+          {/* Bottom Quick-Choice Furniture Buttons for Accessibility */}
+          <View style={styles.choicesSection}>
+            <Typography size="xs" weight="bold" color={COLORS.textSecondary} style={{ marginBottom: 6 }}>
+              OR CHOOSE LOCATION BELOW:
+            </Typography>
+            <View style={styles.choiceButtonsGrid}>
+              {activeSlots.map((slot) => {
+                const matchedPlacement = placements.find((p) => p.location.id === slot.id);
+                const isAlreadySolved = !!matchedPlacement && solvedPlacements.includes(matchedPlacement.object.id);
+                const isSlotWrong = wrongSlotId === slot.id;
+                const isSelected = selectedSlotId === slot.id;
+                const isSlotCorrect = isSelected && targetPlacement?.location.id === slot.id;
+
+                let btnBg = isHc ? '#1E293B' : slot.cardBg;
+                let btnBorder = isHc ? COLORS.hcBorder : slot.borderColor;
+                let textColor = isHc ? COLORS.hcTextPrimary : '#1E293B';
+
+                if (isAlreadySolved || isSlotCorrect) {
+                  btnBg = '#DCFCE7';
+                  btnBorder = '#16A34A';
+                  textColor = '#166534';
+                } else if (isSlotWrong) {
+                  btnBg = '#FEE2E2';
+                  btnBorder = '#DC2626';
+                  textColor = '#991B1B';
+                }
+
+                return (
+                  <TouchableOpacity
+                    key={`btn-${slot.id}`}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Choose ${slot.name}`}
+                    onPress={() => handleSelectLocation(slot)}
+                    style={[
+                      styles.choiceBtn,
+                      {
+                        backgroundColor: btnBg,
+                        borderColor: btnBorder,
+                        borderWidth: isAlreadySolved || isSlotWrong ? 2 : 1.5,
+                      },
+                    ]}
+                  >
+                    <Typography size="sm" weight="bold" color={textColor}>
+                      {slot.iconLabel} {slot.name}
+                    </Typography>
+                    {isAlreadySolved && (
+                      <CheckCircle2 size={16} color="#16A34A" style={{ marginLeft: 4 }} />
+                    )}
+                    {isSlotWrong && (
+                      <XCircle size={16} color="#DC2626" style={{ marginLeft: 4 }} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
         </View>
       )}
 
@@ -851,6 +950,7 @@ const styles = StyleSheet.create({
   },
   phaseContainer: {
     width: '100%',
+    alignItems: 'center',
   },
   instructionBanner: {
     width: '100%',
@@ -859,7 +959,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     borderRadius: 8,
     borderWidth: 1.5,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   timerCircle: {
     width: 48,
@@ -875,78 +975,90 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#E2E8F0',
-    padding: SPACING.sm,
-    marginBottom: SPACING.md,
+    borderColor: '#CBD5E1',
+    padding: SPACING.xs,
+    marginBottom: SPACING.sm,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.08,
     shadowRadius: 6,
-    elevation: 2,
+    elevation: 3,
   },
   roomSceneHeader: {
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.xs,
-    paddingBottom: SPACING.xs,
-    marginBottom: SPACING.xs,
+    paddingBottom: 4,
+    marginBottom: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
-  roomFurnitureGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: SPACING.sm,
-  },
-  furnitureCard: {
-    width: '48%',
-    borderRadius: 8,
-    padding: 6,
-    minHeight: 145,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  locationBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginBottom: 4,
-  },
-  furnitureStage: {
-    flex: 1,
+  canvasWrapper: {
+    position: 'relative',
+    borderRadius: 6,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-    paddingVertical: 4,
+    backgroundColor: '#FEF3C7',
   },
-  placedItemAnchor: {
+  sceneObjectAnchor: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    top: 2,
+    zIndex: 10,
   },
-  placedItemHalo: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 8,
-    padding: 4,
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    elevation: 3,
+  placedObjectCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderRadius: 6,
+    padding: 3,
+    borderWidth: 2,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 4,
   },
-  itemNameTag: {
+  placedItemPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+    marginTop: 2,
+  },
+  locationTagPill: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
     marginTop: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
     elevation: 2,
   },
-  solvedBadge: {
+  sceneTouchTarget: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    padding: 2,
+  },
+  solvedContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  solvedItemHalo: {
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderRadius: 6,
+    padding: 3,
+    borderWidth: 2,
+    borderColor: '#16A34A',
+    elevation: 3,
+  },
+  solvedPill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#16A34A',
@@ -955,32 +1067,51 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginTop: 2,
   },
-  emptyFurnitureTag: {
-    position: 'absolute',
-    bottom: 4,
+  wrongPinHalo: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 6,
+    padding: 4,
+    borderWidth: 2,
+    borderColor: '#DC2626',
+    alignItems: 'center',
   },
-  tapTargetSpotAnchor: {
-    position: 'absolute',
+  wrongPill: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 3,
+    marginTop: 2,
+  },
+  hotspotPinContainer: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tapTargetCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+  hotspotPinCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#94A3B8',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  hotspotTagPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
     elevation: 2,
   },
-  wrongSpotAnchor: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   readyPrimaryBtn: {
+    width: '100%',
     backgroundColor: '#0D9488',
     flexDirection: 'row',
     alignItems: 'center',
@@ -994,12 +1125,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   questionBanner: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
     borderRadius: 8,
     borderWidth: 2,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   targetObjectBadge: {
     width: 64,
@@ -1012,6 +1144,7 @@ const styles = StyleSheet.create({
     borderColor: '#C7D2FE',
   },
   wrongBanner: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1020,5 +1153,30 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#FECDD3',
+    marginBottom: SPACING.sm,
+  },
+  choicesSection: {
+    width: '100%',
+    marginTop: SPACING.xs,
+  },
+  choiceButtonsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'space-between',
+  },
+  choiceBtn: {
+    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
 });
