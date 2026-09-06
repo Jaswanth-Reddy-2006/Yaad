@@ -1,4 +1,4 @@
-import { SQLiteDatabase } from 'expo-sqlite';
+import type { SQLiteDatabase } from 'expo-sqlite';
 import { PatientProfile, ConnectionIdentity, DailyTask, Reminder } from '../types';
 
 export const LOCAL_PATIENT_ID = 'local-dev-patient-uuid-001';

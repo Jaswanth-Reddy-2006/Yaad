@@ -26,17 +26,13 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "expo-secure-store",
-      "expo-asset",
-      "expo-audio",
-      "expo-speech-recognition"
+      "expo-secure-store"
     ],
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "218325eb-4cf1-457e-937e-a1cd2e613208"
+        "projectId": "8a3e54f4-b155-4d8d-ba6d-ba4f8096efc9"
       }
-    },
-    "owner": "mohd_rafey_uddin"
+    }
   }
 }

@@ -27,8 +27,9 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
       <View style={styles.contentWrapper}>
         {scrollable ? (
           <ScrollView
+            style={styles.scrollView}
             contentContainerStyle={[styles.scrollContent, style]}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={true}
             keyboardShouldPersistTaps="handled"
           >
             {children}
@@ -52,9 +53,13 @@ const styles = StyleSheet.create({
   contentWrapper: {
     flex: 1,
   },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
     paddingHorizontal: SPACING.md,
     paddingBottom: 110,
+    flexGrow: 1,
   },
   viewContent: {
     flex: 1,
