@@ -16,6 +16,7 @@ import {
   StoryRecallBannerIllustration,
   ObjectLocationBannerIllustration,
   DailyRoutineBannerIllustration,
+  ColorSequenceBannerIllustration,
 } from '../../../components/illustrations';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
@@ -158,6 +159,18 @@ export default function GamesHomeScreen() {
       btnBg: '#F59E0B',
       route: '/(patient)/games/triplet',
       renderBanner: () => <FindThreeBannerIllustration height={130} />,
+    },
+    {
+      id: 'color-sequence',
+      name: 'Color Sequence',
+      description: 'Watch the colors light up one by one, then tap them back in the same order. Train your short-term memory!',
+      speechText: 'Color Sequence. Watch the colored tiles light up and remember the order. Then tap them back the same way!',
+      cardBg: '#F0FDF4',
+      borderColor: '#BBF7D0',
+      titleColor: '#15803D',
+      btnBg: '#16A34A',
+      route: '/(patient)/games/color-sequence',
+      renderBanner: () => <ColorSequenceBannerIllustration height={130} />,
     },
   ];
 

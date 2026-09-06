@@ -769,6 +769,56 @@ export const DailyRoutineBannerIllustration: React.FC<BannerProps> = ({ height =
   </View>
 );
 
+/**
+ * Color Sequence: 4 colored tiles in 2x2 grid with glow effect showing Simon-Says gameplay.
+ */
+export const ColorSequenceBannerIllustration: React.FC<BannerProps> = ({ height = 120 }) => (
+  <View style={[styles.container, { height }]}>
+    <Svg width="100%" height="100%" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet">
+      <Defs>
+        <LinearGradient id="csBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#F0FDF4" />
+          <Stop offset="100%" stopColor="#DCFCE7" />
+        </LinearGradient>
+      </Defs>
+      <Rect width="280" height="120" rx="14" fill="url(#csBg)" />
+      
+      {/* Red tile top-left — glowing */}
+      <Rect x="62" y="10" width="60" height="46" rx="12" fill="#EF4444" />
+      <Rect x="62" y="10" width="60" height="46" rx="12" fill="#FF6B6B" opacity="0.55" />
+      <Circle cx="92" cy="33" r="8" fill="#FFFFFF" opacity="0.7" />
+      
+      {/* Blue tile top-right */}
+      <Rect x="130" y="10" width="60" height="46" rx="12" fill="#3B82F6" />
+      
+      {/* Yellow tile bottom-left */}
+      <Rect x="62" y="64" width="60" height="46" rx="12" fill="#EAB308" />
+      
+      {/* Green tile bottom-right — glowing */}
+      <Rect x="130" y="64" width="60" height="46" rx="12" fill="#22C55E" />
+      <Rect x="130" y="64" width="60" height="46" rx="12" fill="#4ADE80" opacity="0.45" />
+      <Circle cx="160" cy="87" r="8" fill="#FFFFFF" opacity="0.65" />
+      
+      {/* Sequence arrow path */}
+      <Path d="M 92 56 Q 92 100 130 87" stroke="#FFFFFF" strokeWidth="3" strokeDasharray="5 3" fill="none" strokeLinecap="round" />
+      
+      {/* Sequence number badges */}
+      <Circle cx="92" cy="33" r="12" fill="#DC2626" opacity="0.85" />
+      <Rect x="84" y="25" width="16" height="16" rx="8" fill="#DC2626" />
+      
+      {/* Side label */}
+      <Rect x="202" y="38" width="65" height="44" rx="10" fill="#15803D" />
+      <Rect x="205" y="41" width="59" height="38" rx="8" fill="#16A34A" />
+      <Circle cx="217" cy="52" r="5" fill="#4ADE80" />
+      <Circle cx="232" cy="52" r="5" fill="#FDE047" />
+      <Circle cx="247" cy="52" r="5" fill="#60A5FA" />
+      <Circle cx="217" cy="66" r="5" fill="#F87171" />
+      <Circle cx="232" cy="66" r="5" fill="#4ADE80" />
+      <Circle cx="247" cy="66" r="5" fill="#FDE047" />
+    </Svg>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',
