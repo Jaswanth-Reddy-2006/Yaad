@@ -1,6 +1,7 @@
 import { getDatabase } from '../database/db';
 import { DailyTask } from '../types';
-import { LOCAL_PATIENT_ID } from '../database/seed';
+import { LOCAL_PATIENT_ID, ensurePatientProfile } from '../database/seed';
+import { authService } from '../services/AuthService';
 
 export interface IDailyTaskRepository {
   getDailyTasks(): Promise<DailyTask[]>;
@@ -9,11 +10,19 @@ export interface IDailyTaskRepository {
 }
 
 export class SQLiteDailyTaskRepository implements IDailyTaskRepository {
+  private async resolvePatientId(): Promise<string> {
+    const authId = await authService.getUserId();
+    return authId || LOCAL_PATIENT_ID;
+  }
+
   async getDailyTasks(): Promise<DailyTask[]> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     const rows = (await db.getAllAsync(
       'SELECT * FROM daily_tasks WHERE patient_id = ?',
-      [LOCAL_PATIENT_ID]
+      [patientId]
     )) as Array<{
       id: string;
       patient_id: string;
@@ -37,9 +46,12 @@ export class SQLiteDailyTaskRepository implements IDailyTaskRepository {
 
   async toggleTaskCompletion(id: string): Promise<DailyTask> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     const current = (await db.getFirstAsync(
       'SELECT is_completed FROM daily_tasks WHERE id = ? AND patient_id = ?',
-      [id, LOCAL_PATIENT_ID]
+      [id, patientId]
     )) as { is_completed: number } | null;
 
     if (!current) throw new Error('Task not found');
@@ -49,7 +61,7 @@ export class SQLiteDailyTaskRepository implements IDailyTaskRepository {
 
     await db.runAsync(
       'UPDATE daily_tasks SET is_completed = ?, completed_at = ? WHERE id = ? AND patient_id = ?',
-      [nextState, completedAt, id, LOCAL_PATIENT_ID]
+      [nextState, completedAt, id, patientId]
     );
 
     const tasks = await this.getDailyTasks();

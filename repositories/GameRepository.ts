@@ -1,6 +1,6 @@
 import { getDatabase } from '../database/db';
 import { GameResult, GameType } from '../types';
-import { LOCAL_PATIENT_ID } from '../database/seed';
+import { LOCAL_PATIENT_ID, ensurePatientProfile } from '../database/seed';
 import { authService } from '../services/AuthService';
 
 export interface IGameRepository {
@@ -19,6 +19,10 @@ export class SQLiteGameRepository implements IGameRepository {
   async saveResult(resultData: Omit<GameResult, 'id' | 'patientId'>, patientId?: string): Promise<GameResult> {
     const db: any = await getDatabase();
     const activePatientId = await this.resolvePatientId(patientId);
+    
+    // Ensure parent patient_profile exists to prevent FOREIGN KEY constraint failed error
+    await ensurePatientProfile(db, activePatientId);
+
     const id = `res-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
 
     await db.runAsync(

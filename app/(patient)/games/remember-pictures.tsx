@@ -11,6 +11,7 @@ import { GameResultModal } from '../../../components/games/GameResultModal';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 import { GameDifficulty, GameResult } from '../../../types';
+import { gameRepository } from '../../../repositories/GameRepository';
 
 const SYMBOL_POOL = [
   'apple',
@@ -130,7 +131,8 @@ export default function RememberPicturesGameScreen() {
     const accuracy = Math.round((correctCount / targetCount) * 100);
     const mistakes = selectedIds.length - correctCount;
     const calculatedScore = correctCount * 350 + Math.max(0, 30 - elapsedSecs) * 10;
-    const result: GameResult = {
+    
+    const fallbackResult: GameResult = {
       id: `result-${Date.now()}`,
       sessionId: `session-${Date.now()}`,
       patientId: 'patient-local',
@@ -147,8 +149,28 @@ export default function RememberPicturesGameScreen() {
       status: 'COMPLETED',
     };
 
-    setGameResult(result);
+    setGameResult(fallbackResult);
     setPhase('COMPLETED');
+
+    // Persist to local database
+    gameRepository.saveResult({
+      sessionId: fallbackResult.sessionId,
+      gameId: 'PAIR' as any,
+      difficulty,
+      score: calculatedScore,
+      accuracy,
+      durationSeconds: elapsedSecs,
+      attempts: selectedIds.length,
+      mistakes: Math.max(0, mistakes),
+      hintsUsed: 0,
+      startedAt: fallbackResult.startedAt,
+      completedAt: fallbackResult.completedAt,
+      status: 'COMPLETED',
+    }).then((saved) => {
+      setGameResult(saved);
+    }).catch(() => {
+      // Keep fallback result
+    });
   };
 
   const handleBackPress = () => {
