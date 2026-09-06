@@ -613,15 +613,8 @@ export default function ObjectLocationMemoryGameScreen() {
                       },
                     ]}
                   >
-                    {/* Visual Item Floating directly on the Furniture Spot */}
-                    <View
-                      style={[
-                        styles.placedObjectCard,
-                        { borderColor: matchedPlacement.object.themeColor },
-                      ]}
-                    >
-                      <ObjectComp size={itemSize} />
-                    </View>
+                    {/* Object rendered directly on the room scene — no box or card */}
+                    <ObjectComp size={itemSize} />
                   </View>
                 );
               })}
@@ -709,13 +702,11 @@ export default function ObjectLocationMemoryGameScreen() {
                     ]}
                   >
                     {SolvedComp ? (
-                      /* Solved Object State (Pure Visual + Green Check) */
+                      /* Solved Object State — shown directly on scene, no box */
                       <View style={styles.solvedContainer}>
-                        <View style={styles.solvedItemHalo}>
-                          <SolvedComp size={itemSize} />
-                          <View style={styles.solvedCheckCorner}>
-                            <CheckCircle2 size={18} color="#16A34A" />
-                          </View>
+                        <SolvedComp size={itemSize} />
+                        <View style={styles.solvedCheckCorner}>
+                          <CheckCircle2 size={18} color="#16A34A" />
                         </View>
                       </View>
                     ) : isSlotWrong ? (
@@ -830,17 +821,9 @@ const styles = StyleSheet.create({
   },
   bigPictureFrame: {
     width: '100%',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#CBD5E1',
-    padding: SPACING.xs,
+    padding: 0,
     marginBottom: SPACING.sm,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
   },
   canvasWrapper: {
     position: 'relative',
