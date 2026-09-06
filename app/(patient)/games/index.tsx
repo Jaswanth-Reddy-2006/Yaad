@@ -9,9 +9,7 @@ import {
   MatchCardsBannerIllustration,
   RememberPicturesBannerIllustration,
   FindThreeBannerIllustration,
-  OddOneOutBannerIllustration,
   WordMatchBannerIllustration,
-  RememberMyDayBannerIllustration,
 } from '../../../components/illustrations';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
@@ -61,18 +59,6 @@ export default function GamesHomeScreen() {
     },
     {
       id: '3',
-      name: t('odd_one_out') || 'Odd One Out',
-      description: t('odd_one_out_desc') || 'Find the picture that is different from the rest.',
-      speechText: 'Odd One Out. Look closely and find the picture that is different.',
-      cardBg: '#FFF1F2',
-      borderColor: '#FECDD3',
-      titleColor: '#E11D48',
-      btnBg: '#E11D48',
-      route: '/(patient)/games/odd-one-out',
-      renderBanner: () => <OddOneOutBannerIllustration height={130} />,
-    },
-    {
-      id: '4',
       name: t('name_the_object') || 'Name the Object',
       description: t('name_object_desc') || 'Look at the picture and tap its matching name.',
       speechText: 'Name the Object. Look at the picture and tap the matching word.',
@@ -84,19 +70,7 @@ export default function GamesHomeScreen() {
       renderBanner: () => <WordMatchBannerIllustration height={130} />,
     },
     {
-      id: '5',
-      name: t('remember_my_day') || 'Remember My Day',
-      description: t('remember_day_desc') || 'Arrange your daily routine activities in order.',
-      speechText: 'Remember My Day. Put your daily activities in order from morning to night.',
-      cardBg: '#FFF7ED',
-      borderColor: '#FED7AA',
-      titleColor: '#C2410C',
-      btnBg: '#EA580C',
-      route: '/(patient)/games/daily-sequence',
-      renderBanner: () => <RememberMyDayBannerIllustration height={130} />,
-    },
-    {
-      id: '6',
+      id: '4',
       name: t('find_three') || 'Find Three',
       description: t('find_three_desc') || 'Find three pictures that belong together.',
       speechText: 'Find Three. Find three pictures that belong together.',
