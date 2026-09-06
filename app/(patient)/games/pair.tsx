@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ArrowLeft,
@@ -25,6 +25,7 @@ export default function PairGameScreen() {
 
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
+  const { width: screenWidth } = useWindowDimensions();
 
   const [difficulty, setDifficulty] = useState<GameDifficulty>(initialDifficulty);
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -91,9 +92,22 @@ export default function PairGameScreen() {
   const hintDisabled =
     gameState.hintCooldownActive || gameState.hintsUsed >= 3 || gameState.isLocked;
 
-  // Responsive column calculation: 2x2 for Easy (4 cards), 3x4 for Medium (12 cards), 4x4 for Hard (16 cards)
+  // Responsive column calculation: 2x2 for Easy (4 cards), 3x4 for Medium (12 cards), 4x4 for Hard/Expert (16 cards)
   const numColumns =
     gameState.cards.length <= 4 ? 2 : gameState.cards.length === 12 ? 3 : 4;
+
+  // Compute exact pixel card sizes to avoid percentage+gap conflicts in flexWrap
+  const horizontalPadding = SPACING.md * 2; // container paddingHorizontal on both sides
+  const cardGap = 10; // gap between cards (px)
+  const totalGaps = (numColumns - 1) * cardGap;
+  const cardPixelWidth = Math.floor((screenWidth - horizontalPadding - totalGaps) / numColumns);
+  const cardPixelHeight = Math.round(cardPixelWidth * (numColumns === 2 ? 0.95 : numColumns === 3 ? 0.88 : 0.82));
+
+  // Chunk cards into rows for stable rendering
+  const cardRows: typeof gameState.cards[] = [];
+  for (let i = 0; i < gameState.cards.length; i += numColumns) {
+    cardRows.push(gameState.cards.slice(i, i + numColumns));
+  }
 
   // Prompt text
   const flippedUnmatched = gameState.cards.filter((c) => c.isFlipped && !c.isMatched);
@@ -187,17 +201,22 @@ export default function PairGameScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Board Grid: Clean 2x2, 3x4, or 4x4 cards */}
+      {/* Board Grid: Row-by-row layout with exact pixel widths to ensure correct wrapping */}
       <View style={styles.boardGrid}>
-        {gameState.cards.map((card, idx) => (
-          <GameCard
-            key={card.id}
-            card={card}
-            positionIndex={idx}
-            numColumns={numColumns}
-            disabled={gameState.isLocked}
-            onSelect={(id) => controllerRef.current?.selectCard(id)}
-          />
+        {cardRows.map((row, rowIdx) => (
+          <View key={`row-${rowIdx}`} style={[styles.cardRow, { gap: cardGap }]}>
+            {row.map((card, colIdx) => (
+              <GameCard
+                key={card.id}
+                card={card}
+                positionIndex={rowIdx * numColumns + colIdx}
+                numColumns={numColumns}
+                customWidth={cardPixelWidth}
+                disabled={gameState.isLocked}
+                onSelect={(id) => controllerRef.current?.selectCard(id)}
+              />
+            ))}
+          </View>
         ))}
       </View>
 
@@ -286,9 +305,12 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   boardGrid: {
+    flexDirection: 'column',
+    gap: 10,
+    marginTop: SPACING.sm,
+  },
+  cardRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: SPACING.md,
   },
 });

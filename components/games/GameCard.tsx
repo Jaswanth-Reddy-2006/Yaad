@@ -143,8 +143,9 @@ export const GameCardComponent: React.FC<GameCardProps> = ({
         styles.touchContainer,
         {
           width: cardWidth as any,
-          margin: cardMargin as any,
           aspectRatio: cardAspectRatio,
+          // Only apply percentage margin when not using explicit pixel width (parent row uses gap instead)
+          ...(typeof customWidth !== 'number' ? { margin: cardMargin as any } : {}),
         },
         isHinted ? styles.hintGlow : null,
       ]}
