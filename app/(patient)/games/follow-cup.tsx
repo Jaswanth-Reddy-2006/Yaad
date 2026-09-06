@@ -17,6 +17,7 @@ import {
   LogOut,
   Sparkles,
   Eye,
+  Lock,
 } from 'lucide-react-native';
 import Svg, { Path, Ellipse, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
@@ -44,60 +45,63 @@ const LEVEL_CONFIGS: Record<number, LevelConfig> = {
   4: { level: 4, cupCount: 4, swapCount: 6, swapDuration: 550, label: 'Level 4 • 4 Glasses' },
 };
 
-type GamePhase = 'REVEAL' | 'SHUFFLE' | 'PICK' | 'RESULT';
+type GamePhase = 'REVEAL' | 'COVER' | 'SHUFFLE' | 'PICK' | 'RESULT';
 
 /**
- * Ceramic / Metallic Cup SVG Illustration with opaque body
+ * Solid 100% Opaque Purple Colored Glass SVG Illustration
  */
-const CupIllustrationItem: React.FC<{ size: number }> = ({ size = 90 }) => (
+const PurpleCupIllustration: React.FC<{ size: number }> = ({ size = 90 }) => (
   <Svg width={size} height={size * 1.18} viewBox="0 0 100 118">
     <Defs>
-      <LinearGradient id="cupBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#9333EA" />
-        <Stop offset="35%" stopColor="#7E22CE" />
-        <Stop offset="100%" stopColor="#581C87" />
+      <LinearGradient id="purpleBody" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#7E22CE" />
+        <Stop offset="30%" stopColor="#6B21A8" />
+        <Stop offset="70%" stopColor="#581C87" />
+        <Stop offset="100%" stopColor="#3B0764" />
       </LinearGradient>
-      <LinearGradient id="cupTopGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#C084FC" />
-        <Stop offset="100%" stopColor="#A855F7" />
+      <LinearGradient id="purpleTop" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#A855F7" />
+        <Stop offset="100%" stopColor="#6B21A8" />
       </LinearGradient>
-      <LinearGradient id="rimShine" x1="0%" y1="0%" x2="100%" y2="0%">
-        <Stop offset="0%" stopColor="#E9D5FF" />
-        <Stop offset="100%" stopColor="#A855F7" />
+      <LinearGradient id="goldRing" x1="0%" y1="0%" x2="100%" y2="0%">
+        <Stop offset="0%" stopColor="#FDE047" />
+        <Stop offset="50%" stopColor="#F59E0B" />
+        <Stop offset="100%" stopColor="#D97706" />
       </LinearGradient>
     </Defs>
 
-    {/* Opaque Inverted Cup Body */}
+    {/* Solid 100% Opaque Inverted Purple Glass Body */}
     <Path
       d="M 22 20 L 8 104 C 8 108 92 108 92 104 L 78 20 Z"
-      fill="url(#cupBodyGrad)"
+      fill="url(#purpleBody)"
       stroke="#3B0764"
-      strokeWidth="3"
+      strokeWidth="3.5"
     />
 
-    {/* Elegant Golden Band Accents */}
-    <Path d="M 17 48 L 83 48" stroke="#F59E0B" strokeWidth="3" opacity="0.85" />
-    <Path d="M 12 82 L 88 82" stroke="#F59E0B" strokeWidth="3" opacity="0.85" />
+    {/* Elegant Gold Band Rings for Contrast */}
+    <Path d="M 16 50 L 84 50" stroke="url(#goldRing)" strokeWidth="4" strokeLinecap="round" />
+    <Path d="M 11 82 L 89 82" stroke="url(#goldRing)" strokeWidth="4" strokeLinecap="round" />
 
-    {/* Shiny Glare Streak on Left */}
+    {/* Vibrant Purple Glare Streak on Left */}
     <Path
       d="M 30 26 L 22 98"
-      stroke="#F3E8FF"
-      strokeWidth="4"
+      stroke="#C084FC"
+      strokeWidth="3.5"
       strokeLinecap="round"
-      opacity="0.5"
+      opacity="0.6"
     />
 
-    {/* Top Base Rim */}
-    <Ellipse cx="50" cy="20" rx="28" ry="7" fill="url(#cupTopGrad)" stroke="#3B0764" strokeWidth="2.5" />
+    {/* Top Base of Inverted Glass */}
+    <Ellipse cx="50" cy="20" rx="28" ry="7" fill="url(#purpleTop)" stroke="#3B0764" strokeWidth="2.5" />
 
-    {/* Bottom Rim (Mouth of cup touching table) */}
-    <Ellipse cx="50" cy="104" rx="42" ry="7" fill="url(#rimShine)" stroke="#3B0764" strokeWidth="2.5" />
+    {/* Bottom Rim (Touching Table Surface) */}
+    <Ellipse cx="50" cy="104" rx="42" ry="7" fill="#4C1D95" stroke="#3B0764" strokeWidth="3" />
+    <Ellipse cx="50" cy="104" rx="38" ry="5" fill="none" stroke="url(#goldRing)" strokeWidth="1.8" />
   </Svg>
 );
 
 /**
- * Glowing Golden Ball Object that sits underneath cup
+ * Bright Glowing Golden Ball
  */
 const GoldenBallItem: React.FC<{ size: number }> = ({ size = 48 }) => (
   <Svg width={size} height={size} viewBox="0 0 60 60">
@@ -114,7 +118,7 @@ const GoldenBallItem: React.FC<{ size: number }> = ({ size = 48 }) => (
     {/* Ball Body */}
     <Circle cx="30" cy="30" r="20" fill="url(#ballGrad)" stroke="#B45309" strokeWidth="2.5" />
     {/* Ball Highlight */}
-    <Ellipse cx="23" cy="23" rx="5" ry="3" transform="rotate(-30 23 23)" fill="#FFFFFF" opacity="0.75" />
+    <Ellipse cx="23" cy="23" rx="5" ry="3" transform="rotate(-30 23 23)" fill="#FFFFFF" opacity="0.8" />
     {/* Center Star Sparkle */}
     <Path
       d="M 30 18 L 32 25 L 39 27 L 33 32 L 35 39 L 30 35 L 25 39 L 27 32 L 21 27 L 28 25 Z"
@@ -124,9 +128,9 @@ const GoldenBallItem: React.FC<{ size: number }> = ({ size = 48 }) => (
 );
 
 interface CupItemState {
-  id: number; // Stable identifier of the cup (0, 1, 2, 3)
-  slot: number; // Current slot index it occupies (0, 1, 2, 3)
-  isWinner: boolean; // Does this cup hold the ball?
+  id: number;
+  slot: number;
+  isWinner: boolean;
 }
 
 export default function FollowTheCupGameScreen() {
@@ -153,7 +157,6 @@ export default function FollowTheCupGameScreen() {
   const cupSize = Math.max(64, Math.min(92, slotWidth - 12));
   const ballSize = Math.floor(cupSize * 0.52);
 
-  // Helper to get X position for a given slot
   const getSlotX = (slotIndex: number) => {
     return slotIndex * slotWidth + (slotWidth - cupSize) / 2;
   };
@@ -183,7 +186,7 @@ export default function FollowTheCupGameScreen() {
   const isMountedRef = useRef<boolean>(true);
   const startTimeRef = useRef<number>(Date.now());
 
-  // Initialize round
+  // Initialize round: 1. Show Ball at beginning -> 2. Lower Dark Glass to Hide it -> 3. Shuffle Glasses -> 4. Guess
   const initRound = (lvl: number) => {
     const config = LEVEL_CONFIGS[lvl] || LEVEL_CONFIGS[1];
     const winningCupIndex = Math.floor(Math.random() * config.cupCount);
@@ -196,7 +199,6 @@ export default function FollowTheCupGameScreen() {
         isWinner: i === winningCupIndex,
       });
 
-      // Place cup at initial X position
       posAnims[i].setValue(getSlotX(i));
       liftAnims[i].setValue(0);
       scaleAnims[i].setValue(1);
@@ -209,43 +211,50 @@ export default function FollowTheCupGameScreen() {
     setPhase('REVEAL');
     startTimeRef.current = Date.now();
 
-    // Reveal: Smoothly lift the winning cup to show the ball
+    // Step 1 (REVEAL): Smoothly lift the winning purple glass to show the ball clearly
     Animated.spring(liftAnims[winningCupIndex], {
-      toValue: -70,
+      toValue: -80,
       friction: 6,
       tension: 40,
       useNativeDriver: true,
     }).start();
 
-    voiceService.speak('Watch closely! The golden ball is under this glass.');
+    voiceService.speak('Look at the ball! Watch it get covered.');
 
-    // Wait 2.2s, lower the cup to cover the ball, then start sliding
+    // Step 2 (COVER): After 2.4s, smoothly lower the glass to completely hide the ball
     setTimeout(() => {
       if (!isMountedRef.current) return;
 
+      setPhase('COVER');
+
       Animated.timing(liftAnims[winningCupIndex], {
         toValue: 0,
-        duration: 450,
+        duration: 500,
         easing: Easing.inOut(Easing.cubic),
         useNativeDriver: true,
       }).start(() => {
-        startShuffleProcess(config, initialCups);
+        // Pause 500ms after covering, then start sliding the glasses
+        setTimeout(() => {
+          if (!isMountedRef.current) return;
+          startShuffleProcess(config, initialCups);
+        }, 500);
       });
-    }, 2200);
+    }, 2400);
   };
 
+  // Step 3 (SHUFFLE): Slide glasses horizontally across positions
   const startShuffleProcess = (config: LevelConfig, currentCups: CupItemState[]) => {
     setPhase('SHUFFLE');
-    voiceService.speak('Follow the glass!');
+    voiceService.speak('Follow the glass as it moves!');
 
     let stateCups = [...currentCups];
     let swapsDone = 0;
 
     const executeSwap = () => {
       if (swapsDone >= config.swapCount || !isMountedRef.current) {
-        // Shuffle complete!
+        // Step 4 (PICK): Stop and ask the user to guess
         setPhase('PICK');
-        voiceService.speak('Where is the golden ball? Tap the glass!');
+        voiceService.speak('Where is the ball? Tap the glass to guess!');
         return;
       }
 
@@ -326,24 +335,25 @@ export default function FollowTheCupGameScreen() {
     };
   }, [currentLevel]);
 
+  // Step 5 (GUESS & RESULT)
   const handleCupPress = (cup: CupItemState) => {
     if (phase !== 'PICK' || selectedCupId !== null) return;
 
     setSelectedCupId(cup.id);
     setPhase('RESULT');
 
-    // Lift chosen cup
+    // Lift chosen glass
     Animated.spring(liftAnims[cup.id], {
-      toValue: -75,
+      toValue: -80,
       friction: 6,
       tension: 40,
       useNativeDriver: true,
     }).start();
 
     if (cup.isWinner) {
-      // Correct cup!
+      // Correct glass!
       setIsWrong(false);
-      voiceService.speak('You found the golden ball! Great focus!');
+      voiceService.speak('You found the ball! Wonderful focus!');
       const elapsedSecs = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
       const score = 600 + Math.max(0, 30 - elapsedSecs) * 20;
 
@@ -376,17 +386,17 @@ export default function FollowTheCupGameScreen() {
         }
       }, 1000);
     } else {
-      // Wrong cup!
+      // Wrong glass!
       setIsWrong(true);
       voiceService.speak('Not under this glass. Look where it was!');
 
-      // Find the winning cup and lift it too so patient sees where the ball was
+      // Lift the actual winning glass so patient sees the ball
       const winningCup = cups.find((c) => c.isWinner);
       if (winningCup) {
         setTimeout(() => {
           if (isMountedRef.current) {
             Animated.spring(liftAnims[winningCup.id], {
-              toValue: -75,
+              toValue: -80,
               friction: 6,
               tension: 40,
               useNativeDriver: true,
@@ -395,7 +405,7 @@ export default function FollowTheCupGameScreen() {
         }, 550);
       }
 
-      // Automatically reset for a fresh round after adequate viewing
+      // Automatically restart round after viewing
       setTimeout(() => {
         if (isMountedRef.current) {
           initRound(currentLevel);
@@ -423,7 +433,7 @@ export default function FollowTheCupGameScreen() {
           onPress={() => setShowLeaveModal(true)}
           style={[styles.backSquareBtn, { backgroundColor: isHc ? '#1E293B' : '#FFFFFF' }]}
         >
-          <ArrowLeft size={24} color={isHc ? COLORS.hcTextPrimary : '#7C3AED'} strokeWidth={2.5} />
+          <ArrowLeft size={24} color={isHc ? COLORS.hcTextPrimary : '#6B21A8'} strokeWidth={2.5} />
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
@@ -431,20 +441,20 @@ export default function FollowTheCupGameScreen() {
             {t('follow_the_cup') || 'Follow the Glass'}
           </Typography>
           <View style={styles.levelPill}>
-            <Typography size="xs" weight="bold" color="#7C3AED">
+            <Typography size="xs" weight="bold" color="#6B21A8">
               {activeConfig.label}
             </Typography>
           </View>
         </View>
 
         <ListenButton
-          textToSpeak={`Follow the Glass. ${activeConfig.label}. Watch where the ball is placed, follow the glasses as they slide, and guess.`}
+          textToSpeak={`Follow the Glass. ${activeConfig.label}. Watch where the ball is placed, follow the glasses as they move, and guess where it is.`}
           size="sm"
           variant="secondary"
         />
       </View>
 
-      {/* Instructions & Phase Status Banner */}
+      {/* Dynamic Status / Prompt Banner */}
       <View style={styles.promptContainer}>
         {isWrong ? (
           <View style={styles.wrongBanner}>
@@ -455,9 +465,16 @@ export default function FollowTheCupGameScreen() {
           </View>
         ) : phase === 'REVEAL' ? (
           <View style={styles.phasePill}>
-            <Eye size={18} color="#7C3AED" style={{ marginRight: 6 }} />
-            <Typography size="sm" weight="bold" color="#6D28D9">
-              👀 Watch closely! The ball is under this glass.
+            <Eye size={18} color="#6B21A8" style={{ marginRight: 6 }} />
+            <Typography size="sm" weight="bold" color="#6B21A8">
+              👀 Look at the ball! It is under this glass.
+            </Typography>
+          </View>
+        ) : phase === 'COVER' ? (
+          <View style={[styles.phasePill, { backgroundColor: '#F3E8FF', borderColor: '#E9D5FF' }]}>
+            <Lock size={18} color="#6B21A8" style={{ marginRight: 6 }} />
+            <Typography size="sm" weight="bold" color="#6B21A8">
+              🔒 Glass lowered! Get ready...
             </Typography>
           </View>
         ) : phase === 'SHUFFLE' ? (
@@ -469,7 +486,7 @@ export default function FollowTheCupGameScreen() {
           </View>
         ) : (
           <Typography size="base" weight="bold" color="#0F172A" align="center">
-            🌟 Where is the golden ball? Tap the glass!
+            🌟 Where is the ball? Tap the glass!
           </Typography>
         )}
       </View>
@@ -477,7 +494,7 @@ export default function FollowTheCupGameScreen() {
       {/* Table Stage Area */}
       <View style={styles.stageWrapper}>
         <View style={[styles.tableSurface, { width: contentWidth }]}>
-          {/* Table Surface Track for sliding cups */}
+          {/* Track for sliding dark glasses */}
           <View style={[styles.cupsTrack, { width: stageWidth }]}>
             {cups.map((cup) => {
               const isSelected = selectedCupId === cup.id;
@@ -504,14 +521,14 @@ export default function FollowTheCupGameScreen() {
                     onPress={() => handleCupPress(cup)}
                     style={styles.cupTouchTarget}
                   >
-                    {/* The Golden Ball is anchored inside the winning cup container */}
+                    {/* The Golden Ball sits directly on the table inside the winning cup */}
                     {cup.isWinner && (
                       <View style={styles.ballAnchor}>
                         <GoldenBallItem size={ballSize} />
                       </View>
                     )}
 
-                    {/* The Cup sits directly on top of the ball. When down, it completely hides it! */}
+                    {/* The Opaque Purple Glass sits directly on top of the ball and completely encloses it */}
                     <Animated.View
                       style={[
                         styles.cupGraphicContainer,
@@ -520,7 +537,7 @@ export default function FollowTheCupGameScreen() {
                         },
                       ]}
                     >
-                      <CupIllustrationItem size={cupSize} />
+                      <PurpleCupIllustration size={cupSize} />
                     </Animated.View>
 
                     {/* Result Badges */}
@@ -619,7 +636,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.xs,
   },
   levelPill: {
-    backgroundColor: '#EDE9FE',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 12,
     paddingVertical: 3,
     borderRadius: RADIUS.full,
@@ -659,12 +676,12 @@ const styles = StyleSheet.create({
   phasePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#F8FAFC',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: RADIUS.full,
     borderWidth: 1.5,
-    borderColor: '#DDD6FE',
+    borderColor: '#CBD5E1',
   },
   stageWrapper: {
     alignItems: 'center',
@@ -672,13 +689,13 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
   },
   tableSurface: {
-    backgroundColor: '#FAF5FF',
+    backgroundColor: '#F8FAFC',
     borderRadius: RADIUS.xxl,
-    paddingTop: 80,
+    paddingTop: 90,
     paddingBottom: SPACING.md,
     paddingHorizontal: 12,
     borderWidth: 2,
-    borderColor: '#E9D5FF',
+    borderColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
@@ -718,7 +735,7 @@ const styles = StyleSheet.create({
   tableWoodBase: {
     width: '100%',
     height: 8,
-    backgroundColor: '#DDD6FE',
+    backgroundColor: '#CBD5E1',
     borderRadius: RADIUS.full,
     marginTop: 4,
   },
