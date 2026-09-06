@@ -220,6 +220,81 @@ export const FamilyMemoriesBannerIllustration: React.FC<BannerProps> = ({ height
   </View>
 );
 
+/**
+ * 6. Odd One Out: Find the distinct object amongst matching ones.
+ */
+export const OddOneOutBannerIllustration: React.FC<BannerProps> = ({ height = 120 }) => (
+  <View style={[styles.container, { height }]}>
+    <Svg width="100%" height="100%" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet">
+      <Defs>
+        <LinearGradient id="oooBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#FFF1F2" />
+          <Stop offset="100%" stopColor="#FFE4E6" />
+        </LinearGradient>
+      </Defs>
+      <Rect width="280" height="120" rx="14" fill="url(#oooBg)" />
+
+      {/* 3 Red Apples */}
+      <G transform="translate(25, 24)">
+        <Rect width="50" height="68" rx="8" fill="#FFFFFF" stroke="#FECDD3" strokeWidth="2" />
+        <Circle cx="25" cy="34" r="14" fill="#EF4444" />
+        <Path d="M 25 20 Q 29 15 32 17" stroke="#15803D" strokeWidth="2" strokeLinecap="round" fill="none" />
+      </G>
+
+      <G transform="translate(85, 24)">
+        <Rect width="50" height="68" rx="8" fill="#FFFFFF" stroke="#FECDD3" strokeWidth="2" />
+        <Circle cx="25" cy="34" r="14" fill="#EF4444" />
+        <Path d="M 25 20 Q 29 15 32 17" stroke="#15803D" strokeWidth="2" strokeLinecap="round" fill="none" />
+      </G>
+
+      <G transform="translate(145, 24)">
+        <Rect width="50" height="68" rx="8" fill="#FFFFFF" stroke="#FECDD3" strokeWidth="2" />
+        <Circle cx="25" cy="34" r="14" fill="#EF4444" />
+        <Path d="M 25 20 Q 29 15 32 17" stroke="#15803D" strokeWidth="2" strokeLinecap="round" fill="none" />
+      </G>
+
+      {/* 1 Different Highlighted Object (Golden Mango / Star) */}
+      <G transform="translate(205, 20)">
+        <Rect width="54" height="74" rx="10" fill="#FEF3C7" stroke="#F59E0B" strokeWidth="3" />
+        <Path d="M 27 24 C 18 28 14 44 22 56 C 28 65 42 66 48 54 C 54 42 50 28 38 24 Z" fill="#F59E0B" />
+        <Circle cx="44" cy="22" r="7" fill="#EF4444" />
+        <Path d="M 44 18 L 44 26 M 40 22 L 48 22" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" />
+      </G>
+    </Svg>
+  </View>
+);
+
+/**
+ * 7. Word Match: Picture and matching readable word label.
+ */
+export const WordMatchBannerIllustration: React.FC<BannerProps> = ({ height = 120 }) => (
+  <View style={[styles.container, { height }]}>
+    <Svg width="100%" height="100%" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet">
+      <Defs>
+        <LinearGradient id="wmBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#EFF6FF" />
+          <Stop offset="100%" stopColor="#DBEAFE" />
+        </LinearGradient>
+      </Defs>
+      <Rect width="280" height="120" rx="14" fill="url(#wmBg)" />
+
+      {/* Large Object Card (Flower) */}
+      <G transform="translate(45, 20)">
+        <Rect width="80" height="80" rx="12" fill="#FFFFFF" stroke="#93C5FD" strokeWidth="2.5" />
+        <Circle cx="40" cy="40" r="16" fill="#EC4899" />
+        <Circle cx="40" cy="40" r="7" fill="#FDE047" />
+      </G>
+
+      {/* Matching Word Pill Button */}
+      <G transform="translate(145, 36)">
+        <Rect width="95" height="46" rx="23" fill="#2563EB" />
+        <Circle cx="168" cy="59" r="6" fill="#60A5FA" />
+        <Path d="M 160 59 L 166 65 L 178 53" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </G>
+    </Svg>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',
@@ -229,3 +304,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
