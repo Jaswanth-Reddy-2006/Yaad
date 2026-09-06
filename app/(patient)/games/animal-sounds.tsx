@@ -1,0 +1,651 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+  Modal,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import {
+  ArrowLeft,
+  Volume2,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  LogOut,
+  RotateCcw,
+} from 'lucide-react-native';
+import { ScreenContainer } from '../../../components/common/ScreenContainer';
+import { Typography } from '../../../components/common/Typography';
+import { ListenButton } from '../../../components/common/ListenButton';
+import { GameResultModal } from '../../../components/games/GameResultModal';
+import {
+  DogIllustration,
+  CatIllustration,
+  CowIllustration,
+  BirdIllustration,
+  DuckIllustration,
+  SheepIllustration,
+  LionIllustration,
+  ElephantIllustration,
+} from '../../../components/illustrations';
+import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
+import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
+import { voiceService } from '../../../services/VoiceService';
+import { GameResult } from '../../../types';
+import { gameRepository } from '../../../repositories/GameRepository';
+
+interface AnimalItem {
+  id: string;
+  name: string;
+  soundText: string;
+  speechPrompt: string;
+  component: React.ComponentType<{ size?: number }>;
+  cardBg: string;
+  borderColor: string;
+  accentColor: string;
+}
+
+const ALL_ANIMALS: AnimalItem[] = [
+  {
+    id: 'dog',
+    name: 'Dog',
+    soundText: '🐶 Woof! Woof!',
+    speechPrompt: 'Woof! Woof! Woof!',
+    component: DogIllustration,
+    cardBg: '#FFF7ED',
+    borderColor: '#FFEDD5',
+    accentColor: '#EA580C',
+  },
+  {
+    id: 'cat',
+    name: 'Cat',
+    soundText: '🐱 Meow! Meow!',
+    speechPrompt: 'Meow! Meow! Meow!',
+    component: CatIllustration,
+    cardBg: '#FEFCE8',
+    borderColor: '#FEF08A',
+    accentColor: '#CA8A04',
+  },
+  {
+    id: 'cow',
+    name: 'Cow',
+    soundText: '🐮 Moo! Moo!',
+    speechPrompt: 'Mooo! Mooo!',
+    component: CowIllustration,
+    cardBg: '#FFF1F2',
+    borderColor: '#FFE4E6',
+    accentColor: '#E11D48',
+  },
+  {
+    id: 'bird',
+    name: 'Bird',
+    soundText: '🐦 Chirp! Chirp!',
+    speechPrompt: 'Chirp chirp! Tweet tweet!',
+    component: BirdIllustration,
+    cardBg: '#F0F9FF',
+    borderColor: '#E0F2FE',
+    accentColor: '#0284C7',
+  },
+  {
+    id: 'duck',
+    name: 'Duck',
+    soundText: '🦆 Quack! Quack!',
+    speechPrompt: 'Quack! Quack! Quack!',
+    component: DuckIllustration,
+    cardBg: '#FEF9C3',
+    borderColor: '#FEF08A',
+    accentColor: '#D97706',
+  },
+  {
+    id: 'sheep',
+    name: 'Sheep',
+    soundText: '🐑 Baa! Baa!',
+    speechPrompt: 'Baa! Baa! Baa!',
+    component: SheepIllustration,
+    cardBg: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    accentColor: '#475569',
+  },
+  {
+    id: 'lion',
+    name: 'Lion',
+    soundText: '🦁 Roar! Roar!',
+    speechPrompt: 'Roar! Roar!',
+    component: LionIllustration,
+    cardBg: '#FFFBEB',
+    borderColor: '#FDE68A',
+    accentColor: '#D97706',
+  },
+  {
+    id: 'elephant',
+    name: 'Elephant',
+    soundText: '🐘 Pawoo! Trumpet!',
+    speechPrompt: 'Pawoo! Pawoo!',
+    component: ElephantIllustration,
+    cardBg: '#F1F5F9',
+    borderColor: '#CBD5E1',
+    accentColor: '#475569',
+  },
+];
+
+interface LevelConfig {
+  level: number;
+  animalCount: number;
+  cols: number;
+  label: string;
+}
+
+const LEVEL_CONFIGS: Record<number, LevelConfig> = {
+  1: { level: 1, animalCount: 2, cols: 2, label: 'Level 1 • 2 Animals' },
+  2: { level: 2, animalCount: 3, cols: 3, label: 'Level 2 • 3 Animals' },
+  3: { level: 3, animalCount: 4, cols: 2, label: 'Level 3 • 4 Animals' },
+  4: { level: 4, animalCount: 4, cols: 2, label: 'Level 4 • 4 Animals' },
+};
+
+export default function AnimalSoundsGameScreen() {
+  const router = useRouter();
+  const { preferences, t } = useAccessibilityStore();
+  const isHc = preferences.highContrast;
+  const { width: windowWidth } = useWindowDimensions();
+
+  const [currentLevel, setCurrentLevel] = useState<number>(1);
+  const [targetAnimal, setTargetAnimal] = useState<AnimalItem>(ALL_ANIMALS[0]);
+  const [choices, setChoices] = useState<AnimalItem[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isWrong, setIsWrong] = useState<boolean>(false);
+  const [wrongId, setWrongId] = useState<string | null>(null);
+  const [isPlayingSound, setIsPlayingSound] = useState<boolean>(false);
+  const [gameResult, setGameResult] = useState<GameResult | null>(null);
+  const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false);
+
+  const startTimeRef = useRef<number>(Date.now());
+  const activeLevelConfig = LEVEL_CONFIGS[currentLevel] || LEVEL_CONFIGS[1];
+
+  const playAnimalSound = (animal: AnimalItem) => {
+    setIsPlayingSound(true);
+    voiceService.speak(animal.speechPrompt);
+    setTimeout(() => {
+      setIsPlayingSound(false);
+    }, 1800);
+  };
+
+  const initRound = (lvl: number) => {
+    const config = LEVEL_CONFIGS[lvl] || LEVEL_CONFIGS[1];
+
+    // Pick random target animal and distractors
+    const shuffled = [...ALL_ANIMALS].sort(() => Math.random() - 0.5);
+    const target = shuffled[0];
+    const distractors = shuffled.slice(1, config.animalCount);
+    const roundChoices = [target, ...distractors].sort(() => Math.random() - 0.5);
+
+    setTargetAnimal(target);
+    setChoices(roundChoices);
+    setSelectedId(null);
+    setWrongId(null);
+    setIsWrong(false);
+    setGameResult(null);
+    startTimeRef.current = Date.now();
+
+    // Automatically play animal sound on round start
+    setTimeout(() => {
+      playAnimalSound(target);
+    }, 400);
+  };
+
+  useEffect(() => {
+    initRound(currentLevel);
+  }, [currentLevel]);
+
+  const handleAnimalPress = (animal: AnimalItem) => {
+    if (gameResult) return;
+
+    if (isWrong) {
+      setIsWrong(false);
+      setWrongId(null);
+    }
+
+    setSelectedId(animal.id);
+
+    if (animal.id === targetAnimal.id) {
+      // Correct animal selected!
+      voiceService.speak(`That's right! The ${targetAnimal.name} made that sound.`);
+      const elapsedSecs = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
+      const score = 500 + Math.max(0, 30 - elapsedSecs) * 20;
+
+      const fallbackResult: GameResult = {
+        id: `result-${Date.now()}`,
+        sessionId: `session-${Date.now()}`,
+        patientId: 'local-patient-1',
+        gameId: 'PAIR',
+        difficulty: currentLevel === 1 ? 'EASY' : currentLevel === 2 ? 'MEDIUM' : currentLevel === 3 ? 'HARD' : 'EXPERT',
+        score,
+        accuracy: 100,
+        durationSeconds: elapsedSecs,
+        attempts: 1,
+        mistakes: 0,
+        hintsUsed: 0,
+        startedAt: new Date(startTimeRef.current).toISOString(),
+        completedAt: new Date().toISOString(),
+        status: 'COMPLETED',
+      };
+
+      try {
+        gameRepository.saveResult(fallbackResult);
+      } catch (err) {
+        console.warn('Game result save error:', err);
+      }
+
+      setGameResult(fallbackResult);
+    } else {
+      // Wrong animal!
+      setWrongId(animal.id);
+      setIsWrong(true);
+      voiceService.speak(`Not quite. Listen to the sound again and tap the right animal.`);
+
+      setTimeout(() => {
+        setIsWrong(false);
+        setWrongId(null);
+        setSelectedId(null);
+      }, 1600);
+    }
+  };
+
+  const handleNextLevel = () => {
+    setGameResult(null);
+    if (currentLevel < 4) {
+      setCurrentLevel((prev) => prev + 1);
+    } else {
+      setCurrentLevel(1);
+    }
+  };
+
+  // Dimensions
+  const contentWidth = Math.min(windowWidth - 32, 420);
+  const cols = activeLevelConfig.cols;
+  const gap = 12;
+  const cardWidth = Math.floor((contentWidth - (cols - 1) * gap) / cols);
+  const iconSize = Math.max(48, Math.min(78, cardWidth * 0.58));
+
+  return (
+    <ScreenContainer scrollable={true} style={styles.container}>
+      {/* Top Header */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          accessibilityLabel={t('go_back') || 'Go Back'}
+          accessibilityRole="button"
+          onPress={() => setShowLeaveModal(true)}
+          style={[styles.backSquareBtn, { backgroundColor: isHc ? '#1E293B' : '#FFFFFF' }]}
+        >
+          <ArrowLeft size={24} color={isHc ? COLORS.hcTextPrimary : '#D97706'} strokeWidth={2.5} />
+        </TouchableOpacity>
+
+        <View style={styles.headerCenter}>
+          <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
+            {t('animal_sounds') || 'Animal Sounds'}
+          </Typography>
+          <View style={styles.levelPill}>
+            <Typography size="xs" weight="bold" color="#D97706">
+              {activeLevelConfig.label}
+            </Typography>
+          </View>
+        </View>
+
+        <ListenButton
+          textToSpeak={`Animal Sounds. ${activeLevelConfig.label}. Listen to the sound and tap the animal that made it.`}
+          size="sm"
+          variant="secondary"
+        />
+      </View>
+
+      {/* Big Sound Player Banner / Button */}
+      <View style={styles.soundBannerWrapper}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => playAnimalSound(targetAnimal)}
+          style={[
+            styles.soundPlayButton,
+            { backgroundColor: isPlayingSound ? '#FDE68A' : '#FEF3C7' },
+          ]}
+        >
+          <View style={styles.soundIconCircle}>
+            <Volume2 size={32} color="#D97706" strokeWidth={2.5} />
+          </View>
+          <View style={styles.soundTextCol}>
+            <Typography size="base" weight="bold" color="#92400E">
+              🔊 Listen to the Sound
+            </Typography>
+            <Typography size="xs" color="#B45309" style={{ marginTop: 2 }}>
+              Tap here to hear it again
+            </Typography>
+          </View>
+          <RotateCcw size={20} color="#D97706" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Prompt / Error Banner */}
+      <View style={styles.promptContainer}>
+        {isWrong ? (
+          <View style={styles.wrongBanner}>
+            <AlertCircle size={22} color="#DC2626" />
+            <Typography size="sm" weight="bold" color="#DC2626" style={{ marginLeft: 8 }}>
+              Wrong animal, try again!
+            </Typography>
+          </View>
+        ) : (
+          <Typography size="base" weight="bold" color="#0F172A" align="center">
+            🐾 Which animal made this noise?
+          </Typography>
+        )}
+      </View>
+
+      {/* Animal Choice Grid */}
+      <View style={styles.gridContainer}>
+        <View style={[styles.grid, { width: contentWidth, gap }]}>
+          {choices.map((animal) => {
+            const isThisWrong = wrongId === animal.id;
+            const isThisCorrect = selectedId === animal.id && animal.id === targetAnimal.id;
+            const isSelected = selectedId === animal.id;
+            const Illustration = animal.component;
+
+            return (
+              <TouchableOpacity
+                key={animal.id}
+                activeOpacity={0.82}
+                onPress={() => handleAnimalPress(animal)}
+                style={[
+                  styles.animalCard,
+                  {
+                    width: cardWidth,
+                    backgroundColor: isThisWrong
+                      ? '#FEE2E2'
+                      : isThisCorrect
+                      ? '#DCFCE7'
+                      : isHc
+                      ? COLORS.hcCardBackground
+                      : animal.cardBg,
+                    borderColor: isThisWrong
+                      ? '#DC2626'
+                      : isThisCorrect
+                      ? '#16A34A'
+                      : isHc
+                      ? COLORS.hcBorder
+                      : animal.borderColor,
+                    borderWidth: isThisWrong || isThisCorrect ? 3.5 : 2,
+                  },
+                ]}
+              >
+                <Illustration size={iconSize} />
+
+                <Typography
+                  size="base"
+                  weight="bold"
+                  color={
+                    isThisWrong
+                      ? '#DC2626'
+                      : isThisCorrect
+                      ? '#16A34A'
+                      : isHc
+                      ? COLORS.hcTextPrimary
+                      : '#1E293B'
+                  }
+                  style={{ marginTop: SPACING.xs }}
+                >
+                  {animal.name}
+                </Typography>
+
+                {/* Status Badges */}
+                {isThisWrong && (
+                  <View style={[styles.cornerBadge, { backgroundColor: '#DC2626' }]}>
+                    <XCircle size={20} color="#FFFFFF" />
+                  </View>
+                )}
+                {isThisCorrect && (
+                  <View style={[styles.cornerBadge, { backgroundColor: '#16A34A' }]}>
+                    <CheckCircle2 size={20} color="#FFFFFF" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Victory Celebration Modal */}
+      {gameResult && (
+        <GameResultModal
+          visible={!!gameResult}
+          result={gameResult}
+          playAgainLabel={currentLevel === 4 ? 'PLAY AGAIN' : 'NEXT LEVEL'}
+          onPlayAgain={handleNextLevel}
+          onGoHome={() => router.replace('/(patient)/games')}
+        />
+      )}
+
+      {/* Leave Modal */}
+      <Modal visible={showLeaveModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconCircle}>
+              <LogOut size={32} color="#DC2626" />
+            </View>
+            <Typography size="lg" weight="bold" align="center" style={{ marginTop: SPACING.sm }}>
+              {t('leave_game_title') || 'Leave this game?'}
+            </Typography>
+            <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: 6, lineHeight: 20 }}>
+              {t('leave_game_desc') || 'Your current game progress will not be saved.'}
+            </Typography>
+
+            <View style={styles.modalButtonsStack}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setShowLeaveModal(false)}
+                style={styles.continueModalBtn}
+              >
+                <Typography size="base" weight="bold" color="#FFFFFF">
+                  {t('continue_playing') || 'CONTINUE PLAYING'}
+                </Typography>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => {
+                  setShowLeaveModal(false);
+                  router.back();
+                }}
+                style={styles.leaveModalBtn}
+              >
+                <Typography size="sm" weight="bold" color="#DC2626">
+                  {t('leave_game') || 'LEAVE GAME'}
+                </Typography>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </ScreenContainer>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.xl,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: SPACING.xs,
+    marginBottom: SPACING.xs,
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: SPACING.xs,
+  },
+  levelPill: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
+    marginTop: 4,
+  },
+  backSquareBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  soundBannerWrapper: {
+    alignItems: 'center',
+    marginVertical: SPACING.sm,
+  },
+  soundPlayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    maxWidth: 420,
+    paddingVertical: 14,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.xl,
+    borderWidth: 2,
+    borderColor: '#FDE68A',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  soundIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FDE68A',
+  },
+  soundTextCol: {
+    flex: 1,
+    marginLeft: SPACING.md,
+  },
+  promptContainer: {
+    alignItems: 'center',
+    marginVertical: SPACING.xs,
+  },
+  wrongBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FECDD3',
+    borderWidth: 1.5,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: RADIUS.full,
+  },
+  gridContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING.sm,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  animalCard: {
+    aspectRatio: 0.95,
+    borderRadius: RADIUS.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.xs,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 3,
+    position: 'relative',
+  },
+  cornerBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    borderRadius: RADIUS.full,
+    padding: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.md,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonsStack: {
+    width: '100%',
+    marginTop: SPACING.lg,
+    gap: SPACING.sm,
+  },
+  continueModalBtn: {
+    width: '100%',
+    backgroundColor: '#16A34A',
+    paddingVertical: 14,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#16A34A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  leaveModalBtn: {
+    width: '100%',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1.5,
+    borderColor: '#FECDD3',
+    paddingVertical: 12,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

@@ -295,6 +295,63 @@ export const WordMatchBannerIllustration: React.FC<BannerProps> = ({ height = 12
   </View>
 );
 
+/**
+ * 8. Animal Sounds: Musical note & animal silhouettes (Dog, Bird, Cat) listening to sounds.
+ */
+export const AnimalSoundsBannerIllustration: React.FC<BannerProps> = ({ height = 120 }) => (
+  <View style={[styles.container, { height }]}>
+    <Svg width="100%" height="100%" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet">
+      <Defs>
+        <LinearGradient id="asBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#FEF3C7" />
+          <Stop offset="100%" stopColor="#FDE68A" />
+        </LinearGradient>
+      </Defs>
+      <Rect width="280" height="120" rx="14" fill="url(#asBg)" />
+
+      {/* Sound Waves & Speaker in Center-Left */}
+      <G transform="translate(30, 36)">
+        <Rect width="48" height="48" rx="24" fill="#D97706" />
+        <Path d="M 22 18 L 16 22 L 11 22 L 11 26 L 16 26 L 22 30 Z" fill="#FFFFFF" />
+        {/* Sound Waves */}
+        <Path d="M 27 20 Q 31 24 27 28" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        <Path d="M 32 16 Q 38 24 32 32" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      </G>
+
+      {/* Musical Floating Notes */}
+      <G transform="translate(90, 24)">
+        <Circle cx="8" cy="18" r="4" fill="#B45309" />
+        <Path d="M 12 18 L 12 6 L 22 3 L 22 15" stroke="#B45309" strokeWidth="2.5" fill="none" />
+        <Circle cx="18" cy="15" r="4" fill="#B45309" />
+      </G>
+
+      {/* 3 Animal Cards */}
+      {/* Dog Card */}
+      <G transform="translate(130, 20)">
+        <Rect width="42" height="52" rx="8" fill="#FFFFFF" stroke="#F59E0B" strokeWidth="2" />
+        <Circle cx="21" cy="24" r="11" fill="#FDBA74" />
+        <Path d="M 10 18 Q 8 28 14 26" stroke="#EA580C" strokeWidth="2" fill="none" />
+        <Path d="M 32 18 Q 34 28 28 26" stroke="#EA580C" strokeWidth="2" fill="none" />
+      </G>
+
+      {/* Bird Card */}
+      <G transform="translate(178, 20)">
+        <Rect width="42" height="52" rx="8" fill="#FFFFFF" stroke="#F59E0B" strokeWidth="2" />
+        <Circle cx="21" cy="24" r="10" fill="#38BDF8" />
+        <Path d="M 27 22 L 34 24 L 27 26 Z" fill="#F59E0B" />
+      </G>
+
+      {/* Cat Card */}
+      <G transform="translate(226, 20)">
+        <Rect width="42" height="52" rx="8" fill="#FFFFFF" stroke="#F59E0B" strokeWidth="2" />
+        <Circle cx="21" cy="24" r="11" fill="#FED7AA" />
+        <Path d="M 12 16 L 16 22 L 10 22 Z" fill="#FB923C" />
+        <Path d="M 30 16 L 26 22 L 32 22 Z" fill="#FB923C" />
+      </G>
+    </Svg>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',
@@ -304,4 +361,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
 
