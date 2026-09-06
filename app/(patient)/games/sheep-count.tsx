@@ -62,124 +62,150 @@ type GamePhase = 'WALK_IN' | 'WALK_OUT' | 'GUESS' | 'RESULT';
 /**
  * Open Meadow Pasture Scenery (Edge-to-edge full screen natural farm environment)
  */
-const OpenPastureBackdrop: React.FC<{ width: number; height: number; barnCenterDoorX: number; barnLeftX: number; barnSize: number }> = ({
+const OpenPastureBackdrop: React.FC<{
+  width: number;
+  height: number;
+  stageTopY: number;
+  stageHeight: number;
+  barnCenterDoorX: number;
+  barnLeftX: number;
+  barnSize: number;
+}> = ({
   width,
   height,
+  stageTopY,
+  stageHeight,
   barnCenterDoorX,
   barnLeftX,
   barnSize,
-}) => (
-  <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={StyleSheet.absoluteFill}>
-    <Defs>
-      {/* Sunny Sky Gradient */}
-      <LinearGradient id="meadowSky" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#BAE6FD" />
-        <Stop offset="45%" stopColor="#E0F2FE" />
-        <Stop offset="70%" stopColor="#DCFCE7" />
-        <Stop offset="100%" stopColor="#86EFAC" />
-      </LinearGradient>
-      {/* Rolling Hills Gradients */}
-      <LinearGradient id="hillBack" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#86EFAC" />
-        <Stop offset="100%" stopColor="#22C55E" />
-      </LinearGradient>
-      <LinearGradient id="hillFront" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#4ADE80" />
-        <Stop offset="100%" stopColor="#15803D" />
-      </LinearGradient>
-      {/* Cobblestone Path Gradient */}
-      <LinearGradient id="pathGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <Stop offset="0%" stopColor="#E2E8F0" />
-        <Stop offset="50%" stopColor="#CBD5E1" />
-        <Stop offset="100%" stopColor="#E2E8F0" />
-      </LinearGradient>
-    </Defs>
+}) => {
+  const pathY = stageTopY + stageHeight - 16;
+  const hillBackY = stageTopY + 40;
+  const hillFrontY = stageTopY + 75;
+  const fenceY = pathY - 56;
 
-    {/* Expansive Edge-to-Edge Sky */}
-    <Rect width={width} height={height} fill="url(#meadowSky)" />
+  return (
+    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={StyleSheet.absoluteFill}>
+      <Defs>
+        {/* Sunny Sky Gradient */}
+        <LinearGradient id="meadowSky" x1="0%" y1="0%" x2="0%" y2="100%">
+          <Stop offset="0%" stopColor="#BAE6FD" />
+          <Stop offset="45%" stopColor="#E0F2FE" />
+          <Stop offset="75%" stopColor="#DCFCE7" />
+          <Stop offset="100%" stopColor="#86EFAC" />
+        </LinearGradient>
+        {/* Rolling Hills Gradients */}
+        <LinearGradient id="hillBack" x1="0%" y1="0%" x2="0%" y2="100%">
+          <Stop offset="0%" stopColor="#86EFAC" />
+          <Stop offset="100%" stopColor="#22C55E" />
+        </LinearGradient>
+        <LinearGradient id="hillFront" x1="0%" y1="0%" x2="0%" y2="100%">
+          <Stop offset="0%" stopColor="#4ADE80" />
+          <Stop offset="60%" stopColor="#22C55E" />
+          <Stop offset="100%" stopColor="#15803D" />
+        </LinearGradient>
+        {/* Cobblestone Path Gradient */}
+        <LinearGradient id="pathGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <Stop offset="0%" stopColor="#E2E8F0" />
+          <Stop offset="50%" stopColor="#CBD5E1" />
+          <Stop offset="100%" stopColor="#E2E8F0" />
+        </LinearGradient>
+      </Defs>
 
-    {/* Warm Morning Sun with Aura */}
-    <Circle cx={width * 0.12} cy={38} r={28} fill="#FEF08A" opacity={0.5} />
-    <Circle cx={width * 0.12} cy={38} r={19} fill="#FDE047" />
+      {/* 1. Expansive Edge-to-Edge Sky (Covering full screen length) */}
+      <Rect width={width} height={height} fill="url(#meadowSky)" />
 
-    {/* Soft Fluffy Clouds */}
-    <G fill="#FFFFFF" opacity={0.75} transform={`translate(${width * 0.22}, 20)`}>
-      <Circle cx={12} cy={12} r={10} />
-      <Circle cx={24} cy={8} r={14} />
-      <Circle cx={38} cy={12} r={11} />
-      <Rect x={12} y={10} width={26} height={12} rx={6} />
-    </G>
+      {/* 2. Warm Morning Sun with Aura */}
+      <Circle cx={width * 0.12} cy={44} r={32} fill="#FEF08A" opacity={0.45} />
+      <Circle cx={width * 0.12} cy={44} r={20} fill="#FDE047" />
 
-    <G fill="#FFFFFF" opacity={0.65} transform={`translate(${width * 0.78}, 16)`}>
-      <Circle cx={10} cy={10} r={8} />
-      <Circle cx={20} cy={6} r={11} />
-      <Circle cx={32} cy={10} r={9} />
-    </G>
+      {/* 3. Soft Fluffy Clouds in Sky */}
+      <G fill="#FFFFFF" opacity={0.75} transform={`translate(${width * 0.22}, 24)`}>
+        <Circle cx={12} cy={12} r={10} />
+        <Circle cx={24} cy={8} r={14} />
+        <Circle cx={38} cy={12} r={11} />
+        <Rect x={12} y={10} width={26} height={12} rx={6} />
+      </G>
 
-    {/* Distant Rolling Hills */}
-    <Path
-      d={`M -20 100 Q ${width * 0.25} 75 ${width * 0.5} 95 Q ${width * 0.75} 80 ${width + 20} 100 L ${width + 20} ${height} L -20 ${height} Z`}
-      fill="url(#hillBack)"
-      opacity={0.65}
-    />
+      <G fill="#FFFFFF" opacity={0.65} transform={`translate(${width * 0.76}, 20)`}>
+        <Circle cx={10} cy={10} r={8} />
+        <Circle cx={20} cy={6} r={11} />
+        <Circle cx={32} cy={10} r={9} />
+        <Rect x={10} y={8} width={22} height={10} rx={5} />
+      </G>
 
-    {/* Distant Trees on Hilltops */}
-    <G fill="#15803D" opacity={0.6}>
-      <Circle cx={width * 0.08} cy={82} r={14} />
-      <Circle cx={width * 0.14} cy={78} r={18} />
-      <Circle cx={width * 0.86} cy={84} r={16} />
-      <Circle cx={width * 0.92} cy={80} r={18} />
-    </G>
+      {/* 4. Distant Rolling Hills */}
+      <Path
+        d={`M -20 ${hillBackY} Q ${width * 0.25} ${hillBackY - 25} ${width * 0.5} ${hillBackY - 5} Q ${width * 0.75} ${hillBackY - 20} ${width + 20} ${hillBackY} L ${width + 20} ${height} L -20 ${height} Z`}
+        fill="url(#hillBack)"
+        opacity={0.65}
+      />
 
-    {/* Main Lush Meadow Lawn */}
-    <Path
-      d={`M -20 128 Q ${width * 0.3} 112 ${width * 0.55} 122 Q ${width * 0.85} 116 ${width + 20} 130 L ${width + 20} ${height} L -20 ${height} Z`}
-      fill="url(#hillFront)"
-    />
+      {/* Distant Trees on Hilltops */}
+      <G fill="#15803D" opacity={0.55}>
+        <Circle cx={width * 0.08} cy={hillBackY - 18} r={14} />
+        <Circle cx={width * 0.14} cy={hillBackY - 22} r={18} />
+        <Circle cx={width * 0.86} cy={hillBackY - 16} r={16} />
+        <Circle cx={width * 0.92} cy={hillBackY - 20} r={18} />
+      </G>
 
-    {/* Left Pasture Wooden Fence */}
-    <G stroke="#78350F" strokeWidth={2.2} fill="none">
-      <Path d={`M -10 120 L ${Math.max(20, barnLeftX - 10)} 126 M -10 132 L ${Math.max(20, barnLeftX - 10)} 138`} />
-      <Path d={`M 15 114 L 15 142 M 55 116 L 55 144 M 95 118 L 95 146`} />
-    </G>
+      {/* 5. Main Lush Meadow Lawn (Spans all the way down the entire screen length) */}
+      <Path
+        d={`M -20 ${hillFrontY} Q ${width * 0.3} ${hillFrontY - 16} ${width * 0.55} ${hillFrontY - 6} Q ${width * 0.85} ${hillFrontY - 12} ${width + 20} ${hillFrontY + 2} L ${width + 20} ${height} L -20 ${height} Z`}
+        fill="url(#hillFront)"
+      />
 
-    {/* Right Pasture Wooden Fence */}
-    <G stroke="#78350F" strokeWidth={2.2} fill="none">
-      <Path d={`M ${barnLeftX + barnSize + 10} 126 L ${width + 10} 120 M ${barnLeftX + barnSize + 10} 138 L ${width + 10} 132`} />
-      <Path d={`M ${width - 95} 118 L ${width - 95} 146 M ${width - 55} 116 L ${width - 55} 144 M ${width - 15} 114 L ${width - 15} 142`} />
-    </G>
+      {/* 6. Wooden Farm Fences Left & Right */}
+      <G stroke="#78350F" strokeWidth={2.2} fill="none">
+        <Path d={`M -10 ${fenceY} L ${Math.max(20, barnLeftX - 10)} ${fenceY + 6} M -10 ${fenceY + 12} L ${Math.max(20, barnLeftX - 10)} ${fenceY + 18}`} />
+        <Path d={`M 15 ${fenceY - 6} L 15 ${fenceY + 22} M 55 ${fenceY - 4} L 55 ${fenceY + 24} M 95 ${fenceY - 2} L 95 ${fenceY + 26}`} />
+      </G>
 
-    {/* CONTINUOUS COBBLESTONE ROAD PASSING THROUGH THE BARN */}
-    {/* Left Exit Path (From Barn Doorway to Left Screen Edge) */}
-    <Path
-      d={`M -20 ${height - 12} Q ${width * 0.22} ${height - 24} ${barnCenterDoorX + 10} ${height - 26} L ${barnCenterDoorX + 38} ${height - 26} Q ${width * 0.25} ${height} -20 ${height + 15} Z`}
-      fill="url(#pathGrad)"
-      stroke="#94A3B8"
-      strokeWidth={1.5}
-    />
+      <G stroke="#78350F" strokeWidth={2.2} fill="none">
+        <Path d={`M ${barnLeftX + barnSize + 10} ${fenceY + 6} L ${width + 10} ${fenceY} M ${barnLeftX + barnSize + 10} ${fenceY + 18} L ${width + 10} ${fenceY + 12}`} />
+        <Path d={`M ${width - 95} ${fenceY - 2} L ${width - 95} ${fenceY + 26} M ${width - 55} ${fenceY - 4} L ${width - 55} ${fenceY + 24} M ${width - 15} ${fenceY - 6} L ${width - 15} ${fenceY + 22}`} />
+      </G>
 
-    {/* Right Entry Path (From Right Screen Edge into Barn Doorway) */}
-    <Path
-      d={`M ${width + 20} ${height - 12} Q ${width * 0.78} ${height - 24} ${barnCenterDoorX + 28} ${height - 26} L ${barnCenterDoorX} ${height - 26} Q ${width * 0.75} ${height} ${width + 20} ${height + 15} Z`}
-      fill="url(#pathGrad)"
-      stroke="#94A3B8"
-      strokeWidth={1.5}
-    />
+      {/* 7. CONTINUOUS COBBLESTONE ROAD PASSING THROUGH THE BARN */}
+      {/* Left Exit Path */}
+      <Path
+        d={`M -20 ${pathY + 6} Q ${width * 0.22} ${pathY - 6} ${barnCenterDoorX + 10} ${pathY - 8} L ${barnCenterDoorX + 38} ${pathY - 8} Q ${width * 0.25} ${pathY + 18} -20 ${pathY + 30} Z`}
+        fill="url(#pathGrad)"
+        stroke="#94A3B8"
+        strokeWidth={1.5}
+      />
 
-    {/* Stepping Stones on Paths */}
-    <Ellipse cx={35} cy={height - 16} rx={10} ry={4} fill="#94A3B8" opacity={0.6} />
-    <Ellipse cx={75} cy={height - 20} rx={11} ry={4} fill="#94A3B8" opacity={0.6} />
-    <Ellipse cx={width - 35} cy={height - 16} rx={10} ry={4} fill="#94A3B8" opacity={0.6} />
-    <Ellipse cx={width - 75} cy={height - 20} rx={11} ry={4} fill="#94A3B8" opacity={0.6} />
+      {/* Right Entry Path */}
+      <Path
+        d={`M ${width + 20} ${pathY + 6} Q ${width * 0.78} ${pathY - 6} ${barnCenterDoorX + 28} ${pathY - 8} L ${barnCenterDoorX} ${pathY - 8} Q ${width * 0.75} ${pathY + 18} ${width + 20} ${pathY + 30} Z`}
+        fill="url(#pathGrad)"
+        stroke="#94A3B8"
+        strokeWidth={1.5}
+      />
 
-    {/* Colorful Wildflowers across the Lawn */}
-    <Circle cx={24} cy={height - 40} r={3.5} fill="#F43F5E" />
-    <Circle cx={24} cy={height - 40} r={1.5} fill="#FEF08A" />
-    <Circle cx={50} cy={height - 32} r={3} fill="#FACC15" />
-    <Circle cx={width - 50} cy={height - 32} r={3.5} fill="#EC4899" />
-    <Circle cx={width - 24} cy={height - 42} r={3.5} fill="#38BDF8" />
-  </Svg>
-);
+      {/* Stepping Stones on Paths */}
+      <Ellipse cx={35} cy={pathY + 4} rx={10} ry={4} fill="#94A3B8" opacity={0.6} />
+      <Ellipse cx={75} cy={pathY} rx={11} ry={4} fill="#94A3B8" opacity={0.6} />
+      <Ellipse cx={width - 35} cy={pathY + 4} rx={10} ry={4} fill="#94A3B8" opacity={0.6} />
+      <Ellipse cx={width - 75} cy={pathY} rx={11} ry={4} fill="#94A3B8" opacity={0.6} />
+
+      {/* 8. Wildflowers across the Upper & Lower Meadow Lawn */}
+      <Circle cx={24} cy={pathY - 22} r={3.5} fill="#F43F5E" />
+      <Circle cx={24} cy={pathY - 22} r={1.5} fill="#FEF08A" />
+      <Circle cx={50} cy={pathY - 14} r={3} fill="#FACC15" />
+      <Circle cx={width - 50} cy={pathY - 14} r={3.5} fill="#EC4899" />
+      <Circle cx={width - 24} cy={pathY - 24} r={3.5} fill="#38BDF8" />
+
+      {/* Lower Pasture Wildflowers (Around & Below choices) */}
+      <Circle cx={36} cy={height - 60} r={4} fill="#F43F5E" />
+      <Circle cx={36} cy={height - 60} r={1.8} fill="#FEF08A" />
+      <Circle cx={width * 0.3} cy={height - 40} r={3.5} fill="#FACC15" />
+      <Circle cx={width * 0.7} cy={height - 48} r={3.5} fill="#EC4899" />
+      <Circle cx={width - 40} cy={height - 65} r={4} fill="#38BDF8" />
+      <Circle cx={width - 40} cy={height - 65} r={1.8} fill="#FEF08A" />
+    </Svg>
+  );
+};
 
 /**
  * Layer 1 (Back): Barn Cozy Interior & Straw Bedding
@@ -282,7 +308,7 @@ export default function SheepCountGameScreen() {
   const router = useRouter();
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const [currentLevel, setCurrentLevel] = useState<number>(1);
   const [phase, setPhase] = useState<GamePhase>('WALK_IN');
@@ -299,9 +325,11 @@ export default function SheepCountGameScreen() {
 
   const activeConfig = LEVEL_CONFIGS[currentLevel] || LEVEL_CONFIGS[1];
 
-  // Full Screen Edge-to-Edge Stage Sizing
+  // Full Screen Edge-to-Edge Dimensions (Width & Full Length / Height)
+  const fullMeadowHeight = Math.max(windowHeight - 60, 680);
   const stageWidth = windowWidth;
-  const stageHeight = 270;
+  const stageHeight = 260;
+  const stageTopY = 120;
   const barnSize = Math.max(145, Math.min(185, stageWidth * 0.44));
   const sheepSize = Math.max(48, Math.min(62, stageWidth * 0.16));
 
@@ -564,82 +592,84 @@ export default function SheepCountGameScreen() {
 
   return (
     <ScreenContainer scrollable={true} style={styles.container}>
-      {/* Top Header Row */}
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          accessibilityLabel={t('go_back') || 'Go Back'}
-          accessibilityRole="button"
-          onPress={() => setShowLeaveModal(true)}
-          style={[styles.backSquareBtn, { backgroundColor: isHc ? '#1E293B' : '#FFFFFF' }]}
-        >
-          <ArrowLeft size={24} color={isHc ? COLORS.hcTextPrimary : '#15803D'} strokeWidth={2.5} />
-        </TouchableOpacity>
+      <View style={[styles.fullMeadowWrapper, { minHeight: fullMeadowHeight }]}>
+        {/* Full Edge-to-Edge Pasture Scenery covering the entire screen length */}
+        <OpenPastureBackdrop
+          width={windowWidth}
+          height={fullMeadowHeight}
+          stageTopY={stageTopY}
+          stageHeight={stageHeight}
+          barnCenterDoorX={barnCenterDoorX}
+          barnLeftX={barnLeftX}
+          barnSize={barnSize}
+        />
 
-        <View style={styles.headerCenter}>
-          <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
-            {t('count_the_sheep') || 'Count the Sheep'}
-          </Typography>
-          <View style={styles.levelPill}>
-            <Typography size="xs" weight="bold" color="#15803D">
-              {activeConfig.label}
+        {/* Top Header Row (In Sky Area) */}
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            accessibilityLabel={t('go_back') || 'Go Back'}
+            accessibilityRole="button"
+            onPress={() => setShowLeaveModal(true)}
+            style={[styles.backSquareBtn, { backgroundColor: isHc ? '#1E293B' : '#FFFFFF' }]}
+          >
+            <ArrowLeft size={24} color={isHc ? COLORS.hcTextPrimary : '#15803D'} strokeWidth={2.5} />
+          </TouchableOpacity>
+
+          <View style={styles.headerCenter}>
+            <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
+              {t('count_the_sheep') || 'Count the Sheep'}
             </Typography>
+            <View style={styles.levelPill}>
+              <Typography size="xs" weight="bold" color="#15803D">
+                {activeConfig.label}
+              </Typography>
+            </View>
           </View>
+
+          <ListenButton
+            textToSpeak={`Count the Sheep. ${activeConfig.label}. Watch the sheep enter from the right, note any that leave to the left, and count how many remain inside.`}
+            size="sm"
+            variant="secondary"
+          />
         </View>
 
-        <ListenButton
-          textToSpeak={`Count the Sheep. ${activeConfig.label}. Watch the sheep enter from the right, note any that leave to the left, and count how many remain inside.`}
-          size="sm"
-          variant="secondary"
-        />
-      </View>
+        {/* Dynamic Status / Prompt Banner (In Sky/Hills Area) */}
+        <View style={styles.promptContainer}>
+          {isWrong ? (
+            <View style={styles.wrongBanner}>
+              <AlertCircle size={22} color="#DC2626" />
+              <Typography size="sm" weight="bold" color="#DC2626" style={{ marginLeft: 8 }}>
+                {exitCount > 0 ? `${enterCount} in - ${exitCount} out = ${remainingCount} left!` : `Not quite! ${remainingCount} sheep went in.`}
+              </Typography>
+            </View>
+          ) : phase === 'WALK_IN' ? (
+            <View style={styles.phasePill}>
+              <ArrowRight size={18} color="#15803D" style={{ marginRight: 6, transform: [{ rotate: '180deg' }] }} />
+              <Typography size="sm" weight="bold" color="#15803D">
+                ⬅️ Sheep entering from the right...
+              </Typography>
+            </View>
+          ) : phase === 'WALK_OUT' ? (
+            <View style={[styles.phasePill, { backgroundColor: '#FFF7ED', borderColor: '#FED7AA' }]}>
+              <ArrowLeftIcon size={18} color="#EA580C" style={{ marginRight: 6 }} />
+              <Typography size="sm" weight="bold" color="#C2410C">
+                ⬅️ Watch! Sheep leaving to the left...
+              </Typography>
+            </View>
+          ) : (
+            <View style={[styles.phasePill, { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' }]}>
+              <HelpCircle size={18} color="#D97706" style={{ marginRight: 6 }} />
+              <Typography size="sm" weight="bold" color="#B45309">
+                🏠 How many sheep are left inside?
+              </Typography>
+            </View>
+          )}
+        </View>
 
-      {/* Dynamic Status / Prompt Banner */}
-      <View style={styles.promptContainer}>
-        {isWrong ? (
-          <View style={styles.wrongBanner}>
-            <AlertCircle size={22} color="#DC2626" />
-            <Typography size="sm" weight="bold" color="#DC2626" style={{ marginLeft: 8 }}>
-              {exitCount > 0 ? `${enterCount} in - ${exitCount} out = ${remainingCount} left!` : `Not quite! ${remainingCount} sheep went in.`}
-            </Typography>
-          </View>
-        ) : phase === 'WALK_IN' ? (
-          <View style={styles.phasePill}>
-            <ArrowRight size={18} color="#15803D" style={{ marginRight: 6, transform: [{ rotate: '180deg' }] }} />
-            <Typography size="sm" weight="bold" color="#15803D">
-              ⬅️ Sheep entering from the right...
-            </Typography>
-          </View>
-        ) : phase === 'WALK_OUT' ? (
-          <View style={[styles.phasePill, { backgroundColor: '#FFF7ED', borderColor: '#FED7AA' }]}>
-            <ArrowLeftIcon size={18} color="#EA580C" style={{ marginRight: 6 }} />
-            <Typography size="sm" weight="bold" color="#C2410C">
-              ⬅️ Watch! Sheep leaving to the left...
-            </Typography>
-          </View>
-        ) : (
-          <View style={[styles.phasePill, { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' }]}>
-            <HelpCircle size={18} color="#D97706" style={{ marginRight: 6 }} />
-            <Typography size="sm" weight="bold" color="#B45309">
-              🏠 How many sheep are left inside?
-            </Typography>
-          </View>
-        )}
-      </View>
-
-      {/* Edge-to-Edge Open Farm Pasture Stage (Complete screen background, no borders) */}
-      <View style={styles.stageWrapper}>
-        <View style={[styles.openStageContainer, { width: stageWidth, height: stageHeight }]}>
-          {/* Natural Farm Pasture Scenery Background */}
-          <OpenPastureBackdrop
-            width={stageWidth}
-            height={stageHeight}
-            barnCenterDoorX={barnCenterDoorX}
-            barnLeftX={barnLeftX}
-            barnSize={barnSize}
-          />
-
+        {/* Barn Stage: Sheep walk across the road into the Barn */}
+        <View style={[styles.stageArea, { width: windowWidth, height: stageHeight }]}>
           {/* LAYER 1 (BACK): Barn Interior & Straw Bedding */}
-          <View style={[styles.barnLayerAnchor, { left: barnLeftX, bottom: 12, zIndex: 1 }]}>
+          <View style={[styles.barnLayerAnchor, { left: barnLeftX, bottom: 8, zIndex: 1 }]}>
             <SheepBarnBackdrop size={barnSize} />
           </View>
 
@@ -649,7 +679,7 @@ export default function SheepCountGameScreen() {
               style={[
                 styles.walkingSheepWrapper,
                 {
-                  bottom: 18,
+                  bottom: 14,
                   transform: [{ translateX: sheepTrackX }, { translateY: sheepBobY }],
                   zIndex: 5,
                 },
@@ -665,7 +695,7 @@ export default function SheepCountGameScreen() {
           {/* LAYER 3 (FRONT): Barn Facade, Timber Walls & Doorway Arch */}
           <View
             pointerEvents="none"
-            style={[styles.barnLayerAnchor, { left: barnLeftX, bottom: 12, zIndex: 10 }]}
+            style={[styles.barnLayerAnchor, { left: barnLeftX, bottom: 8, zIndex: 10 }]}
           >
             <SheepBarnFacade
               size={barnSize}
@@ -675,83 +705,85 @@ export default function SheepCountGameScreen() {
 
           {/* Victory Celebration: Remaining Sheep happily peek out through doorway */}
           {phase === 'RESULT' && !isWrong && (
-            <View style={[styles.celebrationSheepRow, { left: barnCenterDoorX, bottom: 20, zIndex: 6 }]}>
+            <View style={[styles.celebrationSheepRow, { left: barnCenterDoorX, bottom: 16, zIndex: 6 }]}>
               <WalkingSheepIllustration size={34} facing="right" />
               <WalkingSheepIllustration size={30} facing="left" />
             </View>
           )}
         </View>
-      </View>
 
-      {/* Answer Choice Section */}
-      <View style={styles.choicesContainer}>
-        <Typography size="sm" color={COLORS.textSecondary} align="center" weight="medium" style={{ marginBottom: 10 }}>
-          {phase === 'GUESS' ? 'Tap how many sheep are left inside:' : 'Watch carefully...'}
-        </Typography>
+        {/* Answer Choice Section (On Lower Lush Pasture Grass) */}
+        <View style={styles.choicesContainer}>
+          <View style={styles.promptPill}>
+            <Typography size="sm" color="#14532D" align="center" weight="bold">
+              {phase === 'GUESS' ? '🤔 Tap how many sheep are left inside:' : '👀 Watch the sheep carefully...'}
+            </Typography>
+          </View>
 
-        <View style={styles.choicesGrid}>
-          {choices.map((num) => {
-            const isSelected = selectedChoice === num;
-            const isCorrect = isSelected && num === remainingCount;
-            const isWrongChoice = isSelected && num !== remainingCount;
+          <View style={styles.choicesGrid}>
+            {choices.map((num) => {
+              const isSelected = selectedChoice === num;
+              const isCorrect = isSelected && num === remainingCount;
+              const isWrongChoice = isSelected && num !== remainingCount;
 
-            return (
-              <TouchableOpacity
-                key={num}
-                activeOpacity={0.88}
-                disabled={phase !== 'GUESS'}
-                accessibilityLabel={`Number ${num}`}
-                accessibilityRole="button"
-                onPress={() => handleChoicePress(num)}
-                style={[
-                  styles.choiceNumberBtn,
-                  {
-                    backgroundColor: isCorrect
-                      ? '#DCFCE7'
-                      : isWrongChoice
-                      ? '#FEE2E2'
-                      : isHc
-                      ? COLORS.hcCardBackground
-                      : '#FFFFFF',
-                    borderColor: isCorrect
-                      ? '#16A34A'
-                      : isWrongChoice
-                      ? '#DC2626'
-                      : isHc
-                      ? COLORS.hcBorder
-                      : '#E2E8F0',
-                    opacity: phase !== 'GUESS' && !isSelected ? 0.6 : 1,
-                  },
-                ]}
-              >
-                <Typography
-                  size="xxl"
-                  weight="bold"
-                  color={
-                    isCorrect
-                      ? '#15803D'
-                      : isWrongChoice
-                      ? '#B91C1C'
-                      : isHc
-                      ? COLORS.hcTextPrimary
-                      : '#0F172A'
-                  }
+              return (
+                <TouchableOpacity
+                  key={num}
+                  activeOpacity={0.88}
+                  disabled={phase !== 'GUESS'}
+                  accessibilityLabel={`Number ${num}`}
+                  accessibilityRole="button"
+                  onPress={() => handleChoicePress(num)}
+                  style={[
+                    styles.choiceNumberBtn,
+                    {
+                      backgroundColor: isCorrect
+                        ? '#DCFCE7'
+                        : isWrongChoice
+                        ? '#FEE2E2'
+                        : isHc
+                        ? COLORS.hcCardBackground
+                        : '#FFFFFF',
+                      borderColor: isCorrect
+                        ? '#16A34A'
+                        : isWrongChoice
+                        ? '#DC2626'
+                        : isHc
+                        ? COLORS.hcBorder
+                        : '#CBD5E1',
+                      opacity: phase !== 'GUESS' && !isSelected ? 0.6 : 1,
+                    },
+                  ]}
                 >
-                  {num}
-                </Typography>
-                {isCorrect && (
-                  <View style={styles.choiceCheckBadge}>
-                    <CheckCircle2 size={16} color="#16A34A" />
-                  </View>
-                )}
-                {isWrongChoice && (
-                  <View style={styles.choiceCheckBadge}>
-                    <XCircle size={16} color="#DC2626" />
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
+                  <Typography
+                    size="xxl"
+                    weight="bold"
+                    color={
+                      isCorrect
+                        ? '#15803D'
+                        : isWrongChoice
+                        ? '#B91C1C'
+                        : isHc
+                        ? COLORS.hcTextPrimary
+                        : '#0F172A'
+                    }
+                  >
+                    {num}
+                  </Typography>
+                  {isCorrect && (
+                    <View style={styles.choiceCheckBadge}>
+                      <CheckCircle2 size={16} color="#16A34A" />
+                    </View>
+                  )}
+                  {isWrongChoice && (
+                    <View style={styles.choiceCheckBadge}>
+                      <XCircle size={16} color="#DC2626" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       </View>
 
@@ -780,6 +812,14 @@ export default function SheepCountGameScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingHorizontal: 0,
+    paddingBottom: 0,
+    flexGrow: 1,
+  },
+  fullMeadowWrapper: {
+    width: '100%',
+    position: 'relative',
+    overflow: 'hidden',
     paddingBottom: SPACING.xl,
   },
   headerRow: {
@@ -787,13 +827,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    marginBottom: SPACING.xs,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xs,
   },
   backSquareBtn: {
     width: 44,
     height: 44,
-    borderRadius: 6,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
@@ -816,36 +856,41 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.xs,
+    marginVertical: SPACING.xs,
   },
   phasePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0FDF4',
+    backgroundColor: 'rgba(240, 253, 244, 0.95)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
     borderWidth: 1.5,
     borderColor: '#BBF7D0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   wrongBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEE2E2',
+    backgroundColor: 'rgba(254, 226, 226, 0.95)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
     borderWidth: 1.5,
     borderColor: '#FECDD3',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  stageWrapper: {
-    width: '100%',
-    alignItems: 'center',
-    marginVertical: 0,
-  },
-  openStageContainer: {
+  stageArea: {
     position: 'relative',
-    overflow: 'hidden',
+    marginVertical: 0,
   },
   barnLayerAnchor: {
     position: 'absolute',
@@ -862,9 +907,24 @@ const styles = StyleSheet.create({
   },
   choicesContainer: {
     alignItems: 'center',
-    marginTop: SPACING.md,
+    marginTop: SPACING.sm,
     paddingHorizontal: SPACING.md,
     width: '100%',
+    paddingBottom: SPACING.lg,
+  },
+  promptPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1.5,
+    borderColor: '#BBF7D0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   choicesGrid: {
     flexDirection: 'row',
@@ -882,7 +942,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
     position: 'relative',
