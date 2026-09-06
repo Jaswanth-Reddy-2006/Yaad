@@ -8,6 +8,7 @@ import Svg, {
   Defs,
   LinearGradient,
   Stop,
+  Ellipse,
 } from 'react-native-svg';
 
 export interface BannerProps {
@@ -352,6 +353,60 @@ export const AnimalSoundsBannerIllustration: React.FC<BannerProps> = ({ height =
   </View>
 );
 
+/**
+ * 9. Follow the Cup: 3 Cups with one lifted showing a golden star/ball.
+ */
+export const FollowTheCupBannerIllustration: React.FC<BannerProps> = ({ height = 120 }) => (
+  <View style={[styles.container, { height }]}>
+    <Svg width="100%" height="100%" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet">
+      <Defs>
+        <LinearGradient id="ftcBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#F5F3FF" />
+          <Stop offset="100%" stopColor="#EDE9FE" />
+        </LinearGradient>
+        <LinearGradient id="cupGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+          <Stop offset="0%" stopColor="#8B5CF6" />
+          <Stop offset="100%" stopColor="#6D28D9" />
+        </LinearGradient>
+      </Defs>
+      <Rect width="280" height="120" rx="14" fill="url(#ftcBg)" />
+
+      {/* Wooden Table Surface Line */}
+      <Path d="M 20 95 L 260 95" stroke="#DDD6FE" strokeWidth="4" strokeLinecap="round" />
+
+      {/* Left Cup (Down) */}
+      <G transform="translate(45, 45)">
+        <Path d="M 8 50 L 14 8 L 46 8 L 52 50 Z" fill="url(#cupGrad1)" stroke="#5B21B6" strokeWidth="2.5" />
+        <Ellipse cx="30" cy="8" rx="16" ry="4" fill="#A78BFA" />
+        <Ellipse cx="30" cy="50" rx="22" ry="6" fill="#5B21B6" />
+      </G>
+
+      {/* Middle Cup (LIFTED - Showing Golden Star Ball) */}
+      {/* Golden Star Ball */}
+      <G transform="translate(130, 72)">
+        <Circle cx="12" cy="12" r="12" fill="#FBBF24" stroke="#D97706" strokeWidth="2" />
+        <Circle cx="8" cy="8" r="3" fill="#FFFFFF" />
+        {/* Magic Sparkle */}
+        <Path d="M 12 0 L 14 6 L 20 8 L 14 10 L 12 16 L 10 10 L 4 8 L 10 6 Z" fill="#F59E0B" />
+      </G>
+
+      {/* Lifted Cup */}
+      <G transform="translate(112, 16)">
+        <Path d="M 8 50 L 14 8 L 46 8 L 52 50 Z" fill="url(#cupGrad1)" stroke="#5B21B6" strokeWidth="2.5" />
+        <Ellipse cx="30" cy="8" rx="16" ry="4" fill="#A78BFA" />
+        <Ellipse cx="30" cy="50" rx="22" ry="6" fill="#5B21B6" />
+      </G>
+
+      {/* Right Cup (Down) */}
+      <G transform="translate(180, 45)">
+        <Path d="M 8 50 L 14 8 L 46 8 L 52 50 Z" fill="url(#cupGrad1)" stroke="#5B21B6" strokeWidth="2.5" />
+        <Ellipse cx="30" cy="8" rx="16" ry="4" fill="#A78BFA" />
+        <Ellipse cx="30" cy="50" rx="22" ry="6" fill="#5B21B6" />
+      </G>
+    </Svg>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',
@@ -361,5 +416,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
 
 

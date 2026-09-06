@@ -11,6 +11,7 @@ import {
   FindThreeBannerIllustration,
   WordMatchBannerIllustration,
   AnimalSoundsBannerIllustration,
+  FollowTheCupBannerIllustration,
 } from '../../../components/illustrations';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
@@ -60,6 +61,18 @@ export default function GamesHomeScreen() {
     },
     {
       id: '3',
+      name: t('follow_the_cup') || 'Follow the Glass',
+      description: t('follow_cup_desc') || 'Follow the glass with the hidden star and guess where it is.',
+      speechText: 'Follow the Glass. Watch where the golden star is hidden, follow the glasses, and guess.',
+      cardBg: '#F5F3FF',
+      borderColor: '#DDD6FE',
+      titleColor: '#7C3AED',
+      btnBg: '#7C3AED',
+      route: '/(patient)/games/follow-cup',
+      renderBanner: () => <FollowTheCupBannerIllustration height={130} />,
+    },
+    {
+      id: '4',
       name: t('animal_sounds') || 'Animal Sounds',
       description: t('animal_sounds_desc') || 'Listen to the sound and tap the matching animal.',
       speechText: 'Animal Sounds. Listen to the sound and tap the animal that made it.',
@@ -71,7 +84,7 @@ export default function GamesHomeScreen() {
       renderBanner: () => <AnimalSoundsBannerIllustration height={130} />,
     },
     {
-      id: '4',
+      id: '5',
       name: t('name_the_object') || 'Name the Object',
       description: t('name_object_desc') || 'Look at the picture and tap its matching name.',
       speechText: 'Name the Object. Look at the picture and tap the matching word.',
@@ -83,7 +96,7 @@ export default function GamesHomeScreen() {
       renderBanner: () => <WordMatchBannerIllustration height={130} />,
     },
     {
-      id: '5',
+      id: '6',
       name: t('find_three') || 'Find Three',
       description: t('find_three_desc') || 'Find three pictures that belong together.',
       speechText: 'Find Three. Find three pictures that belong together.',
