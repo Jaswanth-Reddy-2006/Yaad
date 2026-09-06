@@ -15,6 +15,7 @@ import {
   CountSheepBannerIllustration,
   StoryRecallBannerIllustration,
   ObjectLocationBannerIllustration,
+  DailyRoutineBannerIllustration,
 } from '../../../components/illustrations';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
@@ -38,6 +39,18 @@ export default function GamesHomeScreen() {
   const isHc = preferences.highContrast;
 
   const gamesList: GameItem[] = [
+    {
+      id: 'daily-routine',
+      name: t('daily_routine_recall') || 'Daily Routine Recall',
+      description: t('daily_routine_desc') || 'Remember the sequence of daily activities like breakfast, medicine, and walking.',
+      speechText: 'Daily Routine Recall. Look at the sequence of daily activities and remember their order.',
+      cardBg: '#FFFBEB',
+      borderColor: '#FDE68A',
+      titleColor: '#B45309',
+      btnBg: '#D97706',
+      route: '/(patient)/games/daily-routine',
+      renderBanner: () => <DailyRoutineBannerIllustration height={130} />,
+    },
     {
       id: 'object-location',
       name: t('object_location') || 'Object–Location Memory',

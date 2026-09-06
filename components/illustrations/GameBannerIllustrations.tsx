@@ -691,6 +691,84 @@ export const ObjectLocationBannerIllustration: React.FC<BannerProps> = ({ height
   </View>
 );
 
+/**
+ * 10. Daily Routine Recall: Illustrated sequential timeline (Breakfast → Medicine → Walk) with step badges and chronological arrows.
+ */
+export const DailyRoutineBannerIllustration: React.FC<BannerProps> = ({ height = 120 }) => (
+  <View style={[styles.container, { height }]}>
+    <Svg width="100%" height="100%" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet">
+      <Defs>
+        <LinearGradient id="drBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#FEF3C7" />
+          <Stop offset="50%" stopColor="#FFFBEB" />
+          <Stop offset="100%" stopColor="#FDE68A" />
+        </LinearGradient>
+        <LinearGradient id="drCard" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#FFFFFF" />
+          <Stop offset="100%" stopColor="#F8FAFC" />
+        </LinearGradient>
+      </Defs>
+
+      {/* Background */}
+      <Rect width="280" height="120" rx="14" fill="url(#drBg)" />
+
+      {/* Clock / Sun in background */}
+      <Circle cx="30" cy="22" r="14" fill="#FDE047" opacity="0.6" />
+      <Circle cx="250" cy="22" r="14" fill="#38BDF8" opacity="0.4" />
+
+      {/* Horizontal Timeline Connector Line */}
+      <Path d="M 45 60 L 235 60" stroke="#F59E0B" strokeWidth="3.5" strokeDasharray="6 4" />
+
+      {/* Step 1: Breakfast (Bowl + Spoon) */}
+      <G transform="translate(20, 25)">
+        <Rect width="64" height="70" rx="10" fill="url(#drCard)" stroke="#F59E0B" strokeWidth="2.2" />
+        {/* Step 1 badge */}
+        <Rect x="6" y="6" width="18" height="14" rx="4" fill="#EA580C" />
+        <Path d="M 14 10 L 14 17" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" />
+
+        {/* Breakfast bowl & steam */}
+        <Path d="M 18 46 Q 32 62 46 46 Z" fill="#F59E0B" stroke="#D97706" strokeWidth="1.5" />
+        <Ellipse cx="32" cy="46" rx="14" ry="4" fill="#FDE047" />
+        <Path d="M 28 38 Q 26 32 30 28 M 36 39 Q 38 33 34 29" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      </G>
+
+      {/* Arrow 1 */}
+      <Path d="M 92 60 L 98 60 M 96 56 L 100 60 L 96 64" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* Step 2: Medicine (Pill Capsule + Glass) */}
+      <G transform="translate(108, 25)">
+        <Rect width="64" height="70" rx="10" fill="url(#drCard)" stroke="#3B82F6" strokeWidth="2.2" />
+        {/* Step 2 badge */}
+        <Rect x="6" y="6" width="18" height="14" rx="4" fill="#2563EB" />
+        <Circle cx="15" cy="13" r="2" fill="#FFFFFF" />
+
+        {/* Pill Capsule */}
+        <G transform="translate(20, 36) rotate(-30)">
+          <Rect width="24" height="12" rx="6" fill="#EF4444" />
+          <Rect x="12" width="12" height="12" rx="6" fill="#3B82F6" />
+        </G>
+      </G>
+
+      {/* Arrow 2 */}
+      <Path d="M 180 60 L 186 60 M 184 56 L 188 60 L 184 64" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* Step 3: Morning Walk (Sneakers / Trees) */}
+      <G transform="translate(196, 25)">
+        <Rect width="64" height="70" rx="10" fill="url(#drCard)" stroke="#16A34A" strokeWidth="2.2" />
+        {/* Step 3 badge */}
+        <Rect x="6" y="6" width="18" height="14" rx="4" fill="#15803D" />
+        <Circle cx="15" cy="13" r="2" fill="#FFFFFF" />
+
+        {/* Tree & Walking path */}
+        <Circle cx="32" cy="40" r="14" fill="#22C55E" />
+        <Circle cx="24" cy="44" r="10" fill="#16A34A" />
+        <Circle cx="40" cy="44" r="10" fill="#15803D" />
+        <Rect x="29" y="48" width="6" height="12" rx="1" fill="#78350F" />
+      </G>
+    </Svg>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',
