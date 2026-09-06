@@ -33,6 +33,7 @@ import {
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 import { voiceService } from '../../../services/VoiceService';
+import { animalAudioService } from '../../../services/AnimalAudioService';
 import { GameResult } from '../../../types';
 import { gameRepository } from '../../../repositories/GameRepository';
 
@@ -165,10 +166,10 @@ export default function AnimalSoundsGameScreen() {
 
   const playAnimalSound = (animal: AnimalItem) => {
     setIsPlayingSound(true);
-    voiceService.speak(animal.speechPrompt);
+    animalAudioService.playAnimalSound(animal.id);
     setTimeout(() => {
       setIsPlayingSound(false);
-    }, 1800);
+    }, 2200);
   };
 
   const initRound = (lvl: number) => {
@@ -196,6 +197,9 @@ export default function AnimalSoundsGameScreen() {
 
   useEffect(() => {
     initRound(currentLevel);
+    return () => {
+      animalAudioService.stop();
+    };
   }, [currentLevel]);
 
   const handleAnimalPress = (animal: AnimalItem) => {
