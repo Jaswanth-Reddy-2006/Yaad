@@ -1,15 +1,21 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, LogOut } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Sparkles,
+  Clock,
+  Target,
+  LogOut,
+} from 'lucide-react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
 import { Typography } from '../../../components/common/Typography';
-import { GameCard } from '../../../components/games/Card';
-import { GameHeader } from '../../../components/games/GameHeader';
+import { ListenButton } from '../../../components/common/ListenButton';
+import { GameCard } from '../../../components/games/GameCard';
 import { GameResultModal } from '../../../components/games/GameResultModal';
+import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { GameController, GameState } from '../../../features/games/engine/GameController';
 import { GameDifficulty } from '../../../types';
-import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 
 export default function MatchTripletGameScreen() {
@@ -37,7 +43,12 @@ export default function MatchTripletGameScreen() {
   }, [difficulty]);
 
   const handleBackPress = () => {
-    if (gameState && (gameState.status === 'PLAYING' || gameState.status === 'EVALUATING' || gameState.status === 'FEEDBACK')) {
+    if (
+      gameState &&
+      (gameState.status === 'PLAYING' ||
+        gameState.status === 'EVALUATING' ||
+        gameState.status === 'FEEDBACK')
+    ) {
       controllerRef.current?.pause();
       setShowLeaveModal(true);
     } else {
@@ -56,58 +67,161 @@ export default function MatchTripletGameScreen() {
     controllerRef.current?.resume();
   };
 
+  const formatTimer = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   if (!gameState) return null;
+
+  const hintDisabled =
+    gameState.hintCooldownActive || gameState.hintsUsed >= 3 || gameState.isLocked;
 
   const numColumns = 3;
 
+  // Prompt text
+  const flippedUnmatched = gameState.cards.filter((c) => c.isFlipped && !c.isMatched);
+  let promptText = t('triplet_instruction') || '👉 Tap 3 cards with the same picture';
+  if (gameState.matchesCount === gameState.totalRequiredMatches && gameState.status === 'COMPLETED') {
+    promptText = '🎉 ' + (t('wonderful_job') || 'Wonderful Job! All triplets matched!');
+  } else if (flippedUnmatched.length === 2) {
+    const symTitle = t(flippedUnmatched[0].symbolId) || flippedUnmatched[0].title;
+    promptText = `✨ Find the 3rd matching ${symTitle}!`;
+  } else if (gameState.status === 'FEEDBACK') {
+    promptText = '🎉 ' + (t('great_job') || 'Great match!');
+  }
+
+  // Progress percentage
+  const progressPercent = Math.min(
+    100,
+    Math.round((gameState.matchesCount / Math.max(1, gameState.totalRequiredMatches)) * 100)
+  );
+
+  const voiceInstructions = `Find Three. Look at the cards carefully and tap 3 cards to find matching pictures. Take your time.`;
+
   return (
-    <ScreenContainer scrollable={false} style={styles.container}>
-      {/* Header */}
+    <ScreenContainer scrollable={true} style={styles.container}>
+      {/* Top Header Row with Back Button, Title, and Listen Button */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
-          accessibilityLabel={t('go_back')}
+          accessibilityLabel={t('go_back') || 'Go Back'}
           accessibilityRole="button"
           onPress={handleBackPress}
-          style={styles.backBtn}
+          style={[styles.backSquareBtn, { backgroundColor: isHc ? '#1E293B' : '#FFFFFF' }]}
         >
-          <ArrowLeft size={28} color={isHc ? COLORS.hcTextPrimary : '#0F172A'} />
+          <ArrowLeft size={24} color={isHc ? COLORS.hcTextPrimary : '#D97706'} strokeWidth={2.5} />
         </TouchableOpacity>
 
-        <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} style={{ marginLeft: SPACING.xs }}>
-          {t('match_the_triplet')} ({difficulty})
+        <View style={styles.headerTitleContainer}>
+          <Typography size="xl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
+            {t('find_three') || 'Find Three'}
+          </Typography>
+          <View style={styles.difficultyPill}>
+            <Typography size="xs" weight="bold" color="#D97706">
+              {difficulty} • {gameState.totalRequiredMatches} Triplets
+            </Typography>
+          </View>
+        </View>
+
+        <ListenButton
+          textToSpeak={voiceInstructions}
+          label="LISTEN"
+          size="sm"
+          variant="secondary"
+        />
+      </View>
+
+      {/* Stats Bar (Found, Time, Hint) */}
+      <View
+        style={[
+          styles.statsCard,
+          {
+            backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF',
+            borderColor: isHc ? COLORS.hcBorder : '#E2E8F0',
+          },
+        ]}
+      >
+        {/* Stat 1: Matched Triplets */}
+        <View style={styles.statBox}>
+          <View style={[styles.statIconCircle, { backgroundColor: '#FEF3C7' }]}>
+            <Target size={20} color="#D97706" />
+          </View>
+          <View style={{ marginLeft: SPACING.xs }}>
+            <Typography size="xs" color={COLORS.textMuted}>
+              {t('matched') || 'Matched'}
+            </Typography>
+            <Typography size="base" weight="bold" color="#D97706">
+              {gameState.matchesCount} / {gameState.totalRequiredMatches}
+            </Typography>
+          </View>
+        </View>
+
+        <View style={styles.verticalDivider} />
+
+        {/* Stat 2: Timer */}
+        <View style={styles.statBox}>
+          <View style={[styles.statIconCircle, { backgroundColor: '#DBEAFE' }]}>
+            <Clock size={20} color="#2563EB" />
+          </View>
+          <View style={{ marginLeft: SPACING.xs }}>
+            <Typography size="xs" color={COLORS.textMuted}>
+              {t('time') || 'Time'}
+            </Typography>
+            <Typography size="base" weight="bold" color="#2563EB">
+              {formatTimer(gameState.elapsedSeconds)}
+            </Typography>
+          </View>
+        </View>
+
+        <View style={styles.verticalDivider} />
+
+        {/* Stat 3: Hint Action Button */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          disabled={hintDisabled}
+          onPress={() => controllerRef.current?.useHint()}
+          style={[styles.hintBtn, hintDisabled ? styles.hintBtnDisabled : null]}
+        >
+          <Sparkles size={16} color={hintDisabled ? COLORS.textMuted : '#D97706'} style={{ marginRight: 4 }} />
+          <Typography size="xs" weight="bold" color={hintDisabled ? COLORS.textMuted : '#B45309'}>
+            {t('hint') || 'Hint'} ({3 - gameState.hintsUsed})
+          </Typography>
+        </TouchableOpacity>
+      </View>
+
+      {/* Match Progress Bar */}
+      <View style={styles.progressBarContainer}>
+        <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
+      </View>
+
+      {/* Gentle Guidance Prompt Banner */}
+      <View
+        style={[
+          styles.promptBanner,
+          {
+            backgroundColor: isHc ? '#1E293B' : '#FFFBEB',
+            borderColor: isHc ? '#475569' : '#FDE68A',
+          },
+        ]}
+      >
+        <Typography size="sm" weight="bold" color={isHc ? '#93C5FD' : '#B45309'} align="center">
+          {promptText}
         </Typography>
       </View>
 
-      <GameHeader
-        title={t('match_the_triplet')}
-        difficulty={gameState.difficulty}
-        matchesCount={gameState.matchesCount}
-        totalRequiredMatches={gameState.totalRequiredMatches}
-        elapsedSeconds={gameState.elapsedSeconds}
-        hintsUsed={gameState.hintsUsed}
-        onHint={() => controllerRef.current?.useHint()}
-        onRestart={() => controllerRef.current?.restart()}
-        gameInstruction={t('triplet_instruction')}
-      />
-
-      {/* Game Board Grid */}
-      <View style={styles.gridContainer}>
-        <FlatList
-          data={gameState.cards}
-          key={numColumns}
-          numColumns={numColumns}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => (
-            <GameCard
-              card={item}
-              positionIndex={index}
-              disabled={gameState.isLocked}
-              onSelect={(id) => controllerRef.current?.selectCard(id)}
-            />
-          )}
-          contentContainerStyle={styles.flatListContent}
-          showsVerticalScrollIndicator={false}
-        />
+      {/* Board Grid: 3-column responsive cards */}
+      <View style={styles.boardGrid}>
+        {gameState.cards.map((card, idx) => (
+          <GameCard
+            key={card.id}
+            card={card}
+            positionIndex={idx}
+            numColumns={numColumns}
+            disabled={gameState.isLocked}
+            onSelect={(id) => controllerRef.current?.selectCard(id)}
+          />
+        ))}
       </View>
 
       {/* Abandon Confirmation Modal */}
@@ -116,20 +230,20 @@ export default function MatchTripletGameScreen() {
           <View style={styles.modalCard}>
             <LogOut size={40} color="#DC2626" />
             <Typography size="xl" weight="bold" align="center" style={{ marginTop: SPACING.md }}>
-              {t('leave_game_title')}
+              {t('leave_game_title') || 'Leave Game?'}
             </Typography>
             <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: 4 }}>
-              {t('leave_game_desc')}
+              {t('leave_game_desc') || 'Your current game progress will not be saved.'}
             </Typography>
 
-            <View style={{ flexDirection: 'row', marginTop: SPACING.lg, gap: SPACING.sm }}>
+            <View style={{ flexDirection: 'row', marginTop: SPACING.lg, gap: SPACING.sm, width: '100%' }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={cancelLeave}
                 style={[styles.modalActionBtn, { backgroundColor: COLORS.surfaceVariant }]}
               >
                 <Typography size="sm" weight="bold" color="#0F172A">
-                  {t('continue_game')}
+                  {t('continue_game') || 'Continue'}
                 </Typography>
               </TouchableOpacity>
               <TouchableOpacity
@@ -138,7 +252,7 @@ export default function MatchTripletGameScreen() {
                 style={[styles.modalActionBtn, { backgroundColor: '#DC2626' }]}
               >
                 <Typography size="sm" weight="bold" color="#FFFFFF">
-                  {t('leave')}
+                  {t('leave') || 'Leave'}
                 </Typography>
               </TouchableOpacity>
             </View>
@@ -151,7 +265,7 @@ export default function MatchTripletGameScreen() {
         visible={gameState.status === 'COMPLETED'}
         result={gameState.result || null}
         onPlayAgain={() => controllerRef.current?.restart()}
-        onGoHome={() => router.replace('/(patient)')}
+        onGoHome={() => router.replace('/(patient)/games')}
       />
     </ScreenContainer>
   );
@@ -159,26 +273,118 @@ export default function MatchTripletGameScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    paddingBottom: SPACING.xl,
   },
   topHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.xs,
+    justifyContent: 'space-between',
+    paddingVertical: SPACING.xs,
+    marginBottom: SPACING.xs,
   },
-  backBtn: {
+  backSquareBtn: {
     width: 44,
     height: 44,
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: SPACING.xs,
+  },
+  difficultyPill: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+    marginTop: 2,
+  },
+  statsCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
+    marginVertical: SPACING.xs,
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  statBox: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gridContainer: {
-    flex: 1,
-    paddingVertical: SPACING.xs,
+  statIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  flatListContent: {
-    paddingBottom: SPACING.lg,
+  verticalDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: '#E2E8F0',
+    marginHorizontal: 2,
+  },
+  hintBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: RADIUS.full,
+    borderWidth: 1.2,
+    borderColor: '#FDE68A',
+  },
+  hintBtnDisabled: {
+    backgroundColor: '#F3F4F6',
+    borderColor: '#E5E7EB',
+    opacity: 0.55,
+  },
+  progressBarContainer: {
+    width: '100%',
+    height: 6,
+    backgroundColor: '#E2E8F0',
+    borderRadius: RADIUS.full,
+    overflow: 'hidden',
+    marginTop: 2,
+    marginBottom: SPACING.xs,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#D97706',
+    borderRadius: RADIUS.full,
+  },
+  promptBanner: {
+    paddingVertical: 8,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    marginVertical: 4,
+  },
+  boardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginVertical: SPACING.xs,
+    paddingBottom: SPACING.md,
   },
   modalOverlay: {
     flex: 1,
@@ -189,6 +395,7 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
+    maxWidth: 380,
     backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.xl,
     padding: SPACING.lg,
@@ -201,3 +408,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+

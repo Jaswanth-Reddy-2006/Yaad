@@ -5,9 +5,9 @@ import { GameController } from '../features/games/engine/GameController';
 import { GameCardItem } from '../types';
 
 describe('Cognitive Game Engine Tests', () => {
-  test('GameBoard generates correct number of cards for PAIR EASY mode (4 pairs = 8 cards)', () => {
+  test('GameBoard generates correct number of cards for PAIR EASY mode (2 pairs = 4 cards)', () => {
     const cards = GameBoard.generateBoard('PAIR', 'EASY');
-    expect(cards.length).toBe(8);
+    expect(cards.length).toBe(4);
 
     const symbolCounts: Record<string, number> = {};
     cards.forEach((c) => {

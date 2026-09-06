@@ -1,111 +1,156 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Play } from 'lucide-react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
-import { LocalGamePreviewVideo } from '../../../components/games/LocalGamePreviewVideo';
+import { Typography } from '../../../components/common/Typography';
+import { ListenButton } from '../../../components/common/ListenButton';
+import {
+  MatchCardsBannerIllustration,
+  RememberPicturesBannerIllustration,
+  FindThreeBannerIllustration,
+} from '../../../components/illustrations';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 
 interface GameItem {
   id: string;
-  titleKey: string;
-  fallbackTitle: string;
-  pastelBg: string;
+  name: string;
+  description: string;
+  speechText: string;
+  cardBg: string;
   borderColor: string;
   titleColor: string;
-  previewType: 'PAIR' | 'REMEMBER' | 'SPOT' | 'SORT' | 'OBJECT' | 'EVENTS';
+  btnBg: string;
   route: string;
+  renderBanner: () => React.ReactNode;
 }
 
-const GAMES_LIST: GameItem[] = [
-  {
-    id: '1',
-    titleKey: 'find_the_match',
-    fallbackTitle: 'FIND THE MATCH',
-    pastelBg: '#F5EFFE',
-    borderColor: '#C084FC',
-    titleColor: '#6D28D9',
-    previewType: 'PAIR',
-    route: '/(patient)/games/pair',
-  },
-  {
-    id: '2',
-    titleKey: 'remember_pictures',
-    fallbackTitle: 'REMEMBER PICTURES',
-    pastelBg: '#E6F9ED',
-    borderColor: '#86EFAC',
-    titleColor: '#15803D',
-    previewType: 'REMEMBER',
-    route: '/(patient)/games/remember-pictures',
-  },
-  {
-    id: '3',
-    titleKey: 'spot_the_difference',
-    fallbackTitle: 'SPOT THE DIFFERENCE',
-    pastelBg: '#FFFBEB',
-    borderColor: '#FDE68A',
-    titleColor: '#D97706',
-    previewType: 'SPOT',
-    route: '/(patient)/games/triplet',
-  },
-];
-
-export default function GameSelectionScreen() {
+export default function GamesHomeScreen() {
   const router = useRouter();
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
+  const gamesList: GameItem[] = [
+    {
+      id: '1',
+      name: t('match_the_cards') || 'Match the Cards',
+      description: t('match_cards_desc') || 'Find two pictures that are the same.',
+      speechText: 'Match the Cards. Find two pictures that are the same. Take your time.',
+      cardBg: '#FAF5FF',
+      borderColor: '#DDD6FE',
+      titleColor: '#6D28D9',
+      btnBg: '#7C3AED',
+      route: '/(patient)/games/pair',
+      renderBanner: () => <MatchCardsBannerIllustration height={130} />,
+    },
+    {
+      id: '2',
+      name: t('remember_the_pictures') || 'Remember the Pictures',
+      description: t('remember_pictures_desc') || 'Look carefully and remember.',
+      speechText: 'Remember the Pictures. Look carefully at the pictures and remember what you see.',
+      cardBg: '#F0FDF4',
+      borderColor: '#BBF7D0',
+      titleColor: '#15803D',
+      btnBg: '#16A34A',
+      route: '/(patient)/games/remember-pictures',
+      renderBanner: () => <RememberPicturesBannerIllustration height={130} />,
+    },
+    {
+      id: '3',
+      name: t('find_three') || 'Find Three',
+      description: t('find_three_desc') || 'Find three pictures that belong together.',
+      speechText: 'Find Three. Find three pictures that belong together.',
+      cardBg: '#FFFBEB',
+      borderColor: '#FDE68A',
+      titleColor: '#D97706',
+      btnBg: '#F59E0B',
+      route: '/(patient)/games/triplet',
+      renderBanner: () => <FindThreeBannerIllustration height={130} />,
+    },
+  ];
+
   return (
-    <ScreenContainer scrollable={false} style={styles.container}>
-      {/* Header: Back Arrow Button on Left + Bold PLAY GAME Title Center */}
+    <ScreenContainer scrollable={true} style={styles.container}>
+      {/* Top Header Row with Back Button, Title, and Main Speech Button */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
-          accessibilityLabel={t('go_back')}
+          accessibilityLabel={t('go_back') || 'Go Back'}
           accessibilityRole="button"
           onPress={() => router.back()}
-          style={styles.backSquareBtn}
+          style={[styles.backSquareBtn, { backgroundColor: isHc ? '#1E293B' : '#FFFFFF' }]}
         >
-          <ArrowLeft size={26} color="#6D28D9" strokeWidth={2.5} />
+          <ArrowLeft size={24} color={isHc ? COLORS.hcTextPrimary : '#6D28D9'} strokeWidth={2.5} />
         </TouchableOpacity>
 
-        <Text style={[styles.headerTitleText, { color: isHc ? COLORS.hcTextPrimary : '#0F172A' }]}>
-          {t('play_game')}
-        </Text>
+        <View style={styles.headerCenterText}>
+          <Typography size="xl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
+            {t('lets_play') || "Let's Play"}
+          </Typography>
+          <Typography size="xs" color={COLORS.textMuted} align="center" style={{ marginTop: 1 }}>
+            {t('choose_a_game') || 'Choose a game'}
+          </Typography>
+        </View>
 
-        <View style={{ width: 44 }} />
+        <ListenButton
+          textToSpeak="Let's Play. Choose a game from the list below."
+          size="sm"
+          variant="secondary"
+        />
       </View>
 
-      {/* 3 Horizontal Cards Stacked Vertically (Matching media_1788280845461.png EXACTLY) */}
-      <View style={styles.verticalStackContainer}>
-        {GAMES_LIST.map((game) => (
+      {/* Dedicated Large Visual Game Cards */}
+      <View style={styles.gamesStack}>
+        {gamesList.map((game) => (
           <TouchableOpacity
             key={game.id}
-            activeOpacity={0.88}
+            activeOpacity={0.92}
+            accessibilityRole="button"
+            accessibilityLabel={`Play ${game.name}`}
             onPress={() => router.push(game.route as any)}
             style={[
-              styles.horizontalGameCard,
+              styles.gameCard,
               {
-                backgroundColor: isHc ? COLORS.hcCardBackground : game.pastelBg,
-                borderColor: game.borderColor,
+                backgroundColor: isHc ? COLORS.hcCardBackground : game.cardBg,
+                borderColor: isHc ? COLORS.hcBorder : game.borderColor,
               },
             ]}
           >
-            {/* Left Graphic Portion: Local Gameplay Video Preview */}
-            <View style={styles.previewLeftContainer}>
-              <LocalGamePreviewVideo gameType={game.previewType} pastelBg="transparent" />
+            {/* 1. Large Image Banner */}
+            <View style={styles.bannerWrapper}>
+              {game.renderBanner()}
             </View>
 
-            {/* Right Text Portion: Bold Uppercase Title */}
-            <View style={styles.titleRightContainer}>
-              <Text
-                numberOfLines={2}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
-                style={[styles.gameTitleText, { color: isHc ? COLORS.hcTextPrimary : game.titleColor }]}
+            {/* 2. Full-Width Title & Description */}
+            <View style={styles.cardTextContainer}>
+              <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : game.titleColor}>
+                {game.name}
+              </Typography>
+              <Typography size="sm" color={COLORS.textSecondary} style={{ marginTop: 4 }}>
+                {game.description}
+              </Typography>
+            </View>
+
+            {/* 3. Action Buttons Row: Listen + Wide PLAY */}
+            <View style={styles.actionsRow}>
+              <ListenButton
+                textToSpeak={game.speechText}
+                size="sm"
+                variant="outline"
+              />
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={`Play ${game.name}`}
+                onPress={() => router.push(game.route as any)}
+                style={[styles.playBtn, { backgroundColor: game.btnBg }]}
               >
-                {t(game.titleKey)}
-              </Text>
+                <Play size={18} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 6 }} />
+                <Typography size="base" weight="bold" color="#FFFFFF">
+                  {t('play') || 'PLAY'}
+                </Typography>
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         ))}
@@ -116,20 +161,20 @@ export default function GameSelectionScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.xl,
   },
   topHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: SPACING.sm,
-    paddingBottom: SPACING.xs,
+    paddingVertical: SPACING.xs,
+    marginBottom: SPACING.sm,
   },
   backSquareBtn: {
     width: 44,
     height: 44,
     borderRadius: RADIUS.md,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
@@ -140,50 +185,54 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  headerTitleText: {
-    fontSize: 24,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-    textAlign: 'center',
-  },
-  verticalStackContainer: {
+  headerCenterText: {
     flex: 1,
-    justifyContent: 'space-evenly',
-    marginVertical: SPACING.xs,
-    paddingVertical: SPACING.xs,
-    gap: SPACING.xs,
-  },
-  horizontalGameCard: {
-    width: '100%',
-    flex: 1,
-    minHeight: 120,
-    maxHeight: 155,
-    flexDirection: 'row',
     alignItems: 'center',
-    padding: SPACING.sm,
-    borderRadius: RADIUS.xl,
-    borderWidth: 1.8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    paddingHorizontal: SPACING.xs,
   },
-  previewLeftContainer: {
-    width: '58%',
-    height: '100%',
+  gamesStack: {
+    gap: SPACING.lg,
+  },
+  gameCard: {
+    width: '100%',
+    borderRadius: RADIUS.xl,
+    borderWidth: 2,
+    padding: SPACING.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  bannerWrapper: {
+    width: '100%',
     borderRadius: RADIUS.lg,
     overflow: 'hidden',
-    justifyContent: 'center',
   },
-  titleRightContainer: {
+  cardTextContainer: {
+    width: '100%',
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: SPACING.md,
+    paddingHorizontal: SPACING.xs,
+    gap: SPACING.sm,
+  },
+  playBtn: {
     flex: 1,
-    marginLeft: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-  },
-  gameTitleText: {
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: 0.5,
+    paddingVertical: 12,
+    borderRadius: RADIUS.full,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });

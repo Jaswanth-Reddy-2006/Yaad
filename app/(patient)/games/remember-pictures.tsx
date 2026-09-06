@@ -1,80 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-import {
-  RefreshCw,
-  Apple,
-  Home as HomeIcon,
-  Flower2,
-  Car,
-  CircleDot,
-  Umbrella,
-  Trees,
-  Coffee,
-  Clock,
-} from 'lucide-react-native';
+import { RefreshCw, ArrowLeft } from 'lucide-react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
-import { AppHeader } from '../../../components/common/AppHeader';
 import { Card } from '../../../components/common/Card';
 import { Typography } from '../../../components/common/Typography';
 import { Button } from '../../../components/common/Button';
+import { ListenButton } from '../../../components/common/ListenButton';
+import { GamePicture } from '../../../components/games/GamePicture';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 
 interface PictureItem {
   id: string;
+  symbolId: string;
   titleKey: string;
   fallbackTitle: string;
-  iconName: string;
   isTarget: boolean;
 }
 
 const ALL_PICTURES: PictureItem[] = [
-  { id: '1', titleKey: 'apple', fallbackTitle: 'Apple', iconName: 'Apple', isTarget: true },
-  { id: '2', titleKey: 'chair', fallbackTitle: 'Chair', iconName: 'HomeIcon', isTarget: true },
-  { id: '3', titleKey: 'flower', fallbackTitle: 'Flower', iconName: 'Flower2', isTarget: true },
-  { id: '4', titleKey: 'car', fallbackTitle: 'Car', iconName: 'Car', isTarget: false },
-  { id: '5', titleKey: 'beach_ball', fallbackTitle: 'Beach Ball', iconName: 'CircleDot', isTarget: false },
-  { id: '6', titleKey: 'umbrella', fallbackTitle: 'Umbrella', iconName: 'Umbrella', isTarget: false },
-  { id: '7', titleKey: 'tree', fallbackTitle: 'Tree', iconName: 'Trees', isTarget: false },
-  { id: '8', titleKey: 'cup', fallbackTitle: 'Cup', iconName: 'Coffee', isTarget: false },
-  { id: '9', titleKey: 'clock', fallbackTitle: 'Clock', iconName: 'Clock', isTarget: false },
+  { id: '1', symbolId: 'apple', titleKey: 'apple', fallbackTitle: 'Apple', isTarget: true },
+  { id: '2', symbolId: 'banana', titleKey: 'banana', fallbackTitle: 'Banana', isTarget: true },
+  { id: '3', symbolId: 'flower', titleKey: 'flower', fallbackTitle: 'Flower', isTarget: true },
+  { id: '4', symbolId: 'cup', titleKey: 'cup', fallbackTitle: 'Cup', isTarget: false },
+  { id: '5', symbolId: 'umbrella', titleKey: 'umbrella', fallbackTitle: 'Umbrella', isTarget: false },
+  { id: '6', symbolId: 'mango', titleKey: 'mango', fallbackTitle: 'Mango', isTarget: false },
+  { id: '7', symbolId: 'bicycle', titleKey: 'bicycle', fallbackTitle: 'Bicycle', isTarget: false },
+  { id: '8', symbolId: 'house', titleKey: 'house', fallbackTitle: 'House', isTarget: false },
+  { id: '9', symbolId: 'glasses', titleKey: 'glasses', fallbackTitle: 'Glasses', isTarget: false },
 ];
-
-const renderIcon = (name: string, size: number, color: string) => {
-  switch (name) {
-    case 'Apple':
-      return <Apple size={size} color={color} />;
-    case 'HomeIcon':
-      return <HomeIcon size={size} color={color} />;
-    case 'Flower2':
-      return <Flower2 size={size} color={color} />;
-    case 'Car':
-      return <Car size={size} color={color} />;
-    case 'CircleDot':
-      return <CircleDot size={size} color={color} />;
-    case 'Umbrella':
-      return <Umbrella size={size} color={color} />;
-    case 'Trees':
-      return <Trees size={size} color={color} />;
-    case 'Coffee':
-      return <Coffee size={size} color={color} />;
-    case 'Clock':
-      return <Clock size={size} color={color} />;
-    default:
-      return <Apple size={size} color={color} />;
-  }
-};
 
 export default function RememberPicturesGameScreen() {
   const router = useRouter();
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
+  const { width: screenWidth } = useWindowDimensions();
 
   const [phase, setPhase] = useState<'LOOK' | 'TEST' | 'RESULT'>('LOOK');
   const [countdown, setCountdown] = useState(5);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [score, setScore] = useState(0);
+
+  const tilePicSize = Math.min(72, Math.max(48, Math.floor(screenWidth * 0.16)));
+  const slotPicSize = Math.min(46, Math.max(34, Math.floor(screenWidth * 0.10)));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -113,21 +82,53 @@ export default function RememberPicturesGameScreen() {
     setPhase('LOOK');
   };
 
+  const currentSpeech =
+    phase === 'LOOK'
+      ? 'Look carefully at the pictures. Memorize them before time runs out.'
+      : phase === 'TEST'
+      ? 'Which pictures did you see earlier? Tap 3 pictures to select them.'
+      : `Game completed! You remembered ${score} out of 3 pictures correctly.`;
+
   return (
-    <ScreenContainer scrollable>
-      <AppHeader
-        title={t('remember_pictures')}
-        showBack
-      />
+    <ScreenContainer scrollable={true} style={styles.container}>
+      {/* Header with Back button and Listen button */}
+      <View style={styles.topHeaderRow}>
+        <TouchableOpacity
+          accessibilityLabel={t('go_back') || 'Go Back'}
+          accessibilityRole="button"
+          onPress={() => router.back()}
+          style={[styles.backSquareBtn, { backgroundColor: isHc ? '#1E293B' : '#FFFFFF' }]}
+        >
+          <ArrowLeft size={26} color={isHc ? COLORS.hcTextPrimary : '#15803D'} strokeWidth={2.5} />
+        </TouchableOpacity>
+
+        <View style={styles.headerTitleContainer}>
+          <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
+            {t('remember_the_pictures') || 'Remember Pictures'}
+          </Typography>
+        </View>
+
+        <ListenButton
+          textToSpeak={currentSpeech}
+          label="LISTEN"
+          size="sm"
+          variant="secondary"
+        />
+      </View>
 
       {/* Instruction Card */}
-      <Card style={styles.instructionCard}>
-        <Typography size="lg" weight="bold" align="center" color={COLORS.primaryDark}>
+      <Card
+        style={[
+          styles.instructionCard,
+          { backgroundColor: isHc ? COLORS.hcCardBackground : '#F0FDF4', borderColor: '#BBF7D0' },
+        ]}
+      >
+        <Typography size="base" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#15803D'}>
           {phase === 'LOOK'
-            ? t('memorize_pictures_instruction')
+            ? t('memorize_pictures_instruction') || '👀 Look carefully and remember these pictures!'
             : phase === 'TEST'
-            ? t('what_did_you_see')
-            : t('game_result')}
+            ? t('what_did_you_see') || '🤔 Which pictures did you see? Tap 3 pictures.'
+            : t('game_result') || '🎉 Game Result'}
         </Typography>
       </Card>
 
@@ -135,8 +136,7 @@ export default function RememberPicturesGameScreen() {
       <View style={styles.gridContainer}>
         {ALL_PICTURES.map((item) => {
           const isSelected = selectedIds.includes(item.id);
-          const iconColor = isSelected ? COLORS.primary : isHc ? COLORS.hcTextPrimary : COLORS.textPrimary;
-          const displayTitle = t(item.titleKey) || item.fallbackTitle;
+          const isTargetInLookPhase = phase === 'LOOK' && item.isTarget;
 
           return (
             <TouchableOpacity
@@ -147,13 +147,15 @@ export default function RememberPicturesGameScreen() {
               style={[
                 styles.gridTile,
                 isSelected ? styles.selectedTile : null,
+                isTargetInLookPhase ? styles.targetGlowTile : null,
                 { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF' },
               ]}
             >
-              {renderIcon(item.iconName, 36, iconColor)}
-              <Typography size="xs" weight="bold" align="center" style={{ marginTop: 4 }}>
-                {displayTitle}
-              </Typography>
+              <GamePicture
+                symbolId={item.symbolId}
+                size={tilePicSize}
+                showLabel={false}
+              />
             </TouchableOpacity>
           );
         })}
@@ -167,13 +169,13 @@ export default function RememberPicturesGameScreen() {
               {countdown}
             </Typography>
           </View>
-          <Typography size="base" weight="semibold" color={COLORS.textMuted} style={{ marginTop: SPACING.xs }}>
-            {t('get_ready')}
+          <Typography size="base" weight="bold" color={COLORS.textMuted} style={{ marginTop: SPACING.xs }}>
+            {t('get_ready') || 'Memorize now...'}
           </Typography>
         </View>
       ) : null}
 
-      {/* PHASE 2: Selection Boxes & Action Buttons */}
+      {/* PHASE 2: Selection Slots & Large Submit Button */}
       {phase === 'TEST' ? (
         <View style={styles.testActionsContainer}>
           {/* 3 Selection Slots */}
@@ -183,7 +185,11 @@ export default function RememberPicturesGameScreen() {
               return (
                 <View key={idx} style={styles.slotBox}>
                   {selectedItem ? (
-                    renderIcon(selectedItem.iconName, 28, COLORS.primary)
+                    <GamePicture
+                      symbolId={selectedItem.symbolId}
+                      size={slotPicSize}
+                      showLabel={false}
+                    />
                   ) : null}
                 </View>
               );
@@ -192,7 +198,7 @@ export default function RememberPicturesGameScreen() {
 
           {/* Submit Button */}
           <Button
-            title={t('submit')}
+            title={t('submit') || 'SUBMIT'}
             variant="primary"
             disabled={selectedIds.length !== 3}
             onPress={handleSubmit}
@@ -204,15 +210,17 @@ export default function RememberPicturesGameScreen() {
       {/* RESULT PHASE */}
       {phase === 'RESULT' ? (
         <Card style={styles.resultCard}>
-          <Typography size="xxl" weight="bold" align="center" color={COLORS.primary}>
-            {t('score_label')}: {score} / 3
+          <Typography size="xxl" weight="bold" align="center" color="#15803D">
+            {t('score_label') || 'Score'}: {score} / 3
           </Typography>
           <Typography size="base" color={COLORS.textMuted} align="center" style={{ marginTop: 4 }}>
-            {score === 3 ? t('perfect_memory') : t('keep_practicing')}
+            {score === 3
+              ? (t('perfect_memory') || '🌟 Perfect! You remembered all 3 pictures!')
+              : (t('keep_practicing') || '👏 Great effort! Keep exercising your memory.')}
           </Typography>
 
           <Button
-            title={t('play_again')}
+            title={t('play_again') || 'PLAY AGAIN'}
             variant="primary"
             icon={<RefreshCw size={22} color="#FFFFFF" />}
             onPress={handleRestart}
@@ -225,10 +233,40 @@ export default function RememberPicturesGameScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    paddingBottom: SPACING.xl,
+  },
+  topHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: SPACING.xs,
+    marginBottom: SPACING.xs,
+  },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: SPACING.xs,
+  },
+  backSquareBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   instructionCard: {
     marginVertical: SPACING.xs,
     padding: SPACING.md,
-    backgroundColor: COLORS.primaryLight,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1.5,
   },
   gridContainer: {
     flexDirection: 'row',
@@ -239,30 +277,42 @@ const styles = StyleSheet.create({
   gridTile: {
     width: '31%',
     aspectRatio: 1,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 4,
+    marginVertical: 5,
     borderWidth: 2,
-    borderColor: COLORS.surfaceVariant,
+    borderColor: '#E2E8F0',
     padding: SPACING.xs,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   selectedTile: {
-    borderColor: COLORS.primary,
+    borderColor: '#16A34A',
+    borderWidth: 3,
     backgroundColor: '#DCFCE7',
+  },
+  targetGlowTile: {
+    borderColor: '#F59E0B',
+    borderWidth: 3,
+    backgroundColor: '#FEF3C7',
   },
   countdownContainer: {
     alignItems: 'center',
     marginVertical: SPACING.md,
   },
   countdownRing: {
-    width: 72,
-    height: 72,
+    width: 76,
+    height: 76,
     borderRadius: RADIUS.full,
-    borderWidth: 4,
+    borderWidth: 4.5,
     borderColor: COLORS.warning,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FEF3C7',
   },
   testActionsContainer: {
     marginVertical: SPACING.sm,
@@ -273,21 +323,27 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   slotBox: {
-    width: 56,
-    height: 56,
-    borderRadius: RADIUS.md,
-    borderWidth: 2,
-    borderColor: COLORS.textMuted,
+    width: 64,
+    height: 64,
+    borderRadius: RADIUS.lg,
+    borderWidth: 2.5,
+    borderColor: '#94A3B8',
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 6,
+    marginHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   submitBtn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#16A34A',
   },
   resultCard: {
     marginVertical: SPACING.md,
     padding: SPACING.lg,
+    borderRadius: RADIUS.xl,
   },
 });

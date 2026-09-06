@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Modal } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView } from 'react-native';
 import { Trophy, Star, Target, Clock, Lightbulb, RefreshCw, Home, Sun } from 'lucide-react-native';
 import { Typography } from '../common/Typography';
 import { Button } from '../common/Button';
@@ -34,12 +34,17 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
         <View style={[styles.dialogCard, { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF' }]}>
-          {/* Top Hero Trophy Illustration with Confetti */}
-          <View style={styles.trophyWrapper}>
-            <View style={styles.confettiCircle}>
-              <Trophy size={56} color="#D97706" />
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            style={{ width: '100%' }}
+          >
+            {/* Top Hero Trophy Illustration with Confetti */}
+            <View style={styles.trophyWrapper}>
+              <View style={styles.confettiCircle}>
+                <Trophy size={52} color="#D97706" />
+              </View>
             </View>
-          </View>
 
           {/* Congratulations Title & Subtitle */}
           <Typography size="xxl" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
@@ -164,6 +169,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
               style={styles.backHomeBtn}
             />
           </View>
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -176,19 +182,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 23, 42, 0.65)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SPACING.lg,
+    padding: SPACING.md,
   },
   dialogCard: {
     width: '100%',
     maxWidth: 420,
+    maxHeight: '90%',
     borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
+    padding: SPACING.md,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 20,
     elevation: 8,
+  },
+  scrollContent: {
+    alignItems: 'center',
+    paddingVertical: SPACING.xs,
   },
   trophyWrapper: {
     alignItems: 'center',

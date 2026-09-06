@@ -135,12 +135,20 @@ export const TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
     "take_medicine": "Take Medicine",
     "lunch_time": "Lunch Time",
     "doctor_appointment": "Doctor Appointment",
-    "find_the_match": "FIND THE MATCH",
-    "remember_pictures": "REMEMBER PICTURES",
-    "spot_the_difference": "SPOT THE DIFFERENCE",
-    "recall_daily_events": "RECALL DAILY EVENTS",
-    "name_that_object": "NAME THAT OBJECT",
-    "sequence_memory": "SEQUENCE MEMORY",
+    "find_the_match": "Find the Match",
+    "match_the_cards": "Match the Cards",
+    "match_cards_desc": "Find two pictures that are the same.",
+    "remember_the_pictures": "Remember the Pictures",
+    "remember_pictures_desc": "Look carefully and remember.",
+    "find_three": "Find Three",
+    "find_three_desc": "Find three pictures that belong together.",
+    "lets_play": "Let's Play",
+    "choose_a_game": "Choose a game",
+    "remember_pictures": "Remember Pictures",
+    "spot_the_difference": "Spot the Difference",
+    "recall_daily_events": "Recall Daily Events",
+    "name_that_object": "Name That Object",
+    "sequence_memory": "Sequence Memory",
     "match_the_triplet": "Match the Triplet",
     "match_the_pair": "Match the Pair",
     "match_pair_sub": "Find and match all the pairs!",
@@ -4991,6 +4999,12 @@ export const TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
 };
 
 export function getTranslation(key: string, lang: LanguageCode = 'en'): string {
+  if (!key) return '';
   const langDict = TRANSLATIONS[lang] || TRANSLATIONS.en;
-  return langDict[key] || TRANSLATIONS.en[key] || key;
+  const raw = langDict?.[key] || TRANSLATIONS.en?.[key];
+  if (raw) {
+    return raw.replace(/_/g, ' ');
+  }
+  const formatted = key.replace(/_/g, ' ');
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }

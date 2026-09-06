@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,24 +7,11 @@ import Animated, {
   withSpring,
   interpolate,
 } from 'react-native-reanimated';
-import {
-  Sun,
-  Flower2,
-  Heart,
-  Star,
-  Apple,
-  Bell,
-  Key,
-  Home,
-  Trees,
-  Clock,
-  Umbrella,
-  Droplet,
-  HelpCircle,
-} from 'lucide-react-native';
+import { Sparkles, CheckCircle2 } from 'lucide-react-native';
 import { GameCardItem } from '../../types';
 import { Typography } from '../common/Typography';
-import { COLORS, RADIUS, SHADOWS, SPACING } from '../../constants/theme';
+import { GamePicture, getSymbolConfig } from './GamePicture';
+import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
 export interface GameCardProps {
@@ -32,49 +19,23 @@ export interface GameCardProps {
   positionIndex?: number;
   onSelect: (id: string) => void;
   disabled?: boolean;
+  numColumns?: number;
+  customWidth?: string | number;
 }
-
-const renderIcon = (iconName: string, size: number, color: string) => {
-  switch (iconName) {
-    case 'Sun':
-      return <Sun size={size} color={color} />;
-    case 'Flower2':
-      return <Flower2 size={size} color={color} />;
-    case 'Heart':
-      return <Heart size={size} color={color} />;
-    case 'Star':
-      return <Star size={size} color={color} />;
-    case 'Apple':
-      return <Apple size={size} color={color} />;
-    case 'Bell':
-      return <Bell size={size} color={color} />;
-    case 'Key':
-      return <Key size={size} color={color} />;
-    case 'Home':
-      return <Home size={size} color={color} />;
-    case 'Trees':
-      return <Trees size={size} color={color} />;
-    case 'Clock':
-      return <Clock size={size} color={color} />;
-    case 'Umbrella':
-      return <Umbrella size={size} color={color} />;
-    case 'Droplet':
-      return <Droplet size={size} color={color} />;
-    default:
-      return <HelpCircle size={size} color={color} />;
-  }
-};
 
 export const GameCardComponent: React.FC<GameCardProps> = ({
   card,
   positionIndex = 0,
   onSelect,
   disabled = false,
+  numColumns = 4,
+  customWidth,
 }) => {
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
+  const { width: screenWidth } = useWindowDimensions();
 
-  const rotation = useSharedValue(0);
+  const rotation = useSharedValue(card.isFlipped || card.isMatched ? 180 : 0);
   const scale = useSharedValue(1);
 
   const isRevealed = card.isFlipped || card.isMatched;
@@ -83,32 +44,38 @@ export const GameCardComponent: React.FC<GameCardProps> = ({
     rotation.value = withTiming(isRevealed ? 180 : 0, { duration: 300 });
   }, [isRevealed]);
 
+  // Front (Unrevealed Card Back) - explicitly hides at 90 degrees so Android never renders half-slices
   const frontAnimatedStyle = useAnimatedStyle(() => {
     const rotateValue = interpolate(rotation.value, [0, 180], [0, 180]);
+    const opacityValue = interpolate(rotation.value, [0, 89, 90, 180], [1, 1, 0, 0]);
     return {
       transform: [
-        { perspective: 1000 },
+        { perspective: 1200 },
         { rotateY: `${rotateValue}deg` },
         { scale: scale.value },
       ],
+      opacity: opacityValue,
       backfaceVisibility: 'hidden',
     };
   });
 
+  // Back (Revealed Picture Face) - explicitly appears at 90 degrees so it stays fully sized and static
   const backAnimatedStyle = useAnimatedStyle(() => {
     const rotateValue = interpolate(rotation.value, [0, 180], [180, 360]);
+    const opacityValue = interpolate(rotation.value, [0, 89, 90, 180], [0, 0, 1, 1]);
     return {
       transform: [
-        { perspective: 1000 },
+        { perspective: 1200 },
         { rotateY: `${rotateValue}deg` },
         { scale: scale.value },
       ],
+      opacity: opacityValue,
       backfaceVisibility: 'hidden',
     };
   });
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.94);
+    scale.value = withSpring(0.95);
   };
 
   const handlePressOut = () => {
@@ -116,26 +83,41 @@ export const GameCardComponent: React.FC<GameCardProps> = ({
   };
 
   const isHinted = Boolean(card.isHighlightedHint);
+  const symbolConfig = getSymbolConfig(card.symbolId, card.iconName);
+  const displayTitle = t(card.symbolId) || card.title || symbolConfig.displayName;
 
+  // Visual card borders and backgrounds
   const cardBorderColor = isHinted
-    ? COLORS.warning
+    ? '#F59E0B'
     : card.isMatched
-    ? COLORS.success
+    ? '#16A34A'
     : isHc
     ? COLORS.hcBorder
-    : COLORS.primary;
+    : symbolConfig.borderColor;
 
-  const cardBg = card.isMatched
-    ? isHc ? '#003300' : COLORS.successLight
-    : isRevealed
-    ? isHc ? COLORS.hcCardBackground : COLORS.cardBackground
-    : isHc ? '#1F2937' : COLORS.primaryLight;
+  const cardFaceBg = card.isMatched
+    ? isHc ? '#064E3B' : '#F0FDF4'
+    : isHc ? COLORS.hcCardBackground : symbolConfig.cardBg;
 
-  const iconColor = card.isMatched
-    ? COLORS.success
-    : isHc ? COLORS.hcTextPrimary : COLORS.primary;
+  // Dynamic Responsive Card Widths and Proportions
+  const cardWidth = customWidth
+    ? customWidth
+    : numColumns === 2
+    ? '46%'
+    : numColumns === 3
+    ? '30.5%'
+    : '22.5%';
 
-  const displayTitle = t(card.symbolId) || card.title;
+  const cardMargin = numColumns === 2 ? '1.8%' : numColumns === 3 ? '1.3%' : '1.1%';
+  const cardAspectRatio = numColumns === 2 ? 0.95 : numColumns === 3 ? 0.88 : 0.82;
+
+  // Dynamically calculate responsive illustration pixel size based on viewport width
+  const responsivePicSize =
+    numColumns === 2
+      ? Math.min(94, Math.max(68, Math.floor(screenWidth * 0.22)))
+      : numColumns === 3
+      ? Math.min(68, Math.max(50, Math.floor(screenWidth * 0.15)))
+      : Math.min(52, Math.max(38, Math.floor(screenWidth * 0.11)));
 
   const accessibleLabel = card.isMatched
     ? `Matched ${displayTitle} card`
@@ -159,45 +141,75 @@ export const GameCardComponent: React.FC<GameCardProps> = ({
       onPress={() => onSelect(card.id)}
       style={[
         styles.touchContainer,
+        {
+          width: cardWidth as any,
+          margin: cardMargin as any,
+          aspectRatio: cardAspectRatio,
+        },
         isHinted ? styles.hintGlow : null,
       ]}
     >
       <View style={styles.cardWrapper}>
-        {/* FRONT SIDE (Unrevealed Card Back) */}
+        {/* UNREVEALED CARD BACK (Sparkles + TAP) */}
         <Animated.View
           style={[
             styles.cardFace,
             frontAnimatedStyle,
             {
-              backgroundColor: cardBg,
-              borderColor: cardBorderColor,
-              borderWidth: isHinted ? 3 : 2,
+              backgroundColor: isHc ? '#1E293B' : '#4F46E5',
+              borderColor: isHinted ? '#F59E0B' : isHc ? '#475569' : '#4338CA',
+              borderWidth: isHinted ? 3.5 : 2.5,
             },
           ]}
         >
-          <HelpCircle size={32} color={isHc ? COLORS.hcPrimary : COLORS.primary} />
-          <Typography size="xs" weight="bold" color={isHc ? COLORS.hcPrimary : COLORS.primary} style={{ marginTop: 4 }}>
-            {t('tap')}
-          </Typography>
+          <View style={styles.centerContent}>
+            <Sparkles size={numColumns === 2 ? 36 : 24} color={isHc ? '#93C5FD' : '#E0E7FF'} />
+            <Typography
+              size={numColumns === 2 ? 'sm' : 'xs'}
+              weight="bold"
+              color="#FFFFFF"
+              style={{ marginTop: 6, letterSpacing: 1 }}
+            >
+              {t('tap') || 'TAP'}
+            </Typography>
+          </View>
         </Animated.View>
 
-        {/* BACK SIDE (Revealed Symbol) */}
+        {/* REVEALED PICTURE CARD FRONT */}
         <Animated.View
           style={[
             styles.cardFace,
-            styles.cardFaceBack,
             backAnimatedStyle,
             {
-              backgroundColor: cardBg,
+              backgroundColor: cardFaceBg,
               borderColor: cardBorderColor,
-              borderWidth: isHinted || card.isMatched ? 3 : 2,
+              borderWidth: isHinted || card.isMatched ? 3.5 : 2.5,
             },
           ]}
         >
-          {renderIcon(card.iconName, 36, iconColor)}
-          <Typography size="xs" weight="bold" color={iconColor} style={{ marginTop: 4 }}>
-            {displayTitle}
-          </Typography>
+          <View style={styles.centerContent}>
+            <GamePicture
+              symbolId={card.symbolId}
+              iconName={card.iconName}
+              displayTitle={displayTitle}
+              size={responsivePicSize}
+              showLabel={false}
+            />
+          </View>
+
+          {/* Matched Checkmark Corner Badge */}
+          {card.isMatched && (
+            <View style={styles.matchedBadge}>
+              <CheckCircle2 size={numColumns === 2 ? 22 : 16} color="#FFFFFF" />
+            </View>
+          )}
+
+          {/* Hint Sparkle Badge */}
+          {isHinted && !card.isMatched && (
+            <View style={styles.hintBadge}>
+              <Sparkles size={numColumns === 2 ? 18 : 14} color="#D97706" />
+            </View>
+          )}
         </Animated.View>
       </View>
     </TouchableOpacity>
@@ -208,18 +220,14 @@ export const GameCard = React.memo(GameCardComponent);
 
 const styles = StyleSheet.create({
   touchContainer: {
-    width: '22%',
-    aspectRatio: 0.85,
-    margin: '1.5%',
-    borderRadius: RADIUS.lg,
-    minHeight: 84,
+    borderRadius: RADIUS.xl,
   },
   hintGlow: {
-    shadowColor: COLORS.warning,
+    shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowOpacity: 0.95,
+    shadowRadius: 12,
+    elevation: 10,
   },
   cardWrapper: {
     width: '100%',
@@ -232,26 +240,45 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: RADIUS.lg,
+    width: '100%',
+    height: '100%',
+    borderRadius: RADIUS.xl,
     alignItems: 'center',
     justifyContent: 'center',
     padding: SPACING.xs,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
-    shadowRadius: 4,
+    shadowRadius: 5,
     elevation: 3,
   },
-  cardFaceBack: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: RADIUS.lg,
+  centerContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: SPACING.xs,
+    width: '100%',
+    height: '100%',
+  },
+  matchedBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: '#16A34A',
+    borderRadius: RADIUS.full,
+    padding: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 4,
+  },
+  hintBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: '#FEF3C7',
+    borderRadius: RADIUS.full,
+    padding: 4,
+    borderWidth: 1.5,
+    borderColor: '#FDE68A',
   },
 });
-
