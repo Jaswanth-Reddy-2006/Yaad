@@ -386,3 +386,181 @@ export const ElephantIllustration: React.FC<AnimalIllustrationProps> = ({ size =
     />
   </Svg>
 );
+
+/**
+ * 9. Chicken / Rooster: Friendly red-crested farm chicken with yellow beak.
+ */
+export const ChickenIllustration: React.FC<AnimalIllustrationProps> = ({ size = 64 }) => (
+  <Svg width={size} height={size} viewBox="0 0 100 100">
+    <Defs>
+      <LinearGradient id="chickenBody" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#FFFFFF" />
+        <Stop offset="100%" stopColor="#FEF3C7" />
+      </LinearGradient>
+    </Defs>
+
+    {/* Body */}
+    <Ellipse cx="48" cy="58" rx="26" ry="20" fill="url(#chickenBody)" stroke="#F59E0B" strokeWidth="2" />
+
+    {/* Wing */}
+    <Path d="M 32 54 Q 52 48 48 68 Q 32 70 32 54 Z" fill="#FDE68A" stroke="#D97706" strokeWidth="1.5" />
+
+    {/* Head & Neck */}
+    <Circle cx="64" cy="40" r="16" fill="url(#chickenBody)" stroke="#F59E0B" strokeWidth="2" />
+
+    {/* Red Crown / Comb */}
+    <Path
+      d="M 56 28 Q 58 14 64 22 Q 68 12 72 22 Q 76 16 78 26 Z"
+      fill="#EF4444"
+      stroke="#B91C1C"
+      strokeWidth="1.5"
+    />
+
+    {/* Red Wattle under beak */}
+    <Ellipse cx="72" cy="52" rx="4" ry="7" fill="#EF4444" stroke="#B91C1C" strokeWidth="1.2" />
+
+    {/* Golden Beak */}
+    <Path d="M 72 38 L 88 44 L 72 48 Z" fill="#F59E0B" stroke="#D97706" strokeWidth="1.5" />
+
+    {/* Eye */}
+    <Circle cx="66" cy="36" r="3.5" fill="#1E293B" />
+    <Circle cx="65" cy="35" r="1" fill="#FFFFFF" />
+  </Svg>
+);
+
+/**
+ * 10. Goat: Friendly goat with horns and sweet beard.
+ */
+export const GoatIllustration: React.FC<AnimalIllustrationProps> = ({ size = 64 }) => (
+  <Svg width={size} height={size} viewBox="0 0 100 100">
+    <Defs>
+      <LinearGradient id="goatGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#F8FAFC" />
+        <Stop offset="100%" stopColor="#E2E8F0" />
+      </LinearGradient>
+    </Defs>
+
+    {/* Curved Horns */}
+    <Path d="M 40 32 Q 32 12 24 16 Q 34 22 38 34 Z" fill="#94A3B8" stroke="#475569" strokeWidth="1.5" />
+    <Path d="M 60 32 Q 68 12 76 16 Q 66 22 62 34 Z" fill="#94A3B8" stroke="#475569" strokeWidth="1.5" />
+
+    {/* Droopy Ears */}
+    <Ellipse cx="28" cy="42" rx="10" ry="5" transform="rotate(20 28 42)" fill="#FFEDD5" stroke="#FB923C" strokeWidth="1.5" />
+    <Ellipse cx="72" cy="42" rx="10" ry="5" transform="rotate(-20 72 42)" fill="#FFEDD5" stroke="#FB923C" strokeWidth="1.5" />
+
+    {/* Head Face */}
+    <Ellipse cx="50" cy="50" rx="18" ry="22" fill="url(#goatGrad)" stroke="#64748B" strokeWidth="2" />
+
+    {/* Little Chin Beard */}
+    <Path d="M 46 72 Q 50 84 50 86 Q 50 84 54 72 Z" fill="#CBD5E1" stroke="#64748B" strokeWidth="1.5" />
+
+    {/* Eyes */}
+    <Circle cx="42" cy="46" r="3.5" fill="#1E293B" />
+    <Circle cx="41" cy="45" r="1" fill="#FFFFFF" />
+    <Circle cx="58" cy="46" r="3.5" fill="#1E293B" />
+    <Circle cx="57" cy="45" r="1" fill="#FFFFFF" />
+
+    {/* Muzzle */}
+    <Ellipse cx="50" cy="62" rx="10" ry="8" fill="#FFEDD5" stroke="#FB923C" strokeWidth="1.5" />
+    {/* Nose & Mouth */}
+    <Circle cx="46" cy="60" r="1.8" fill="#475569" />
+    <Circle cx="54" cy="60" r="1.8" fill="#475569" />
+    <Path d="M 48 65 Q 50 67 52 65" stroke="#9A3412" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+  </Svg>
+);
+
+/**
+ * 11. Horse: Friendly warm chestnut horse with dark mane.
+ */
+export const HorseIllustration: React.FC<AnimalIllustrationProps> = ({ size = 64 }) => (
+  <Svg width={size} height={size} viewBox="0 0 100 100">
+    <Defs>
+      <LinearGradient id="horseBody" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#D97706" />
+        <Stop offset="100%" stopColor="#B45309" />
+      </LinearGradient>
+    </Defs>
+
+    {/* Dark Mane Behind */}
+    <Path d="M 38 18 Q 30 36 28 58 Q 38 52 42 36 Z" fill="#78350F" stroke="#451A03" strokeWidth="1.5" />
+
+    {/* Pointed Ears */}
+    <Path d="M 40 28 L 38 12 L 48 24 Z" fill="url(#horseBody)" stroke="#92400E" strokeWidth="1.5" />
+    <Path d="M 56 24 L 62 12 L 64 28 Z" fill="url(#horseBody)" stroke="#92400E" strokeWidth="1.5" />
+
+    {/* Head */}
+    <Path
+      d="M 38 32 L 62 32 L 66 54 L 62 76 L 42 76 L 36 50 Z"
+      fill="url(#horseBody)"
+      stroke="#78350F"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+
+    {/* White Forehead Blaze */}
+    <Path d="M 48 34 L 54 34 L 53 58 L 47 58 Z" fill="#FFFFFF" opacity="0.9" />
+
+    {/* Muzzle */}
+    <Ellipse cx="52" cy="74" rx="12" ry="7" fill="#78350F" />
+    <Circle cx="46" cy="73" r="2.2" fill="#1E293B" />
+    <Circle cx="58" cy="73" r="2.2" fill="#1E293B" />
+    <Path d="M 48 77 Q 52 79 56 77" stroke="#1E293B" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+
+    {/* Eyes */}
+    <Circle cx="42" cy="44" r="3.5" fill="#1E293B" />
+    <Circle cx="41" cy="43" r="1" fill="#FFFFFF" />
+    <Circle cx="60" cy="44" r="3.5" fill="#1E293B" />
+    <Circle cx="59" cy="43" r="1" fill="#FFFFFF" />
+  </Svg>
+);
+
+/**
+ * 12. Frog: Cheerful emerald frog with big round eyes and smiling mouth.
+ */
+export const FrogIllustration: React.FC<AnimalIllustrationProps> = ({ size = 64 }) => (
+  <Svg width={size} height={size} viewBox="0 0 100 100">
+    <Defs>
+      <LinearGradient id="frogGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#4ADE80" />
+        <Stop offset="100%" stopColor="#22C55E" />
+      </LinearGradient>
+    </Defs>
+
+    {/* Big Eye Bulges on Top */}
+    <Circle cx="34" cy="34" r="14" fill="url(#frogGrad)" stroke="#15803D" strokeWidth="2" />
+    <Circle cx="66" cy="34" r="14" fill="url(#frogGrad)" stroke="#15803D" strokeWidth="2" />
+
+    {/* White Eye Centers */}
+    <Circle cx="34" cy="34" r="9" fill="#FFFFFF" />
+    <Circle cx="66" cy="34" r="9" fill="#FFFFFF" />
+
+    {/* Dark Pupils */}
+    <Circle cx="35" cy="34" r="4.5" fill="#0F172A" />
+    <Circle cx="33" cy="32" r="1.5" fill="#FFFFFF" />
+    <Circle cx="67" cy="34" r="4.5" fill="#0F172A" />
+    <Circle cx="65" cy="32" r="1.5" fill="#FFFFFF" />
+
+    {/* Frog Main Head / Body */}
+    <Ellipse cx="50" cy="58" rx="32" ry="22" fill="url(#frogGrad)" stroke="#15803D" strokeWidth="2" />
+
+    {/* White / Mint Belly */}
+    <Ellipse cx="50" cy="64" rx="20" ry="12" fill="#DCFCE7" opacity="0.85" />
+
+    {/* Rosy Cheeks */}
+    <Circle cx="26" cy="56" r="4" fill="#FDA4AF" opacity="0.6" />
+    <Circle cx="74" cy="56" r="4" fill="#FDA4AF" opacity="0.6" />
+
+    {/* Nostrils */}
+    <Circle cx="46" cy="48" r="1.5" fill="#15803D" />
+    <Circle cx="54" cy="48" r="1.5" fill="#15803D" />
+
+    {/* Wide Happy Smile */}
+    <Path
+      d="M 32 58 Q 50 72 68 58"
+      stroke="#14532D"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      fill="none"
+    />
+  </Svg>
+);

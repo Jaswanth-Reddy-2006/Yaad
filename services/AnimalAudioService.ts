@@ -11,11 +11,13 @@ export const ANIMAL_LIST = [
   { id: 'dog', name: 'Dog' },
   { id: 'cat', name: 'Cat' },
   { id: 'cow', name: 'Cow' },
-  { id: 'bird', name: 'Bird' },
-  { id: 'duck', name: 'Duck' },
-  { id: 'sheep', name: 'Sheep' },
-  { id: 'lion', name: 'Lion' },
+  { id: 'chicken', name: 'Chicken' },
+  { id: 'goat', name: 'Goat' },
+  { id: 'horse', name: 'Horse' },
   { id: 'elephant', name: 'Elephant' },
+  { id: 'lion', name: 'Lion' },
+  { id: 'frog', name: 'Frog' },
+  { id: 'bird', name: 'Bird' },
 ];
 
 class AnimalAudioService {
