@@ -61,6 +61,7 @@ export interface StoryScene {
 export interface StoryQuestionOption {
   id: string;
   label: string;
+  icon?: string;
   isCorrect: boolean;
 }
 
@@ -116,9 +117,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#2563EB',
         questionText: 'Who went out into the sunny morning garden?',
         options: [
-          { id: 'opt-1', label: 'Grandpa Anand', isCorrect: true },
-          { id: 'opt-2', label: 'A young school teacher', isCorrect: false },
-          { id: 'opt-3', label: 'The village doctor', isCorrect: false },
+          { id: 'opt-1', label: 'Grandpa Anand', icon: '👴', isCorrect: true },
+          { id: 'opt-2', label: 'A young school teacher', icon: '👨‍🏫', isCorrect: false },
+          { id: 'opt-3', label: 'The village doctor', icon: '👨‍⚕️', isCorrect: false },
         ],
         explanation: 'Grandpa Anand walked into the morning garden.',
       },
@@ -129,9 +130,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#16A34A',
         questionText: 'What color was Grandpa’s watering can?',
         options: [
-          { id: 'opt-1', label: 'Bright Green', isCorrect: true },
-          { id: 'opt-2', label: 'Dark Purple', isCorrect: false },
-          { id: 'opt-3', label: 'Shiny Silver', isCorrect: false },
+          { id: 'opt-2', label: 'Dark Purple', icon: '💜', isCorrect: false },
+          { id: 'opt-1', label: 'Bright Green', icon: '💚', isCorrect: true },
+          { id: 'opt-3', label: 'Shiny Silver', icon: '🤍', isCorrect: false },
         ],
         explanation: 'Grandpa used a bright green watering can.',
       },
@@ -142,9 +143,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#E11D48',
         questionText: 'Which flowers was Grandpa watering in the garden?',
         options: [
-          { id: 'opt-1', label: 'Blooming Red Roses', isCorrect: true },
-          { id: 'opt-2', label: 'Yellow Sunflowers', isCorrect: false },
-          { id: 'opt-3', label: 'White Lilies', isCorrect: false },
+          { id: 'opt-2', label: 'Yellow Sunflowers', icon: '🌻', isCorrect: false },
+          { id: 'opt-3', label: 'White Lilies', icon: '🪷', isCorrect: false },
+          { id: 'opt-1', label: 'Blooming Red Roses', icon: '🌹', isCorrect: true },
         ],
         explanation: 'Grandpa watered the blooming red roses.',
       },
@@ -155,9 +156,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#D97706',
         questionText: 'What gentle creature landed on Grandpa’s shoulder?',
         options: [
-          { id: 'opt-1', label: 'A Yellow Butterfly', isCorrect: true },
-          { id: 'opt-2', label: 'A Little Blue Bird', isCorrect: false },
-          { id: 'opt-3', label: 'A Green Grasshopper', isCorrect: false },
+          { id: 'opt-1', label: 'A Yellow Butterfly', icon: '🦋', isCorrect: true },
+          { id: 'opt-2', label: 'A Little Blue Bird', icon: '🐦', isCorrect: false },
+          { id: 'opt-3', label: 'A Green Grasshopper', icon: '🦗', isCorrect: false },
         ],
         explanation: 'A friendly yellow butterfly landed on his shoulder.',
       },
@@ -194,9 +195,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#2563EB',
         questionText: 'What was the name of the lady enjoying tea?',
         options: [
-          { id: 'opt-1', label: 'Maya', isCorrect: true },
-          { id: 'opt-2', label: 'Sunita', isCorrect: false },
-          { id: 'opt-3', label: 'Radha', isCorrect: false },
+          { id: 'opt-2', label: 'Sunita', icon: '👩‍🦱', isCorrect: false },
+          { id: 'opt-1', label: 'Maya', icon: '👩', isCorrect: true },
+          { id: 'opt-3', label: 'Radha', icon: '👵', isCorrect: false },
         ],
         explanation: 'Maya was sitting in the cozy armchair.',
       },
@@ -207,9 +208,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#0284C7',
         questionText: 'What color was the cozy armchair Maya sat in?',
         options: [
-          { id: 'opt-1', label: 'Blue Armchair', isCorrect: true },
-          { id: 'opt-2', label: 'Green Wooden Bench', isCorrect: false },
-          { id: 'opt-3', label: 'Red Rocking Chair', isCorrect: false },
+          { id: 'opt-2', label: 'Green Wooden Bench', icon: '🪵', isCorrect: false },
+          { id: 'opt-3', label: 'Red Rocking Chair', icon: '🪑', isCorrect: false },
+          { id: 'opt-1', label: 'Blue Armchair', icon: '🛋️', isCorrect: true },
         ],
         explanation: 'Maya sat in a cozy blue armchair.',
       },
@@ -220,9 +221,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#EA580C',
         questionText: 'Who curled up to sleep by Maya’s feet on the rug?',
         options: [
-          { id: 'opt-1', label: 'Ginger Cat Leo', isCorrect: true },
-          { id: 'opt-2', label: 'Puppy Bruno', isCorrect: false },
-          { id: 'opt-3', label: 'A pet parrot', isCorrect: false },
+          { id: 'opt-1', label: 'Ginger Cat Leo', icon: '🐱', isCorrect: true },
+          { id: 'opt-2', label: 'Puppy Bruno', icon: '🐶', isCorrect: false },
+          { id: 'opt-3', label: 'A pet parrot', icon: '🦜', isCorrect: false },
         ],
         explanation: 'Her fluffy ginger cat Leo curled up to sleep.',
       },
@@ -233,9 +234,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#B45309',
         questionText: 'What snack did Maya enjoy with her warm tea?',
         options: [
-          { id: 'opt-1', label: 'A Crispy Biscuit', isCorrect: true },
-          { id: 'opt-2', label: 'A Fresh Apple', isCorrect: false },
-          { id: 'opt-3', label: 'A Bowl of Ice Cream', isCorrect: false },
+          { id: 'opt-2', label: 'A Fresh Apple', icon: '🍎', isCorrect: false },
+          { id: 'opt-1', label: 'A Crispy Biscuit', icon: '🍪', isCorrect: true },
+          { id: 'opt-3', label: 'A Bowl of Ice Cream', icon: '🍨', isCorrect: false },
         ],
         explanation: 'Maya enjoyed a crispy biscuit with her tea.',
       },
@@ -272,9 +273,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#16A34A',
         questionText: 'What color was the bicycle that Raju rode to the park?',
         options: [
-          { id: 'opt-1', label: 'Bright Green', isCorrect: true },
-          { id: 'opt-2', label: 'Dark Blue', isCorrect: false },
-          { id: 'opt-3', label: 'Bright Orange', isCorrect: false },
+          { id: 'opt-2', label: 'Dark Blue', icon: '🚲', isCorrect: false },
+          { id: 'opt-3', label: 'Bright Orange', icon: '🚲', isCorrect: false },
+          { id: 'opt-1', label: 'Bright Green', icon: '🚲', isCorrect: true },
         ],
         explanation: 'Raju rode his bright green bicycle.',
       },
@@ -285,9 +286,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#CA8A04',
         questionText: 'What sweet fruit did Raju pack inside his red picnic basket?',
         options: [
-          { id: 'opt-1', label: 'Sweet Yellow Bananas', isCorrect: true },
-          { id: 'opt-2', label: 'Red Apples', isCorrect: false },
-          { id: 'opt-3', label: 'Juicy Oranges', isCorrect: false },
+          { id: 'opt-1', label: 'Sweet Yellow Bananas', icon: '🍌', isCorrect: true },
+          { id: 'opt-2', label: 'Red Apples', icon: '🍎', isCorrect: false },
+          { id: 'opt-3', label: 'Juicy Oranges', icon: '🍊', isCorrect: false },
         ],
         explanation: 'Raju packed sweet yellow bananas.',
       },
@@ -298,9 +299,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#15803D',
         questionText: 'Where did Raju stop and spread his picnic blanket?',
         options: [
-          { id: 'opt-1', label: 'Under the Big Oak Tree', isCorrect: true },
-          { id: 'opt-2', label: 'Inside a camping tent', isCorrect: false },
-          { id: 'opt-3', label: 'On a rowboat in the lake', isCorrect: false },
+          { id: 'opt-2', label: 'Inside a camping tent', icon: '⛺', isCorrect: false },
+          { id: 'opt-1', label: 'Under the Big Oak Tree', icon: '🌳', isCorrect: true },
+          { id: 'opt-3', label: 'On a rowboat in the lake', icon: '🚣', isCorrect: false },
         ],
         explanation: 'Raju stopped under the shade of the big oak tree.',
       },
@@ -311,9 +312,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#2563EB',
         questionText: 'What color pattern was on the picnic blanket?',
         options: [
-          { id: 'opt-1', label: 'Blue Checkered', isCorrect: true },
-          { id: 'opt-2', label: 'Yellow Polka Dots', isCorrect: false },
-          { id: 'opt-3', label: 'Plain Red', isCorrect: false },
+          { id: 'opt-2', label: 'Yellow Polka Dots', icon: '🟡', isCorrect: false },
+          { id: 'opt-3', label: 'Plain Red', icon: '🟥', isCorrect: false },
+          { id: 'opt-1', label: 'Blue Checkered', icon: '🟦', isCorrect: true },
         ],
         explanation: 'Raju spread a blue checkered blanket.',
       },
@@ -350,9 +351,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#EA580C',
         questionText: 'What color apron was Anita wearing in the kitchen?',
         options: [
-          { id: 'opt-1', label: 'Bright Orange', isCorrect: true },
-          { id: 'opt-2', label: 'Dark Navy Blue', isCorrect: false },
-          { id: 'opt-3', label: 'Pure White', isCorrect: false },
+          { id: 'opt-2', label: 'Dark Navy Blue', icon: '🟦', isCorrect: false },
+          { id: 'opt-1', label: 'Bright Orange', icon: '🟧', isCorrect: true },
+          { id: 'opt-3', label: 'Pure White', icon: '⬜', isCorrect: false },
         ],
         explanation: 'Anita wore a bright orange apron.',
       },
@@ -363,9 +364,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#CA8A04',
         questionText: 'How many ripe golden mangoes did Anita pick from the bowl?',
         options: [
-          { id: 'opt-1', label: 'Three (3) Mangoes', isCorrect: true },
-          { id: 'opt-2', label: 'One (1) Mango', isCorrect: false },
-          { id: 'opt-3', label: 'Five (5) Mangoes', isCorrect: false },
+          { id: 'opt-2', label: 'One (1) Mango', icon: '🥭', isCorrect: false },
+          { id: 'opt-3', label: 'Five (5) Mangoes', icon: '🥭', isCorrect: false },
+          { id: 'opt-1', label: 'Three (3) Mangoes', icon: '🥭', isCorrect: true },
         ],
         explanation: 'Anita selected three ripe golden mangoes.',
       },
@@ -376,9 +377,9 @@ const STORIES: StoryData[] = [
         categoryColor: '#D97706',
         questionText: 'What delicious sweet treat did Anita make for everyone?',
         options: [
-          { id: 'opt-1', label: 'Cold Mango Kulfi', isCorrect: true },
-          { id: 'opt-2', label: 'Hot Chocolate Cake', isCorrect: false },
-          { id: 'opt-3', label: 'Warm Rice Pudding', isCorrect: false },
+          { id: 'opt-1', label: 'Cold Mango Kulfi', icon: '🍧', isCorrect: true },
+          { id: 'opt-2', label: 'Hot Chocolate Cake', icon: '🍫', isCorrect: false },
+          { id: 'opt-3', label: 'Warm Rice Pudding', icon: '🥣', isCorrect: false },
         ],
         explanation: 'Anita made delicious cold mango kulfi.',
       },
@@ -399,6 +400,7 @@ export default function StoryRecallGameScreen() {
   const [phase, setPhase] = useState<GamePhase>('STORY');
 
   const [questionIndex, setQuestionIndex] = useState<number>(0);
+  const [shuffledOptions, setShuffledOptions] = useState<StoryQuestionOption[]>([]);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [isWrong, setIsWrong] = useState<boolean>(false);
   const [wrongOptionId, setWrongOptionId] = useState<string | null>(null);
@@ -414,6 +416,14 @@ export default function StoryRecallGameScreen() {
   const currentStory = STORIES[storyIndex] || STORIES[0];
   const currentScene = currentStory.scenes[sceneIndex] || currentStory.scenes[0];
   const currentQuestion = currentStory.questions[questionIndex] || currentStory.questions[0];
+
+  // Shuffle question options so correct answer is randomly distributed across A, B, C on every question
+  useEffect(() => {
+    if (currentQuestion && currentQuestion.options) {
+      const randomized = [...currentQuestion.options].sort(() => Math.random() - 0.5);
+      setShuffledOptions(randomized);
+    }
+  }, [questionIndex, storyIndex, phase]);
 
   // Auto-read narrative when entering a scene
   useEffect(() => {
@@ -747,7 +757,7 @@ export default function StoryRecallGameScreen() {
 
           {/* Answer Options */}
           <View style={styles.optionsList}>
-            {currentQuestion.options.map((option, idx) => {
+            {(shuffledOptions.length > 0 ? shuffledOptions : currentQuestion.options).map((option, idx) => {
               const isSelected = selectedOptionId === option.id;
               const isOptionWrong = wrongOptionId === option.id;
               const isOptionCorrect = isSelected && option.isCorrect;
@@ -787,6 +797,12 @@ export default function StoryRecallGameScreen() {
                       {String.fromCharCode(65 + idx)}
                     </Typography>
                   </View>
+
+                  {option.icon && (
+                    <Typography size="xl" style={{ marginRight: SPACING.sm }}>
+                      {option.icon}
+                    </Typography>
+                  )}
 
                   <Typography
                     size="base"
