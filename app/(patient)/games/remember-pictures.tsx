@@ -103,7 +103,7 @@ export default function RememberPicturesGameScreen() {
         </TouchableOpacity>
 
         <View style={styles.headerTitleContainer}>
-          <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
+          <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center" numberOfLines={1}>
             {t('remember_the_pictures') || 'Remember Pictures'}
           </Typography>
         </View>
