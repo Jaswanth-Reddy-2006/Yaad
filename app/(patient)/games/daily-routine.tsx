@@ -6,8 +6,6 @@ import {
   useWindowDimensions,
   Modal,
   ScrollView,
-  Animated,
-  Easing,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
@@ -225,32 +223,9 @@ export default function DailyRoutineRecallGameScreen() {
 
   const startTimeRef = useRef<number>(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const currentLevelConfig = ROUTINE_LEVELS[currentLevel - 1] || ROUTINE_LEVELS[0];
   const targetStepActivity = currentLevelConfig.activities[currentStepIndex];
-
-  // Pulse animation in presentation phase
-  useEffect(() => {
-    if (phase === 'PRESENTATION') {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.04,
-            duration: 900,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 900,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    }
-  }, [phase]);
 
   // Init round
   const initRound = (lvl: number) => {
@@ -463,14 +438,13 @@ export default function DailyRoutineRecallGameScreen() {
           <View style={styles.routineTimelineList}>
             {currentLevelConfig.activities.map((activity, idx) => (
               <React.Fragment key={activity.id}>
-                <Animated.View
+                <View
                   style={[
                     styles.timelineStepCard,
                     {
                       backgroundColor: isHc ? COLORS.hcCardBackground : activity.cardBg,
                       borderColor: isHc ? COLORS.hcBorder : activity.borderColor,
                       borderWidth: 2,
-                      transform: [{ scale: pulseAnim }],
                     },
                   ]}
                 >
@@ -498,7 +472,7 @@ export default function DailyRoutineRecallGameScreen() {
                       </Typography>
                     </View>
                   </View>
-                </Animated.View>
+                </View>
 
                 {/* Arrow Connector between steps */}
                 {idx < currentLevelConfig.activities.length - 1 && (
@@ -732,7 +706,7 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 44,
     height: 44,
-    borderRadius: RADIUS.md,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
@@ -752,14 +726,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
-    borderRadius: RADIUS.lg,
+    borderRadius: 8,
     borderWidth: 1.5,
     marginBottom: SPACING.md,
   },
   timerCircle: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 8,
     backgroundColor: '#FEF3C7',
     alignItems: 'center',
     justifyContent: 'center',
@@ -775,7 +749,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
-    borderRadius: RADIUS.lg,
+    borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -785,7 +759,7 @@ const styles = StyleSheet.create({
   stepNumberBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: RADIUS.sm,
+    borderRadius: 4,
   },
   timeTag: {
     flexDirection: 'row',
@@ -803,21 +777,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: RADIUS.full,
+    borderRadius: 8,
     elevation: 3,
   },
   questionBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
-    borderRadius: RADIUS.lg,
+    borderRadius: 8,
     borderWidth: 2,
     marginBottom: SPACING.md,
   },
   targetStepCircle: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 8,
     backgroundColor: '#FEF3C7',
     alignItems: 'center',
     justifyContent: 'center',
@@ -833,7 +807,7 @@ const styles = StyleSheet.create({
   timelineSlot: {
     flex: 1,
     minHeight: 84,
-    borderRadius: RADIUS.md,
+    borderRadius: 8,
     padding: SPACING.xs,
     alignItems: 'center',
     justifyContent: 'center',
@@ -846,7 +820,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
-    borderRadius: RADIUS.lg,
+    borderRadius: 8,
     elevation: 2,
   },
   wrongFeedbackRow: {
@@ -855,7 +829,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FEF2F2',
     padding: SPACING.sm,
-    borderRadius: RADIUS.md,
+    borderRadius: 6,
     marginTop: SPACING.md,
   },
   modalOverlay: {
@@ -868,7 +842,7 @@ const styles = StyleSheet.create({
   leaveModalCard: {
     width: '90%',
     maxWidth: 360,
-    borderRadius: RADIUS.xl,
+    borderRadius: 8,
     padding: SPACING.lg,
     alignItems: 'center',
     elevation: 5,
@@ -881,7 +855,7 @@ const styles = StyleSheet.create({
   leaveCancelBtn: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: RADIUS.full,
+    borderRadius: 6,
     borderWidth: 1.5,
     alignItems: 'center',
   },
@@ -892,6 +866,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#DC2626',
     paddingVertical: 12,
-    borderRadius: RADIUS.full,
+    borderRadius: 6,
   },
 });
