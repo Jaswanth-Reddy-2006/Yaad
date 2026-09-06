@@ -13,6 +13,7 @@ import {
   AnimalSoundsBannerIllustration,
   FollowTheCupBannerIllustration,
   CountSheepBannerIllustration,
+  StoryRecallBannerIllustration,
 } from '../../../components/illustrations';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
@@ -36,6 +37,18 @@ export default function GamesHomeScreen() {
   const isHc = preferences.highContrast;
 
   const gamesList: GameItem[] = [
+    {
+      id: 'story-recall',
+      name: t('story_recall') || 'Story Recall',
+      description: t('story_recall_desc') || 'Look at a short picture story, then answer simple questions about people, objects, and events.',
+      speechText: 'Story Recall. Look at the short picture story and answer simple questions about what happened.',
+      cardBg: '#EEF2FF',
+      borderColor: '#C7D2FE',
+      titleColor: '#4338CA',
+      btnBg: '#4F46E5',
+      route: '/(patient)/games/story-recall',
+      renderBanner: () => <StoryRecallBannerIllustration height={130} />,
+    },
     {
       id: '1',
       name: t('count_the_sheep') || 'Count the Sheep',

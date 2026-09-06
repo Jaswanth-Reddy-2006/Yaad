@@ -528,6 +528,86 @@ export const CountSheepBannerIllustration: React.FC<BannerProps> = ({ height = 1
   </View>
 );
 
+/**
+ * 8. Story Recall: Illustrated open storybook with vibrant characters, sunny scenery, and recall thought bubbles.
+ */
+export const StoryRecallBannerIllustration: React.FC<BannerProps> = ({ height = 120 }) => (
+  <View style={[styles.container, { height }]}>
+    <Svg width="100%" height="100%" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet">
+      <Defs>
+        <LinearGradient id="srBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#EFF6FF" />
+          <Stop offset="50%" stopColor="#DBEAFE" />
+          <Stop offset="100%" stopColor="#BFDBFE" />
+        </LinearGradient>
+        <LinearGradient id="bookCover" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#4338CA" />
+          <Stop offset="100%" stopColor="#312E81" />
+        </LinearGradient>
+        <LinearGradient id="pageLeft" x1="0%" y1="0%" x2="100%" y2="0%">
+          <Stop offset="0%" stopColor="#F8FAFC" />
+          <Stop offset="100%" stopColor="#FFFFFF" />
+        </LinearGradient>
+      </Defs>
+
+      {/* Card Background */}
+      <Rect width="280" height="120" rx="14" fill="url(#srBg)" />
+
+      {/* Soft Background Clouds & Memory Sparkles */}
+      <Circle cx="40" cy="25" r="14" fill="#FFFFFF" opacity="0.6" />
+      <Circle cx="55" cy="20" r="18" fill="#FFFFFF" opacity="0.7" />
+      <Circle cx="70" cy="25" r="14" fill="#FFFFFF" opacity="0.6" />
+      <Circle cx="240" cy="25" r="16" fill="#FEF08A" opacity="0.7" />
+
+      {/* Open Storybook in Center */}
+      <G transform="translate(42, 16)">
+        {/* Book Hardcover Base */}
+        <Path d="M 0 82 Q 98 90 98 84 Q 98 90 196 82 L 192 88 Q 98 96 98 90 Q 98 96 4 88 Z" fill="url(#bookCover)" />
+
+        {/* Left Page (Illustrated Scene) */}
+        <Path d="M 6 10 Q 52 14 96 18 L 96 82 Q 52 78 6 74 Z" fill="url(#pageLeft)" stroke="#CBD5E1" strokeWidth="1.5" />
+
+        {/* Inside Left Page: Mini Sunny Garden Scene */}
+        <G transform="translate(14, 18)">
+          {/* Mini Sky and Grass */}
+          <Rect width="72" height="52" rx="4" fill="#DCFCE7" />
+          <Circle cx="58" cy="12" r="7" fill="#FDE047" />
+          {/* Mini Character (Grandpa) */}
+          <Circle cx="25" cy="22" r="8" fill="#FED7AA" />
+          <Path d="M 14 46 L 36 46 L 33 28 L 17 28 Z" fill="#3B82F6" />
+          {/* Red Rose Bush */}
+          <Circle cx="52" cy="38" r="9" fill="#16A34A" />
+          <Circle cx="52" cy="35" r="4.5" fill="#EF4444" />
+          {/* Yellow Butterfly */}
+          <Circle cx="37" cy="18" r="3" fill="#EAB308" />
+        </G>
+
+        {/* Book Center Spine Crease */}
+        <Path d="M 97 18 L 97 83" stroke="#94A3B8" strokeWidth="2.5" />
+
+        {/* Right Page (Text & Questions) */}
+        <Path d="M 98 18 Q 144 14 190 10 L 190 74 Q 144 78 98 82 Z" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="1.5" />
+
+        {/* Inside Right Page: Story Lines & Question Mark */}
+        <G transform="translate(108, 22)">
+          {/* Story Text Lines */}
+          <Rect x="4" y="6" width="46" height="4" rx="2" fill="#93C5FD" />
+          <Rect x="4" y="14" width="60" height="4" rx="2" fill="#CBD5E1" />
+          <Rect x="4" y="22" width="52" height="4" rx="2" fill="#CBD5E1" />
+
+          {/* Golden Episodic Memory Question Badge */}
+          <Circle cx="54" cy="42" r="14" fill="#FEF08A" stroke="#F59E0B" strokeWidth="1.8" />
+          <Path d="M 50 36 C 50 32 58 32 58 36 C 58 39 54 40 54 43 M 54 47 L 54 49" stroke="#B45309" strokeWidth="2" strokeLinecap="round" fill="none" />
+        </G>
+      </G>
+
+      {/* Floating Sparkles */}
+      <Path d="M 28 50 L 30 44 L 36 42 L 30 40 L 28 34 L 26 40 L 20 42 L 26 44 Z" fill="#F59E0B" />
+      <Path d="M 252 65 L 254 59 L 260 57 L 254 55 L 252 49 L 250 55 L 244 57 L 250 59 Z" fill="#3B82F6" />
+    </Svg>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',
