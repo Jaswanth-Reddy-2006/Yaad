@@ -82,7 +82,7 @@ export class UnicodeIndicTransliterator {
     lang1Code: string,
     lang2Code: string
   ): string {
-    if (!(lang1Code in SCRIPT_RANGES) || !(lang2Code in SCRIPT_RANGES)) {
+    if (!lang1Code || !lang2Code || !SCRIPT_RANGES[lang1Code] || !SCRIPT_RANGES[lang2Code]) {
       return text;
     }
 

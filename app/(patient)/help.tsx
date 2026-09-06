@@ -1,14 +1,5 @@
-import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-  Linking,
-  TextInput,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import React from 'react';
+import { View, StyleSheet, TouchableOpacity, Text, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   PhoneCall,
@@ -18,41 +9,16 @@ import {
   Settings,
   ChevronRight,
   Languages,
-  ChevronDown,
-  Check,
-  Sparkles,
 } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { Typography } from '../../components/common/Typography';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useAccessibilityStore } from '../../store/useAccessibilityStore';
-import { INDIAN_LANGUAGES, LanguageCode, isRTLLanguage } from '../../constants/translations';
-import { TranslationService } from '../../services/TranslationService';
-
-const REGIONAL_LANGUAGES = INDIAN_LANGUAGES.filter((l) => l.code !== 'en');
 
 export default function PatientHelpScreen() {
   const router = useRouter();
-  const { preferences, currentLanguage, t } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
-
-  // Feature 1: Regional Language -> English state
-  const [selectedRegionalLang, setSelectedRegionalLang] = useState<LanguageCode>('hi');
-  const [regionalInput, setRegionalInput] = useState('');
-  const [showRegionalLangPicker, setShowRegionalLangPicker] = useState(false);
-  const [regionalResult, setRegionalResult] = useState('');
-  const [isTranslatingRegional, setIsTranslatingRegional] = useState(false);
-  const [regionalError, setRegionalError] = useState<string | null>(null);
-
-  // Feature 2: English -> Target Indian Language state
-  const [selectedEnglishTargetLang, setSelectedEnglishTargetLang] = useState<LanguageCode>(
-    currentLanguage !== 'en' ? currentLanguage : 'hi'
-  );
-  const [showEnglishTargetLangPicker, setShowEnglishTargetLangPicker] = useState(false);
-  const [englishInput, setEnglishInput] = useState('');
-  const [englishResult, setEnglishResult] = useState('');
-  const [isTranslatingEnglish, setIsTranslatingEnglish] = useState(false);
-  const [englishError, setEnglishError] = useState<string | null>(null);
 
   const handleCallCaregiver = () => {
     Linking.openURL('tel:+919876543210').catch(() => {});
@@ -61,70 +27,6 @@ export default function PatientHelpScreen() {
   const handleCallEmergency = () => {
     Linking.openURL('tel:112').catch(() => {});
   };
-
-  // Feature 1 Translation Handler
-  const handleTranslateRegional = async () => {
-    const textToTranslate = regionalInput.trim();
-    if (!textToTranslate) {
-      setRegionalResult('');
-      setRegionalError(null);
-      return;
-    }
-
-    setIsTranslatingRegional(true);
-    setRegionalError(null);
-
-    try {
-      const translated = await TranslationService.translate(
-        textToTranslate,
-        selectedRegionalLang,
-        'en'
-      );
-      setRegionalResult(translated);
-    } catch (err: any) {
-      setRegionalError(err?.message || 'Translation failed. Please try again.');
-    } finally {
-      setIsTranslatingRegional(false);
-    }
-  };
-
-  // Feature 2 Translation Handler
-  const handleTranslateEnglish = async () => {
-    const textToTranslate = englishInput.trim();
-    if (!textToTranslate) {
-      setEnglishResult('');
-      setEnglishError(null);
-      return;
-    }
-
-    setIsTranslatingEnglish(true);
-    setEnglishError(null);
-
-    try {
-      const translated = await TranslationService.translate(
-        textToTranslate,
-        'en',
-        selectedEnglishTargetLang
-      );
-      setEnglishResult(translated);
-    } catch (err: any) {
-      setEnglishError(err?.message || 'Translation failed. Please try again.');
-    } finally {
-      setIsTranslatingEnglish(false);
-    }
-  };
-
-  const selectedRegionalLangInfo =
-    INDIAN_LANGUAGES.find((l) => l.code === selectedRegionalLang) || INDIAN_LANGUAGES[1];
-
-  const currentAppLangInfo =
-    INDIAN_LANGUAGES.find((l) => l.code === currentLanguage) || INDIAN_LANGUAGES[0];
-
-  const targetLangInfo =
-    INDIAN_LANGUAGES.find((l) => l.code === selectedEnglishTargetLang) || INDIAN_LANGUAGES[6];
-
-  const isRegionalInputRtl = isRTLLanguage(selectedRegionalLang);
-  const isFeature2TargetRtl = isRTLLanguage(selectedEnglishTargetLang);
 
   return (
     <ScreenContainer scrollable={true} style={styles.container}>
@@ -144,7 +46,7 @@ export default function PatientHelpScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* 4 Vertical Cards with Fixed Text Portion & Auto-Scaling Single Line Text */}
+      {/* 5 Vertical Cards */}
       <View style={styles.verticalStackContainer}>
         {/* Card 1: Your Caregivers */}
         <TouchableOpacity
@@ -261,419 +163,35 @@ export default function PatientHelpScreen() {
             <ChevronRight size={26} color={isHc ? COLORS.hcTextPrimary : '#6D28D9'} strokeWidth={2.5} />
           </View>
         </TouchableOpacity>
-      </View>
 
-      {/* ========================================================================= */}
-      {/* TRANSLATION SECTION (Offline IndicTrans2 AI Translation Engine)           */}
-      {/* ========================================================================= */}
-      <View style={styles.testSectionWrapper}>
-        {/* Section Header */}
-        <View style={styles.testSectionHeader}>
-          <View style={styles.testHeaderIconBox}>
-            <Languages size={24} color="#16A34A" />
-          </View>
-          <View style={{ marginLeft: SPACING.sm, flex: 1 }}>
-            <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-              {t('translation_test')}
-            </Typography>
-            <Typography size="xs" color={COLORS.textMuted}>
-              {t('translation_test_desc')}
-            </Typography>
-          </View>
-        </View>
-
-        {/* FEATURE 1: Regional Language → English */}
-        <View
+        {/* Card 5: Testing Translation -> Navigates to dedicated page like Caregivers card */}
+        <TouchableOpacity
+          activeOpacity={0.88}
+          onPress={() => router.push('/(patient)/testing-translation')}
           style={[
-            styles.featureCard,
-            { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF' },
+            styles.horizontalHelpCard,
+            { backgroundColor: isHc ? COLORS.hcCardBackground : '#FEF3C7', borderColor: '#FCD34D' },
           ]}
         >
-          <View style={styles.featureTitleRow}>
-            <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-              {t('regional_to_english')}
-            </Typography>
+          <View style={[styles.iconCircleBadge, { backgroundColor: '#D97706' }]}>
+            <Languages size={32} color="#FFFFFF" />
           </View>
 
-          <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: SPACING.xs }}>
-            {t('translation_input_lang')}
-          </Typography>
-
-          {/* Language Selector Dropdown Pill */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setShowRegionalLangPicker(!showRegionalLangPicker)}
-            style={[
-              styles.langSelectorPill,
-              { backgroundColor: isHc ? '#1F2937' : '#F8FAFC' },
-            ]}
-          >
-            <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#1E40AF'}>
-              {selectedRegionalLangInfo.name} — {selectedRegionalLangInfo.nativeName}
-            </Typography>
-            <ChevronDown size={20} color={isHc ? COLORS.hcTextPrimary : COLORS.textMuted} />
-          </TouchableOpacity>
-
-          {/* Dropdown Options List */}
-          {showRegionalLangPicker && (
-            <ScrollView style={styles.pickerScrollList} nestedScrollEnabled>
-              {REGIONAL_LANGUAGES.map((lang) => {
-                const isSelected = selectedRegionalLang === lang.code;
-                return (
-                  <TouchableOpacity
-                    key={lang.code}
-                    activeOpacity={0.8}
-                    onPress={() => {
-                      setSelectedRegionalLang(lang.code);
-                      setShowRegionalLangPicker(false);
-                      setRegionalResult('');
-                      setRegionalError(null);
-                    }}
-                    style={[
-                      styles.pickerOptionItem,
-                      isSelected ? styles.pickerOptionSelected : null,
-                    ]}
-                  >
-                    <Typography
-                      size="sm"
-                      weight={isSelected ? 'bold' : 'medium'}
-                      color={isSelected ? '#16A34A' : '#0F172A'}
-                    >
-                      {lang.name} — {lang.nativeName}
-                    </Typography>
-                    {isSelected && <Check size={18} color="#16A34A" />}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          )}
-
-          {/* Regional Text Input */}
-          <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginTop: SPACING.md, marginBottom: 4 }}>
-            {t('input_text')} ({selectedRegionalLangInfo.nativeName}):
-          </Typography>
-
-          {/* Quick Test Samples */}
-          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => {
-                setSelectedRegionalLang('hi');
-                setRegionalInput('मुझे सुबह आठ बजे अपनी दवा लेनी है।');
-                setRegionalResult('');
-                setRegionalError(null);
-              }}
-              style={{ backgroundColor: '#E0F2FE', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#7DD3FC' }}
+          <View style={styles.textCenterPortion}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+              style={[styles.cardTitleText, { color: isHc ? COLORS.hcTextPrimary : '#B45309' }]}
             >
-              <Text style={{ fontSize: 12, color: '#0369A1', fontWeight: '700' }}>{t('sample_text')}: Hindi</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => {
-                setSelectedRegionalLang('te');
-                setRegionalInput('నేను ఈరోజు డాక్టర్ వద్దకు వెళ్ళాలి.');
-                setRegionalResult('');
-                setRegionalError(null);
-              }}
-              style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#FCD34D' }}
-            >
-              <Text style={{ fontSize: 12, color: '#B45309', fontWeight: '700' }}>{t('sample_text')}: Telugu</Text>
-            </TouchableOpacity>
+              Testing Translation
+            </Text>
           </View>
 
-          <TextInput
-            value={regionalInput}
-            onChangeText={(text) => {
-              setRegionalInput(text);
-              if (regionalError) setRegionalError(null);
-            }}
-            placeholder={`Type text in ${selectedRegionalLangInfo.name}...`}
-            placeholderTextColor={COLORS.textMuted}
-            style={[
-              styles.textInputField,
-              {
-                backgroundColor: isHc ? '#1E293B' : '#FAFAFC',
-                color: isHc ? COLORS.hcTextPrimary : '#0F172A',
-                textAlign: isRegionalInputRtl ? 'right' : 'left',
-                writingDirection: isRegionalInputRtl ? 'rtl' : 'ltr',
-              },
-            ]}
-          />
-
-          {/* Translate Button */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            disabled={isTranslatingRegional || !regionalInput.trim()}
-            onPress={handleTranslateRegional}
-            style={[
-              styles.translateButton,
-              {
-                backgroundColor: isHc
-                  ? COLORS.hcPrimary
-                  : isTranslatingRegional || !regionalInput.trim()
-                  ? '#CBD5E1'
-                  : '#16A34A',
-              },
-            ]}
-          >
-            {isTranslatingRegional ? (
-              <View style={styles.btnRow}>
-                <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.btnText}>{t('translating_offline')}</Text>
-              </View>
-            ) : (
-              <View style={styles.btnRow}>
-                <Sparkles size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.btnText}>{t('translate_to_english')}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          {/* Error Message */}
-          {regionalError && (
-            <View style={styles.errorContainer}>
-              <Typography size="xs" weight="bold" color="#DC2626">
-                {regionalError}
-              </Typography>
-            </View>
-          )}
-
-          {/* Translation Output Box */}
-          <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginTop: SPACING.md, marginBottom: 4 }}>
-            {t('english_translation')}
-          </Typography>
-          <View
-            style={[
-              styles.outputContainer,
-              {
-                backgroundColor: isHc
-                  ? '#121212'
-                  : regionalResult
-                  ? '#DCFCE7'
-                  : '#F1F5F9',
-                borderColor: regionalResult ? '#86EFAC' : '#E2E8F0',
-              },
-            ]}
-          >
-            {regionalResult ? (
-              <Typography
-                size="base"
-                weight="bold"
-                color={isHc ? COLORS.hcPrimary : '#15803D'}
-              >
-                {regionalResult}
-              </Typography>
-            ) : (
-              <Typography size="sm" color={COLORS.textMuted} style={{ fontStyle: 'italic' }}>
-                {t('english_placeholder_result')}
-              </Typography>
-            )}
+          <View style={styles.rightChevronPortion}>
+            <ChevronRight size={26} color={isHc ? COLORS.hcTextPrimary : '#B45309'} strokeWidth={2.5} />
           </View>
-        </View>
-
-        {/* FEATURE 2: English → Target Indian Language */}
-        <View
-          style={[
-            styles.featureCard,
-            { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF', marginTop: SPACING.md },
-          ]}
-        >
-          <View style={styles.featureTitleRow}>
-            <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-              English → Target Indian Language
-            </Typography>
-          </View>
-
-          {/* Target Language Selector Dropdown Pill */}
-          <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: SPACING.xs }}>
-            Select Target Indian Language:
-          </Typography>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setShowEnglishTargetLangPicker(!showEnglishTargetLangPicker)}
-            style={[
-              styles.langSelectorPill,
-              { backgroundColor: isHc ? '#1F2937' : '#F8FAFC', borderColor: '#C084FC' },
-            ]}
-          >
-            <Typography size="base" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#6D28D9'}>
-              {targetLangInfo.name} — {targetLangInfo.nativeName}
-            </Typography>
-            <ChevronDown size={20} color={isHc ? COLORS.hcTextPrimary : COLORS.textMuted} />
-          </TouchableOpacity>
-
-          {/* Dropdown Options List */}
-          {showEnglishTargetLangPicker && (
-            <ScrollView style={styles.pickerScrollList} nestedScrollEnabled>
-              {REGIONAL_LANGUAGES.map((lang) => {
-                const isSelected = selectedEnglishTargetLang === lang.code;
-                return (
-                  <TouchableOpacity
-                    key={lang.code}
-                    activeOpacity={0.8}
-                    onPress={() => {
-                      setSelectedEnglishTargetLang(lang.code);
-                      setShowEnglishTargetLangPicker(false);
-                      setEnglishResult('');
-                      setEnglishError(null);
-                    }}
-                    style={[
-                      styles.pickerOptionItem,
-                      isSelected ? { backgroundColor: '#EDE9FE' } : null,
-                    ]}
-                  >
-                    <Typography
-                      size="sm"
-                      weight={isSelected ? 'bold' : 'medium'}
-                      color={isSelected ? '#6D28D9' : '#0F172A'}
-                    >
-                      {lang.name} — {lang.nativeName}
-                    </Typography>
-                    {isSelected && <Check size={18} color="#6D28D9" />}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          )}
-
-          {/* English Text Input */}
-          <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginTop: SPACING.md, marginBottom: 4 }}>
-            {t('input_text')} (English):
-          </Typography>
-
-          {/* Quick Test Samples */}
-          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => {
-                setSelectedEnglishTargetLang('hi');
-                setEnglishInput('It is time for your medicine');
-                setEnglishResult('');
-                setEnglishError(null);
-              }}
-              style={{ backgroundColor: '#F3E8FF', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#D8B4FE' }}
-            >
-              <Text style={{ fontSize: 12, color: '#6B21A8', fontWeight: '700' }}>{t('sample_text')}: Medicine</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => {
-                setSelectedEnglishTargetLang('te');
-                setEnglishInput('Drink water');
-                setEnglishResult('');
-                setEnglishError(null);
-              }}
-              style={{ backgroundColor: '#ECFDF5', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#6EE7B7' }}
-            >
-              <Text style={{ fontSize: 12, color: '#047857', fontWeight: '700' }}>{t('sample_text')}: Water (Telugu)</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => {
-                setSelectedEnglishTargetLang('ta');
-                setEnglishInput('Good morning');
-                setEnglishResult('');
-                setEnglishError(null);
-              }}
-              style={{ backgroundColor: '#E0F2FE', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#7DD3FC' }}
-            >
-              <Text style={{ fontSize: 12, color: '#0369A1', fontWeight: '700' }}>{t('sample_text')}: Tamil</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TextInput
-            value={englishInput}
-            onChangeText={(text) => {
-              setEnglishInput(text);
-              if (englishError) setEnglishError(null);
-            }}
-            placeholder={t('type_english_placeholder')}
-            placeholderTextColor={COLORS.textMuted}
-            style={[
-              styles.textInputField,
-              {
-                backgroundColor: isHc ? '#1E293B' : '#FAFAFC',
-                color: isHc ? COLORS.hcTextPrimary : '#0F172A',
-                textAlign: 'left',
-                writingDirection: 'ltr',
-              },
-            ]}
-          />
-
-          {/* Translate Button */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            disabled={isTranslatingEnglish || !englishInput.trim()}
-            onPress={handleTranslateEnglish}
-            style={[
-              styles.translateButton,
-              {
-                backgroundColor: isHc
-                  ? COLORS.hcPrimary
-                  : isTranslatingEnglish || !englishInput.trim()
-                  ? '#CBD5E1'
-                  : '#7C3AED',
-              },
-            ]}
-          >
-            {isTranslatingEnglish ? (
-              <View style={styles.btnRow}>
-                <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.btnText}>{t('translating_offline')}</Text>
-              </View>
-            ) : (
-              <View style={styles.btnRow}>
-                <Sparkles size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.btnText}>
-                  {t('translate_to')} {targetLangInfo.name}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          {/* Error Message */}
-          {englishError && (
-            <View style={styles.errorContainer}>
-              <Typography size="xs" weight="bold" color="#DC2626">
-                {englishError}
-              </Typography>
-            </View>
-          )}
-
-          {/* Translation Output Box */}
-          <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginTop: SPACING.md, marginBottom: 4 }}>
-            {targetLangInfo.name} ({targetLangInfo.nativeName}) {t('translation_result_label')}:
-          </Typography>
-          <View
-            style={[
-              styles.outputContainer,
-              {
-                backgroundColor: isHc
-                  ? '#121212'
-                  : englishResult
-                  ? '#EDE9FE'
-                  : '#F1F5F9',
-                borderColor: englishResult ? '#C084FC' : '#E2E8F0',
-              },
-            ]}
-          >
-            {englishResult ? (
-              <Typography
-                size="base"
-                weight="bold"
-                color={isHc ? COLORS.hcPrimary : '#6D28D9'}
-                align={isFeature2TargetRtl ? 'right' : 'left'}
-              >
-                {englishResult}
-              </Typography>
-            ) : (
-              <Typography size="sm" color={COLORS.textMuted} style={{ fontStyle: 'italic' }}>
-                {t('translation_placeholder_result')}
-              </Typography>
-            )}
-          </View>
-        </View>
+        </TouchableOpacity>
       </View>
     </ScreenContainer>
   );
@@ -741,139 +259,5 @@ const styles = StyleSheet.create({
     width: 28,
     alignItems: 'flex-end',
     justifyContent: 'center',
-  },
-  testSectionWrapper: {
-    marginTop: SPACING.lg,
-    marginBottom: SPACING.xxl,
-    paddingTop: SPACING.md,
-    borderTopWidth: 2,
-    borderTopColor: '#E2E8F0',
-  },
-  testSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  testHeaderIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: RADIUS.md,
-    backgroundColor: '#DCFCE7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featureCard: {
-    borderRadius: RADIUS.xl,
-    padding: SPACING.md,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  featureTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.sm,
-    paddingBottom: SPACING.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  langSelectorPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 12,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1.5,
-    borderColor: '#93C5FD',
-  },
-  pickerScrollList: {
-    maxHeight: 180,
-    marginTop: SPACING.xs,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.xs,
-  },
-  pickerOptionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: SPACING.sm,
-    borderRadius: RADIUS.sm,
-  },
-  pickerOptionSelected: {
-    backgroundColor: '#DCFCE7',
-  },
-  textInputField: {
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    borderRadius: RADIUS.lg,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 12,
-    fontSize: 16,
-    minHeight: 52,
-  },
-  translateButton: {
-    marginTop: SPACING.sm,
-    borderRadius: RADIUS.lg,
-    paddingVertical: 12,
-    paddingHorizontal: SPACING.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  btnRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  errorContainer: {
-    marginTop: SPACING.xs,
-    padding: SPACING.xs,
-    backgroundColor: '#FEE2E2',
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
-    borderColor: '#FCA5A5',
-  },
-  outputContainer: {
-    borderWidth: 1.5,
-    borderRadius: RADIUS.lg,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 14,
-    minHeight: 52,
-    justifyContent: 'center',
-  },
-  currentLangBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginBottom: SPACING.xs,
-  },
-  appLangPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3E8FF',
-    borderWidth: 1,
-    borderColor: '#C084FC',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: RADIUS.full,
   },
 });
