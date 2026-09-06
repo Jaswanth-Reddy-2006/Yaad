@@ -17,11 +17,14 @@ import {
   LogOut,
   Eye,
   HelpCircle,
+  ArrowRight,
+  ArrowLeft as ArrowLeftIcon,
 } from 'lucide-react-native';
 import Svg, {
   Path,
   Rect,
   Circle,
+  Ellipse,
   Defs,
   LinearGradient,
   Stop,
@@ -41,118 +44,127 @@ import { gameRepository } from '../../../repositories/GameRepository';
 
 interface LevelConfig {
   level: number;
-  minSheep: number;
-  maxSheep: number;
+  enterCount: number;
+  exitCount: number;
   walkDurationMs: number;
   pauseBetweenSheepMs: number;
   label: string;
 }
 
 const LEVEL_CONFIGS: Record<number, LevelConfig> = {
-  1: { level: 1, minSheep: 3, maxSheep: 4, walkDurationMs: 2400, pauseBetweenSheepMs: 600, label: 'Level 1 • 3–4 Sheep' },
-  2: { level: 2, minSheep: 4, maxSheep: 5, walkDurationMs: 2100, pauseBetweenSheepMs: 500, label: 'Level 2 • 4–5 Sheep' },
-  3: { level: 3, minSheep: 5, maxSheep: 7, walkDurationMs: 1800, pauseBetweenSheepMs: 450, label: 'Level 3 • 5–7 Sheep' },
-  4: { level: 4, minSheep: 7, maxSheep: 9, walkDurationMs: 1600, pauseBetweenSheepMs: 400, label: 'Level 4 • 7–9 Sheep' },
+  1: { level: 1, enterCount: 4, exitCount: 0, walkDurationMs: 2600, pauseBetweenSheepMs: 650, label: 'Level 1 • Going In' },
+  2: { level: 2, enterCount: 5, exitCount: 1, walkDurationMs: 2400, pauseBetweenSheepMs: 600, label: 'Level 2 • 1 Sheep Leaves' },
+  3: { level: 3, enterCount: 6, exitCount: 2, walkDurationMs: 2200, pauseBetweenSheepMs: 550, label: 'Level 3 • 2 Sheep Leave' },
+  4: { level: 4, enterCount: 7, exitCount: 3, walkDurationMs: 2000, pauseBetweenSheepMs: 500, label: 'Level 4 • 3 Sheep Leave' },
 };
 
-type GamePhase = 'WALK' | 'GUESS' | 'RESULT';
+type GamePhase = 'WALK_IN' | 'WALK_OUT' | 'GUESS' | 'RESULT';
 
 /**
- * Cozy Farmhouse in the Meadow Center SVG Illustration
+ * Layer 1: Sheep Barn Interior & Background
  */
-const MeadowFarmhouse: React.FC<{
-  size?: number;
+const SheepBarnBackdrop: React.FC<{ size: number }> = ({ size }) => (
+  <Svg width={size} height={size * 0.95} viewBox="0 0 170 160">
+    <Defs>
+      <LinearGradient id="barnStrawGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#FEF08A" />
+        <Stop offset="100%" stopColor="#F59E0B" />
+      </LinearGradient>
+      <LinearGradient id="barnDarkInterior" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#451A03" />
+        <Stop offset="100%" stopColor="#78350F" />
+      </LinearGradient>
+    </Defs>
+    {/* Dark Cozy Interior Space */}
+    <Rect x="48" y="70" width="74" height="78" fill="url(#barnDarkInterior)" rx="4" />
+    {/* Golden Straw Bedding on Floor */}
+    <Path d="M 48 132 L 122 132 L 122 148 L 48 148 Z" fill="url(#barnStrawGrad)" />
+    {/* Hay Stems */}
+    <Path d="M 54 136 L 62 130 M 70 138 L 78 132 M 90 137 L 98 131 M 106 136 L 114 130" stroke="#B45309" strokeWidth="1.5" />
+  </Svg>
+);
+
+/**
+ * Layer 3: Sheep Barn Front Wall, Timber Beams & Door Frame
+ * Notice the transparent arch in the center (x: 52 to 118, y: 72 to 148)
+ * so sheep walking behind are visible entering/exiting naturally without disappearing.
+ */
+const SheepBarnFacade: React.FC<{
+  size: number;
   isDoorOpen?: boolean;
-  insideCount?: number;
-}> = ({ size = 180, isDoorOpen = true }) => {
-  return (
-    <Svg width={size} height={size * 0.92} viewBox="0 0 160 148">
-      <Defs>
-        <LinearGradient id="houseRoofGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <Stop offset="0%" stopColor="#EF4444" />
-          <Stop offset="100%" stopColor="#B91C1C" />
-        </LinearGradient>
-        <LinearGradient id="houseBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <Stop offset="0%" stopColor="#FFFBEB" />
-          <Stop offset="100%" stopColor="#FEF3C7" />
-        </LinearGradient>
-      </Defs>
+}> = ({ size, isDoorOpen = true }) => (
+  <Svg width={size} height={size * 0.95} viewBox="0 0 170 160">
+    <Defs>
+      <LinearGradient id="barnWoodGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#B91C1C" />
+        <Stop offset="40%" stopColor="#991B1B" />
+        <Stop offset="100%" stopColor="#7F1D1D" />
+      </LinearGradient>
+      <LinearGradient id="barnRoofGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#78350F" />
+        <Stop offset="100%" stopColor="#451A03" />
+      </LinearGradient>
+      <LinearGradient id="hayLoftGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#FEF08A" />
+        <Stop offset="100%" stopColor="#F59E0B" />
+      </LinearGradient>
+    </Defs>
 
-      {/* Chimney */}
-      <Rect x="108" y="8" width="16" height="26" fill="#991B1B" rx="2" />
-      {/* Chimney Top Rim */}
-      <Rect x="105" y="6" width="22" height="6" fill="#7F1D1D" rx="2" />
-      {/* Gentle Smoke Puffs */}
-      <Circle cx="116" cy="0" r="5" fill="#FFFFFF" opacity="0.75" />
-      <Circle cx="122" cy="-8" r="7" fill="#FFFFFF" opacity="0.5" />
+    {/* Barn Pitched Timber Roof */}
+    <Path
+      d="M 6 56 L 85 10 L 164 56 Z"
+      fill="url(#barnRoofGrad)"
+      stroke="#290E05"
+      strokeWidth="3.5"
+      strokeLinejoin="round"
+    />
+    {/* Eaves Trim */}
+    <Path d="M 2 58 L 85 12 L 168 58" stroke="#D97706" strokeWidth="2.5" fill="none" />
 
-      {/* House Main Walls */}
-      <Rect
-        x="20"
-        y="46"
-        width="120"
-        height="84"
-        fill="url(#houseBodyGrad)"
-        stroke="#B45309"
-        strokeWidth="3"
-        rx="6"
-      />
+    {/* Upper Hayloft Triangular Wall */}
+    <Path d="M 16 54 L 85 14 L 154 54 Z" fill="url(#barnWoodGrad)" />
 
-      {/* Triangular Gabled Roof */}
-      <Path
-        d="M 10 50 L 80 8 L 150 50 Z"
-        fill="url(#houseRoofGrad)"
-        stroke="#7F1D1D"
-        strokeWidth="3.5"
-        strokeLinejoin="round"
-      />
+    {/* Hayloft Door Window with Golden Straw Spilling Out */}
+    <Rect x="72" y="24" width="26" height="24" rx="2" fill="#451A03" stroke="#F59E0B" strokeWidth="2" />
+    <Path d="M 68 44 Q 85 52 102 44 Q 96 36 85 36 Q 74 36 68 44 Z" fill="url(#hayLoftGrad)" stroke="#B45309" strokeWidth="1" />
 
-      {/* Attic Round Window */}
-      <Circle cx="80" cy="32" r="10" fill="#DBEAFE" stroke="#7F1D1D" strokeWidth="2.5" />
-      <Path d="M 80 22 L 80 42 M 70 32 L 90 32" stroke="#7F1D1D" strokeWidth="1.8" />
+    {/* Left Barn Wall */}
+    <Rect x="14" y="54" width="42" height="94" fill="url(#barnWoodGrad)" stroke="#7F1D1D" strokeWidth="2" rx="3" />
+    {/* Left Barn X-Bracing */}
+    <Path d="M 18 64 L 52 138 M 18 138 L 52 64" stroke="#FDE68A" strokeWidth="2.5" opacity="0.85" />
 
-      {/* Left Wall Window */}
-      <Rect x="30" y="62" width="22" height="26" rx="3" fill="#DBEAFE" stroke="#B45309" strokeWidth="2" />
-      <Path d="M 41 62 L 41 88 M 30 75 L 52 75" stroke="#B45309" strokeWidth="1.5" />
+    {/* Right Barn Wall */}
+    <Rect x="114" y="54" width="42" height="94" fill="url(#barnWoodGrad)" stroke="#7F1D1D" strokeWidth="2" rx="3" />
+    {/* Right Barn X-Bracing */}
+    <Path d="M 118 64 L 152 138 M 118 138 L 152 64" stroke="#FDE68A" strokeWidth="2.5" opacity="0.85" />
 
-      {/* Right Wall Window */}
-      <Rect x="108" y="62" width="22" height="26" rx="3" fill="#DBEAFE" stroke="#B45309" strokeWidth="2" />
-      <Path d="M 119 62 L 119 88 M 108 75 L 130 75" stroke="#B45309" strokeWidth="1.5" />
+    {/* Top Header Beam Above Doorway */}
+    <Rect x="50" y="54" width="70" height="22" fill="url(#barnWoodGrad)" stroke="#7F1D1D" strokeWidth="1.5" />
+    <Path d="M 50 65 L 120 65" stroke="#7F1D1D" strokeWidth="2" />
 
-      {/* Arch Doorway */}
-      <Path
-        d="M 64 130 L 64 80 Q 80 64 96 80 L 96 130 Z"
-        fill="#78350F"
-        stroke="#451A03"
-        strokeWidth="2.5"
-      />
+    {/* Barn Doorframe Posts */}
+    <Rect x="52" y="72" width="6" height="76" fill="#78350F" stroke="#451A03" strokeWidth="1.5" />
+    <Rect x="112" y="72" width="6" height="76" fill="#78350F" stroke="#451A03" strokeWidth="1.5" />
+    <Path d="M 52 74 Q 85 64 118 74" stroke="#78350F" strokeWidth="4" fill="none" />
 
-      {/* Warm Golden Interior Light when Open */}
-      {isDoorOpen ? (
-        <Path
-          d="M 67 130 L 67 82 Q 80 68 93 82 L 93 130 Z"
-          fill="#FDE047"
-          opacity="0.95"
-        />
-      ) : (
-        /* Closed Wooden Door */
-        <G>
-          <Path
-            d="M 67 130 L 67 82 Q 80 68 93 82 L 93 130 Z"
-            fill="#92400E"
-          />
-          {/* Door Planks */}
-          <Path d="M 80 76 L 80 130" stroke="#78350F" strokeWidth="1.5" />
-          {/* Brass Doorknob */}
-          <Circle cx="73" cy="106" r="3" fill="#FBBF24" stroke="#D97706" strokeWidth="1" />
-        </G>
-      )}
+    {/* Closed Barn Gates (Rendered when door is closed) */}
+    {!isDoorOpen && (
+      <G>
+        {/* Left Gate */}
+        <Rect x="56" y="74" width="29" height="74" fill="#9A3412" stroke="#451A03" strokeWidth="2" />
+        <Path d="M 58 78 L 83 144 M 58 144 L 83 78" stroke="#FDE68A" strokeWidth="2" opacity="0.8" />
+        {/* Right Gate */}
+        <Rect x="85" y="74" width="29" height="74" fill="#9A3412" stroke="#451A03" strokeWidth="2" />
+        <Path d="M 87 78 L 112 144 M 87 144 L 112 78" stroke="#FDE68A" strokeWidth="2" opacity="0.8" />
+        {/* Iron Latch */}
+        <Rect x="78" y="106" width="14" height="6" rx="2" fill="#1E293B" stroke="#0F172A" strokeWidth="1" />
+      </G>
+    )}
 
-      {/* Doorstep Welcome Mat */}
-      <Rect x="60" y="128" width="40" height="6" rx="2" fill="#D97706" stroke="#92400E" strokeWidth="1" />
-    </Svg>
-  );
-};
+    {/* Barn Base Foundation */}
+    <Rect x="8" y="146" width="154" height="6" rx="2" fill="#475569" stroke="#1E293B" strokeWidth="1" />
+  </Svg>
+);
 
 export default function SheepCountGameScreen() {
   const router = useRouter();
@@ -161,9 +173,12 @@ export default function SheepCountGameScreen() {
   const { width: windowWidth } = useWindowDimensions();
 
   const [currentLevel, setCurrentLevel] = useState<number>(1);
-  const [phase, setPhase] = useState<GamePhase>('WALK');
-  const [totalSheep, setTotalSheep] = useState<number>(3);
+  const [phase, setPhase] = useState<GamePhase>('WALK_IN');
+  const [enterCount, setEnterCount] = useState<number>(4);
+  const [exitCount, setExitCount] = useState<number>(0);
+  const [remainingCount, setRemainingCount] = useState<number>(4);
   const [currentSheepIndex, setCurrentSheepIndex] = useState<number>(-1);
+  const [walkingDirection, setWalkingDirection] = useState<'IN' | 'OUT'>('IN');
   const [choices, setChoices] = useState<number[]>([]);
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const [isWrong, setIsWrong] = useState<boolean>(false);
@@ -172,131 +187,150 @@ export default function SheepCountGameScreen() {
 
   const activeConfig = LEVEL_CONFIGS[currentLevel] || LEVEL_CONFIGS[1];
 
-  // Responsive stage calculations
+  // Responsive stage sizing
   const contentWidth = Math.min(windowWidth - 32, 440);
   const stageWidth = contentWidth - 24;
-  const houseSize = Math.max(140, Math.min(180, stageWidth * 0.46));
-  const sheepSize = Math.max(48, Math.min(68, stageWidth * 0.18));
+  const barnSize = Math.max(140, Math.min(185, stageWidth * 0.48));
+  const sheepSize = Math.max(48, Math.min(64, stageWidth * 0.17));
 
-  // Animation values
+  // Smooth single-axis translation value
   const sheepTrackX = useRef(new Animated.Value(0)).current;
-  const sheepBobY = useRef(new Animated.Value(0)).current;
-  const sheepOpacity = useRef(new Animated.Value(1)).current;
 
   const isMountedRef = useRef<boolean>(true);
   const startTimeRef = useRef<number>(Date.now());
 
-  // Generate distinct multiple-choice option numbers
-  const generateChoices = (correctCount: number): number[] => {
+  // Generate 4 distinct multiple-choice numbers
+  const generateChoices = (correctRemaining: number): number[] => {
     const opts = new Set<number>();
-    opts.add(correctCount);
+    opts.add(correctRemaining);
 
-    // Add adjacent choices
-    if (correctCount > 1) opts.add(correctCount - 1);
-    opts.add(correctCount + 1);
+    if (correctRemaining > 1) opts.add(correctRemaining - 1);
+    opts.add(correctRemaining + 1);
 
-    if (opts.size < 3) opts.add(correctCount + 2);
-    if (opts.size < 4 && correctCount > 2) opts.add(correctCount - 2);
+    if (opts.size < 3) opts.add(correctRemaining + 2);
+    if (opts.size < 4 && correctRemaining > 2) opts.add(correctRemaining - 2);
+    if (opts.size < 4) opts.add(correctRemaining + 3);
 
     const arr = Array.from(opts).slice(0, 4);
     return arr.sort(() => Math.random() - 0.5);
   };
 
-  // Run the sequence of sheep walking into the house
-  const startSheepSequence = (count: number, config: LevelConfig) => {
-    let index = 0;
+  // Full sequential walk sequence: Enter -> (optional Pause) -> Exit -> Guess
+  const startFullSequence = (enters: number, exits: number, config: LevelConfig) => {
+    let inIndex = 0;
 
-    const walkNextSheep = () => {
+    const startXLeft = -sheepSize - 12;
+    const barnCenterDoorX = (stageWidth - barnSize) / 2 + barnSize * 0.5 - sheepSize * 0.5;
+
+    // Step 1: Walk in sequence
+    const walkNextEnteringSheep = () => {
       if (!isMountedRef.current) return;
 
-      if (index >= count) {
-        // All sheep entered! Move to GUESS phase
-        setTimeout(() => {
-          if (!isMountedRef.current) return;
-          setPhase('GUESS');
-          voiceService.speak('How many sheep went into the house? Tap your answer!');
-        }, 500);
+      if (inIndex >= enters) {
+        // Finished entering! If exits > 0, proceed to walk out sequence
+        if (exits > 0) {
+          setTimeout(() => {
+            if (!isMountedRef.current) return;
+            setPhase('WALK_OUT');
+            voiceService.speak('Look! Some sheep are leaving the barn.');
+            setTimeout(() => startExitSequence(exits, config), 600);
+          }, 800);
+        } else {
+          // No exits (Level 1): proceed directly to GUESS
+          setTimeout(() => {
+            if (!isMountedRef.current) return;
+            setPhase('GUESS');
+            voiceService.speak('How many sheep went into the barn? Tap your answer!');
+          }, 600);
+        }
         return;
       }
 
-      setCurrentSheepIndex(index);
+      setWalkingDirection('IN');
+      setCurrentSheepIndex(inIndex);
+      sheepTrackX.setValue(startXLeft);
 
-      // Sheep starts from left edge (-sheepSize) and walks to doorway center
-      const startX = -sheepSize - 10;
-      const targetDoorX = (stageWidth - houseSize) / 2 + houseSize * 0.5 - sheepSize * 0.6;
-
-      sheepTrackX.setValue(startX);
-      sheepBobY.setValue(0);
-      sheepOpacity.setValue(1);
-
-      // Bobbing walking step animation
-      const bobLoop = Animated.loop(
-        Animated.sequence([
-          Animated.timing(sheepBobY, {
-            toValue: -6,
-            duration: config.walkDurationMs / 8,
-            easing: Easing.inOut(Easing.quad),
-            useNativeDriver: true,
-          }),
-          Animated.timing(sheepBobY, {
-            toValue: 0,
-            duration: config.walkDurationMs / 8,
-            easing: Easing.inOut(Easing.quad),
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      bobLoop.start();
-
-      // Horizontal walk animation
-      Animated.parallel([
-        Animated.timing(sheepTrackX, {
-          toValue: targetDoorX,
-          duration: config.walkDurationMs,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-        // Fade inside doorway at the end of walk
-        Animated.sequence([
-          Animated.delay(config.walkDurationMs * 0.82),
-          Animated.timing(sheepOpacity, {
-            toValue: 0,
-            duration: config.walkDurationMs * 0.18,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start(() => {
-        bobLoop.stop();
+      // Smooth horizontal trot into the barn door
+      Animated.timing(sheepTrackX, {
+        toValue: barnCenterDoorX + 16, // Walks fully past the door frame inside
+        duration: config.walkDurationMs,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => {
         if (!isMountedRef.current) return;
-
-        // Play authentic sheep sound effect as sheep enters
         animalAudioService.playAnimalSound('sheep');
-
-        index++;
-        setTimeout(walkNextSheep, config.pauseBetweenSheepMs);
+        inIndex++;
+        setTimeout(walkNextEnteringSheep, config.pauseBetweenSheepMs);
       });
     };
 
-    // Begin first sheep after 800ms
-    setTimeout(walkNextSheep, 800);
+    // Step 2: Walk out sequence (Levels 2+)
+    const startExitSequence = (totalExits: number, cfg: LevelConfig) => {
+      let outIndex = 0;
+
+      const walkNextExitingSheep = () => {
+        if (!isMountedRef.current) return;
+
+        if (outIndex >= totalExits) {
+          // Finished all exits! Proceed to GUESS
+          setTimeout(() => {
+            if (!isMountedRef.current) return;
+            setPhase('GUESS');
+            voiceService.speak('How many sheep are left inside the barn? Tap your answer!');
+          }, 600);
+          return;
+        }
+
+        setWalkingDirection('OUT');
+        setCurrentSheepIndex(outIndex);
+        sheepTrackX.setValue(barnCenterDoorX);
+
+        // Smooth horizontal walk OUT of barn to the left
+        Animated.timing(sheepTrackX, {
+          toValue: startXLeft,
+          duration: cfg.walkDurationMs,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }).start(() => {
+          if (!isMountedRef.current) return;
+          animalAudioService.playAnimalSound('sheep');
+          outIndex++;
+          setTimeout(walkNextExitingSheep, cfg.pauseBetweenSheepMs);
+        });
+      };
+
+      walkNextExitingSheep();
+    };
+
+    // Start entering after 600ms
+    setTimeout(walkNextEnteringSheep, 600);
   };
 
   const initRound = (lvl: number) => {
     const config = LEVEL_CONFIGS[lvl] || LEVEL_CONFIGS[1];
-    const targetCount =
-      Math.floor(Math.random() * (config.maxSheep - config.minSheep + 1)) + config.minSheep;
+    const enters = config.enterCount;
+    const exits = config.exitCount;
+    const remaining = enters - exits;
 
-    setTotalSheep(targetCount);
-    setChoices(generateChoices(targetCount));
+    setEnterCount(enters);
+    setExitCount(exits);
+    setRemainingCount(remaining);
+    setChoices(generateChoices(remaining));
     setSelectedChoice(null);
     setIsWrong(false);
     setGameResult(null);
     setCurrentSheepIndex(-1);
-    setPhase('WALK');
+    setWalkingDirection('IN');
+    setPhase('WALK_IN');
     startTimeRef.current = Date.now();
 
-    voiceService.speak('Watch closely! Count each sheep as it walks into the house.');
-    startSheepSequence(targetCount, config);
+    if (exits > 0) {
+      voiceService.speak(`Watch closely! ${enters} sheep enter, and ${exits} sheep will leave. Count how many stay inside.`);
+    } else {
+      voiceService.speak('Watch closely! Count the sheep as they walk into the barn.');
+    }
+
+    startFullSequence(enters, exits, config);
   };
 
   useEffect(() => {
@@ -314,10 +348,14 @@ export default function SheepCountGameScreen() {
     setSelectedChoice(chosenNum);
     setPhase('RESULT');
 
-    if (chosenNum === totalSheep) {
+    if (chosenNum === remainingCount) {
       // Correct!
       setIsWrong(false);
-      voiceService.speak(`That's right! Exactly ${totalSheep} sheep went into the house. Great counting!`);
+      if (exitCount > 0) {
+        voiceService.speak(`Wonderful! ${enterCount} went in and ${exitCount} left, leaving exactly ${remainingCount} inside the barn.`);
+      } else {
+        voiceService.speak(`That's right! Exactly ${remainingCount} sheep went into the barn. Wonderful focus!`);
+      }
 
       const elapsedSecs = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
       const score = 600 + Math.max(0, 30 - elapsedSecs) * 20;
@@ -350,17 +388,21 @@ export default function SheepCountGameScreen() {
         if (isMountedRef.current) {
           setGameResult(fallbackResult);
         }
-      }, 1000);
+      }, 1100);
     } else {
       // Incorrect!
       setIsWrong(true);
-      voiceService.speak(`Not quite! ${totalSheep} sheep went inside. Let's try again!`);
+      if (exitCount > 0) {
+        voiceService.speak(`Not quite. ${enterCount} entered and ${exitCount} left, so ${remainingCount} sheep remain. Let's try again!`);
+      } else {
+        voiceService.speak(`Not quite! ${remainingCount} sheep went inside. Let's try again!`);
+      }
 
       setTimeout(() => {
         if (isMountedRef.current) {
           initRound(currentLevel);
         }
-      }, 2500);
+      }, 3000);
     }
   };
 
@@ -398,7 +440,7 @@ export default function SheepCountGameScreen() {
         </View>
 
         <ListenButton
-          textToSpeak={`Count the Sheep. ${activeConfig.label}. Watch the sheep walk into the house and count how many went inside.`}
+          textToSpeak={`Count the Sheep. ${activeConfig.label}. Watch the sheep walk into the barn, note any that leave, and count how many remain inside.`}
           size="sm"
           variant="secondary"
         />
@@ -410,32 +452,38 @@ export default function SheepCountGameScreen() {
           <View style={styles.wrongBanner}>
             <AlertCircle size={22} color="#DC2626" />
             <Typography size="sm" weight="bold" color="#DC2626" style={{ marginLeft: 8 }}>
-              Not quite! {totalSheep} sheep went in.
+              {exitCount > 0 ? `${enterCount} in - ${exitCount} out = ${remainingCount} left!` : `Not quite! ${remainingCount} sheep went in.`}
             </Typography>
           </View>
-        ) : phase === 'WALK' ? (
+        ) : phase === 'WALK_IN' ? (
           <View style={styles.phasePill}>
-            <Eye size={18} color="#15803D" style={{ marginRight: 6 }} />
+            <ArrowRight size={18} color="#15803D" style={{ marginRight: 6 }} />
             <Typography size="sm" weight="bold" color="#15803D">
-              👀 Count the sheep as they walk in!
+              ➡️ Sheep walking into the barn...
+            </Typography>
+          </View>
+        ) : phase === 'WALK_OUT' ? (
+          <View style={[styles.phasePill, { backgroundColor: '#FFF7ED', borderColor: '#FED7AA' }]}>
+            <ArrowLeftIcon size={18} color="#EA580C" style={{ marginRight: 6 }} />
+            <Typography size="sm" weight="bold" color="#C2410C">
+              ⬅️ Watch! Sheep walking back out...
             </Typography>
           </View>
         ) : (
           <View style={[styles.phasePill, { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' }]}>
             <HelpCircle size={18} color="#D97706" style={{ marginRight: 6 }} />
             <Typography size="sm" weight="bold" color="#B45309">
-              🏠 How many sheep went inside?
+              🏠 How many sheep are left inside?
             </Typography>
           </View>
         )}
       </View>
 
-      {/* Scenic Meadow Stage Area */}
+      {/* Meadow Farm Stage Area with Depth Layering */}
       <View style={styles.stageWrapper}>
         <View style={[styles.meadowSurface, { width: contentWidth }]}>
-          {/* Distant Hills & Sunny Sky */}
-          <View style={styles.skyHeaderBackground}>
-            {/* Sun */}
+          {/* Blue Sky Header */}
+          <View style={styles.skyBackground}>
             <View style={styles.sunCircle} />
           </View>
 
@@ -446,60 +494,67 @@ export default function SheepCountGameScreen() {
             <View style={styles.fencePost} />
           </View>
 
-          {/* Cobblestone Walking Track */}
+          {/* Cobblestone Meadow Walking Stage */}
           <View style={[styles.walkTrack, { width: stageWidth }]}>
-            {/* Center Farmhouse */}
-            <View style={[styles.houseAnchor, { left: (stageWidth - houseSize) / 2 }]}>
-              <MeadowFarmhouse
-                size={houseSize}
-                isDoorOpen={phase === 'WALK' || (phase === 'RESULT' && !isWrong)}
-                insideCount={totalSheep}
-              />
+            {/* LAYER 1 (BACK): Sheep Barn Interior & Straw Bedding */}
+            <View style={[styles.barnLayerAnchor, { left: (stageWidth - barnSize) / 2, zIndex: 1 }]}>
+              <SheepBarnBackdrop size={barnSize} />
             </View>
 
-            {/* Walking Animated Sheep (Visible during WALK phase) */}
-            {phase === 'WALK' && currentSheepIndex >= 0 && (
+            {/* LAYER 2 (MIDDLE): Animated Walking Sheep */}
+            {(phase === 'WALK_IN' || phase === 'WALK_OUT') && currentSheepIndex >= 0 && (
               <Animated.View
                 style={[
                   styles.walkingSheepWrapper,
                   {
-                    transform: [
-                      { translateX: sheepTrackX },
-                      { translateY: sheepBobY },
-                    ],
-                    opacity: sheepOpacity,
+                    transform: [{ translateX: sheepTrackX }],
+                    zIndex: 5,
                   },
                 ]}
               >
-                <WalkingSheepIllustration size={sheepSize} facing="right" />
+                <WalkingSheepIllustration
+                  size={sheepSize}
+                  facing={walkingDirection === 'IN' ? 'right' : 'left'}
+                />
               </Animated.View>
             )}
 
-            {/* Victory Celebration: Sheeps peek out happily */}
+            {/* LAYER 3 (FRONT): Barn Facade, Timber Walls & Doorframe */}
+            <View
+              pointerEvents="none"
+              style={[styles.barnLayerAnchor, { left: (stageWidth - barnSize) / 2, zIndex: 10 }]}
+            >
+              <SheepBarnFacade
+                size={barnSize}
+                isDoorOpen={phase === 'WALK_IN' || phase === 'WALK_OUT' || (phase === 'RESULT' && !isWrong)}
+              />
+            </View>
+
+            {/* Victory Celebration: Remaining Sheep happily peek out through doorway */}
             {phase === 'RESULT' && !isWrong && (
-              <View style={[styles.celebrationSheepRow, { left: (stageWidth - houseSize) / 2 + 18 }]}>
-                <WalkingSheepIllustration size={36} facing="right" />
-                <WalkingSheepIllustration size={32} facing="left" />
+              <View style={[styles.celebrationSheepRow, { left: (stageWidth - barnSize) / 2 + 32, zIndex: 6 }]}>
+                <WalkingSheepIllustration size={34} facing="right" />
+                <WalkingSheepIllustration size={30} facing="left" />
               </View>
             )}
           </View>
 
-          {/* Lush Green Lawn Surface Base */}
+          {/* Lush Green Lawn Ground Base */}
           <View style={styles.grassLawnBase} />
         </View>
       </View>
 
-      {/* Multiple-Choice Answer Section (Sharp 12px corners) */}
+      {/* Answer Choice Section (Sharp 12px corners) */}
       <View style={[styles.choicesContainer, { width: contentWidth }]}>
         <Typography size="sm" color={COLORS.textSecondary} align="center" weight="medium" style={{ marginBottom: 10 }}>
-          {phase === 'WALK' ? 'Watch carefully...' : 'Tap the correct count:'}
+          {phase === 'GUESS' ? 'Tap how many sheep are left inside:' : 'Watch carefully...'}
         </Typography>
 
         <View style={styles.choicesGrid}>
           {choices.map((num) => {
             const isSelected = selectedChoice === num;
-            const isCorrect = isSelected && num === totalSheep;
-            const isWrongChoice = isSelected && num !== totalSheep;
+            const isCorrect = isSelected && num === remainingCount;
+            const isWrongChoice = isSelected && num !== remainingCount;
 
             return (
               <TouchableOpacity
@@ -522,7 +577,7 @@ export default function SheepCountGameScreen() {
                       : isWrongChoice
                       ? '#DC2626'
                       : '#CBD5E1',
-                    opacity: phase === 'WALK' ? 0.6 : 1,
+                    opacity: phase === 'GUESS' ? 1 : 0.6,
                   },
                 ]}
               >
@@ -697,12 +752,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
-  skyHeaderBackground: {
+  skyBackground: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 60,
+    height: 64,
     backgroundColor: '#E0F2FE',
   },
   sunCircle: {
@@ -730,28 +785,25 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   walkTrack: {
-    height: 170,
+    height: 175,
     position: 'relative',
     justifyContent: 'flex-end',
   },
-  houseAnchor: {
+  barnLayerAnchor: {
     position: 'absolute',
     bottom: 0,
-    zIndex: 5,
     alignItems: 'center',
   },
   walkingSheepWrapper: {
     position: 'absolute',
     bottom: 4,
     left: 0,
-    zIndex: 10,
   },
   celebrationSheepRow: {
     position: 'absolute',
     bottom: 8,
     flexDirection: 'row',
-    gap: 8,
-    zIndex: 12,
+    gap: 6,
   },
   grassLawnBase: {
     width: '100%',
