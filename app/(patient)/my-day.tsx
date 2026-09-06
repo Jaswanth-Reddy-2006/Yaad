@@ -22,7 +22,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 interface ScheduleItem {
   id: string;
   time: string;
-  title: string;
+  titleKey: string;
   icon: any;
   iconBg: string;
   iconColor: string;
@@ -30,23 +30,23 @@ interface ScheduleItem {
 }
 
 const SCHEDULE_ITEMS: ScheduleItem[] = [
-  { id: '1', time: '9:00 AM', title: 'Take Medicine', icon: Pill, iconBg: '#DCFCE7', iconColor: COLORS.primary, isCompleted: true },
-  { id: '2', time: '10:30 AM', title: 'Drink Water', icon: Droplet, iconBg: '#DBEAFE', iconColor: COLORS.gameBlue, isCompleted: false },
-  { id: '3', time: '11:00 AM', title: 'Memory Game', icon: Brain, iconBg: '#EDE9FE', iconColor: COLORS.memoryPurple, isCompleted: false },
-  { id: '4', time: '1:00 PM', title: 'Lunch Time', icon: Utensils, iconBg: '#FFEDD5', iconColor: COLORS.scheduleOrange, isCompleted: false },
-  { id: '5', time: '4:00 PM', title: 'Doctor Appointment', icon: Stethoscope, iconBg: '#CCFBF1', iconColor: COLORS.accent, isCompleted: false },
+  { id: '1', time: '9:00 AM', titleKey: 'take_medicine', icon: Pill, iconBg: '#DCFCE7', iconColor: COLORS.primary, isCompleted: true },
+  { id: '2', time: '10:30 AM', titleKey: 'drink_water', icon: Droplet, iconBg: '#DBEAFE', iconColor: COLORS.gameBlue, isCompleted: false },
+  { id: '3', time: '11:00 AM', titleKey: 'memory_activity', icon: Brain, iconBg: '#EDE9FE', iconColor: COLORS.memoryPurple, isCompleted: false },
+  { id: '4', time: '1:00 PM', titleKey: 'lunch_time', icon: Utensils, iconBg: '#FFEDD5', iconColor: COLORS.scheduleOrange, isCompleted: false },
+  { id: '5', time: '4:00 PM', titleKey: 'doctor_appointment', icon: Stethoscope, iconBg: '#CCFBF1', iconColor: COLORS.accent, isCompleted: false },
 ];
 
 export default function MyDayScreen() {
   const router = useRouter();
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   return (
     <ScreenContainer scrollable>
       <AppHeader
-        title="My Day (Schedule)"
-        subtitle="Your plan for today"
+        title={t('my_day_title')}
+        subtitle={t('my_day_subtitle')}
         showBack
         voicePrompt="Your plan for today includes 9 AM Take Medicine, 10:30 AM Drink Water, 11 AM Memory Game, 1 PM Lunch Time, and 4 PM Doctor Appointment."
       />
@@ -57,14 +57,14 @@ export default function MyDayScreen() {
           <CalendarDays size={48} color={COLORS.scheduleOrange} />
         </View>
         <Typography size="base" weight="semibold" color={COLORS.textSecondary} style={{ marginTop: SPACING.xs }}>
-          Your plan for today
+          {t('my_day_subtitle')}
         </Typography>
       </View>
 
       {/* Today's Plan Section */}
       <View style={styles.sectionHeader}>
         <Typography size="lg" weight="bold" color={COLORS.scheduleOrange}>
-          Today's Plan
+          {t('todays_plan')}
         </Typography>
       </View>
 
@@ -87,7 +87,7 @@ export default function MyDayScreen() {
                     {item.time}
                   </Typography>
                   <Typography size="lg" weight="bold" style={{ marginTop: 2 }}>
-                    {item.title}
+                    {t(item.titleKey)}
                   </Typography>
                 </View>
 

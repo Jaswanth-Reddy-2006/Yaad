@@ -1,12 +1,15 @@
 import { getDatabase } from '../database/db';
 import { AccessibilityPreferences, VoicePreferences } from '../types';
 import { LOCAL_PATIENT_ID } from '../database/seed';
+import { LanguageCode } from '../constants/translations';
 
 export interface ISettingsRepository {
   getAccessibilityPreferences(): Promise<AccessibilityPreferences>;
   updateAccessibilityPreferences(prefs: Partial<AccessibilityPreferences>): Promise<AccessibilityPreferences>;
   getVoicePreferences(): Promise<VoicePreferences>;
   updateVoicePreferences(prefs: Partial<VoicePreferences>): Promise<VoicePreferences>;
+  getPreferredLanguage(): Promise<LanguageCode>;
+  updatePreferredLanguage(lang: LanguageCode): Promise<LanguageCode>;
 }
 
 export class SQLiteSettingsRepository implements ISettingsRepository {
@@ -81,6 +84,28 @@ export class SQLiteSettingsRepository implements ISettingsRepository {
     );
 
     return updated;
+  }
+
+  async getPreferredLanguage(): Promise<LanguageCode> {
+    const db: any = await getDatabase();
+    const row = (await db.getFirstAsync(
+      'SELECT preferred_language FROM patient_profile WHERE id = ?',
+      [LOCAL_PATIENT_ID]
+    )) as { preferred_language: string } | null;
+
+    return (row?.preferred_language as LanguageCode) || 'en';
+  }
+
+  async updatePreferredLanguage(lang: LanguageCode): Promise<LanguageCode> {
+    const db: any = await getDatabase();
+    const now = new Date().toISOString();
+
+    await db.runAsync(
+      'UPDATE patient_profile SET preferred_language = ?, updated_at = ? WHERE id = ?',
+      [lang, now, LOCAL_PATIENT_ID]
+    );
+
+    return lang;
   }
 }
 

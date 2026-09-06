@@ -13,23 +13,23 @@ interface ReminderItem {
   id: string;
   category: 'MEDICINE' | 'WATER' | 'ACTIVITY';
   time: string;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subtitleKey: string;
   isCompleted: boolean;
 }
 
 const INITIAL_REMINDERS: ReminderItem[] = [
-  { id: '1', category: 'MEDICINE', time: '9:00 AM', title: 'Morning Medicine', subtitle: 'Take 1 Pill with water', isCompleted: true },
-  { id: '2', category: 'WATER', time: '10:30 AM', title: 'Drink Water', subtitle: 'Drink a glass of water', isCompleted: false },
-  { id: '3', category: 'ACTIVITY', time: '11:00 AM', title: 'Memory Activity', subtitle: 'Play memory game', isCompleted: false },
-  { id: '4', category: 'WATER', time: '3:00 PM', title: 'Hydration', subtitle: 'Drink water', isCompleted: false },
-  { id: '5', category: 'MEDICINE', time: '8:00 PM', title: 'Evening Medicine', subtitle: 'Take your medicine', isCompleted: false },
+  { id: '1', category: 'MEDICINE', time: '9:00 AM', titleKey: 'morning_medicine', subtitleKey: 'morning_medicine_sub', isCompleted: true },
+  { id: '2', category: 'WATER', time: '10:30 AM', titleKey: 'drink_water', subtitleKey: 'drink_water_sub', isCompleted: false },
+  { id: '3', category: 'ACTIVITY', time: '11:00 AM', titleKey: 'memory_activity', subtitleKey: 'memory_activity_sub', isCompleted: false },
+  { id: '4', category: 'WATER', time: '3:00 PM', titleKey: 'hydration', subtitleKey: 'drink_water_sub', isCompleted: false },
+  { id: '5', category: 'MEDICINE', time: '8:00 PM', titleKey: 'evening_medicine', subtitleKey: 'evening_medicine_sub', isCompleted: false },
 ];
 
 export default function RemindersScreen() {
   const [activeFilter, setActiveFilter] = useState<'All' | 'Medicines' | 'Water' | 'Activities'>('All');
   const [reminders, setReminders] = useState<ReminderItem[]>(INITIAL_REMINDERS);
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const filteredReminders = reminders.filter((item) => {
@@ -56,11 +56,18 @@ export default function RemindersScreen() {
     );
   };
 
+  const filterLabels: Record<string, string> = {
+    All: t('filter_all'),
+    Medicines: t('filter_medicines'),
+    Water: t('filter_water'),
+    Activities: t('filter_activities'),
+  };
+
   return (
     <ScreenContainer scrollable>
       <AppHeader
-        title="Reminders"
-        subtitle="Stay on track with important things"
+        title={t('reminders')}
+        subtitle={t('reminders_subtitle')}
         showBack
         voicePrompt="Reminders list. Tap any reminder to mark it complete."
       />
@@ -71,7 +78,7 @@ export default function RemindersScreen() {
           <Bell size={48} color={COLORS.primary} />
         </View>
         <Typography size="base" weight="semibold" color={COLORS.textSecondary} style={{ marginTop: SPACING.xs }}>
-          Stay on track with important things
+          {t('reminders_subtitle')}
         </Typography>
       </View>
 
@@ -97,7 +104,7 @@ export default function RemindersScreen() {
                 weight="bold"
                 color={isActive ? '#FFFFFF' : COLORS.textSecondary}
               >
-                {filter}
+                {filterLabels[filter] || filter}
               </Typography>
             </TouchableOpacity>
           );
@@ -121,13 +128,13 @@ export default function RemindersScreen() {
 
                 <View style={{ flex: 1, marginLeft: SPACING.md }}>
                   <Typography size="base" weight="bold">
-                    {item.title}
+                    {t(item.titleKey)}
                   </Typography>
                   <Typography size="xs" weight="bold" color={COLORS.textMuted}>
                     {item.time}
                   </Typography>
                   <Typography size="xs" color={COLORS.textMuted}>
-                    {item.subtitle}
+                    {t(item.subtitleKey)}
                   </Typography>
                 </View>
 
@@ -146,7 +153,7 @@ export default function RemindersScreen() {
 
       {/* + Add Reminder Green Button */}
       <Button
-        title="+ Add Reminder"
+        title={t('add_reminder_btn')}
         variant="primary"
         style={styles.addReminderBtn}
         onPress={() => {}}

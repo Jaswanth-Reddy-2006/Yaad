@@ -26,13 +26,15 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset"
     ],
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "8a3e54f4-b155-4d8d-ba6d-ba4f8096efc9"
+        "projectId": "218325eb-4cf1-457e-937e-a1cd2e613208"
       }
-    }
+    },
+    "owner": "mohd_rafey_uddin"
   }
 }

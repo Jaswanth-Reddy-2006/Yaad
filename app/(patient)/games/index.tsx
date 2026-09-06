@@ -21,7 +21,7 @@ interface GameItem {
 const GAMES_LIST: GameItem[] = [
   {
     id: '1',
-    titleKey: 'play_game',
+    titleKey: 'find_the_match',
     fallbackTitle: 'FIND THE MATCH',
     pastelBg: '#F5EFFE',
     borderColor: '#C084FC',
@@ -31,7 +31,7 @@ const GAMES_LIST: GameItem[] = [
   },
   {
     id: '2',
-    titleKey: 'recall_memory',
+    titleKey: 'remember_pictures',
     fallbackTitle: 'REMEMBER PICTURES',
     pastelBg: '#E6F9ED',
     borderColor: '#86EFAC',
@@ -41,7 +41,7 @@ const GAMES_LIST: GameItem[] = [
   },
   {
     id: '3',
-    titleKey: 'reminders',
+    titleKey: 'spot_the_difference',
     fallbackTitle: 'SPOT THE DIFFERENCE',
     pastelBg: '#FFFBEB',
     borderColor: '#FDE68A',
@@ -61,7 +61,7 @@ export default function GameSelectionScreen() {
       {/* Header: Back Arrow Button on Left + Bold PLAY GAME Title Center */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
-          accessibilityLabel="Go Back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.backSquareBtn}
@@ -70,7 +70,7 @@ export default function GameSelectionScreen() {
         </TouchableOpacity>
 
         <Text style={[styles.headerTitleText, { color: isHc ? COLORS.hcTextPrimary : '#0F172A' }]}>
-          PLAY GAME
+          {t('play_game')}
         </Text>
 
         <View style={{ width: 44 }} />
@@ -104,7 +104,7 @@ export default function GameSelectionScreen() {
                 minimumFontScale={0.7}
                 style={[styles.gameTitleText, { color: isHc ? COLORS.hcTextPrimary : game.titleColor }]}
               >
-                {game.fallbackTitle}
+                {t(game.titleKey)}
               </Text>
             </View>
           </TouchableOpacity>

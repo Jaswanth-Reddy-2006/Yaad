@@ -9,10 +9,10 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 interface CaregiverData {
   id: string;
   name: string;
-  badgeText: string;
+  badgeKey: string;
   badgeBg: string;
   badgeColor: string;
-  subtitle: string;
+  subtitleKey: string;
   phone: string;
   pastelBg: string;
   borderColor: string;
@@ -26,10 +26,10 @@ const CAREGIVERS_DATA: CaregiverData[] = [
   {
     id: 'cg-1',
     name: 'Aarav Sharma',
-    badgeText: 'PRIMARY',
+    badgeKey: 'primary_badge',
     badgeBg: '#DCFCE7',
     badgeColor: '#15803D',
-    subtitle: 'Family Member',
+    subtitleKey: 'family_member',
     phone: '+91 98765 43210',
     pastelBg: '#E6F9ED',
     borderColor: '#86EFAC',
@@ -41,10 +41,10 @@ const CAREGIVERS_DATA: CaregiverData[] = [
   {
     id: 'cg-2',
     name: 'Priya Sharma',
-    badgeText: 'SECONDARY',
+    badgeKey: 'secondary_badge',
     badgeBg: '#DBEAFE',
     badgeColor: '#1E40AF',
-    subtitle: 'Nurse',
+    subtitleKey: 'nurse',
     phone: '+91 91234 56789',
     pastelBg: '#E8F2FF',
     borderColor: '#60A5FA',
@@ -56,10 +56,10 @@ const CAREGIVERS_DATA: CaregiverData[] = [
   {
     id: 'cg-3',
     name: 'Dr. Rajesh Varma',
-    badgeText: 'CLINICIAN',
+    badgeKey: 'clinician_badge',
     badgeBg: '#EDE9FE',
     badgeColor: '#6D28D9',
-    subtitle: 'Doctor',
+    subtitleKey: 'doctor',
     phone: '+91 99887 76655',
     pastelBg: '#F5EFFE',
     borderColor: '#C084FC',
@@ -90,7 +90,7 @@ export default function YourCaregiversScreen() {
       {/* Top Header with Back Arrow Square Button */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
-          accessibilityLabel="Go Back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.backSquareBtn}
@@ -134,17 +134,17 @@ export default function YourCaregiversScreen() {
 
               {/* Badge Pill */}
               <View style={[styles.badgePill, { backgroundColor: item.badgeBg }]}>
-                {item.badgeText === 'PRIMARY' ? (
+                {item.badgeKey === 'primary_badge' ? (
                   <ShieldCheck size={12} color={item.badgeColor} style={{ marginRight: 3 }} />
                 ) : null}
                 <Text style={[styles.badgeText, { color: item.badgeColor }]}>
-                  {item.badgeText}
+                  {t(item.badgeKey)}
                 </Text>
               </View>
 
               {/* Subtitle */}
               <Text style={styles.subtitleText}>
-                {item.subtitle}
+                {t(item.subtitleKey)}
               </Text>
             </View>
 

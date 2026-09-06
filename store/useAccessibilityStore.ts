@@ -41,10 +41,14 @@ export const useAccessibilityStore = create<AccessibilityState>((set, get) => ({
   loadPreferences: async () => {
     set({ isLoading: true });
     try {
-      const prefs = await settingsRepository.getAccessibilityPreferences();
+      const [prefs, savedLang] = await Promise.all([
+        settingsRepository.getAccessibilityPreferences(),
+        settingsRepository.getPreferredLanguage().catch(() => 'en' as LanguageCode),
+      ]);
       const numCols = prefs.textSize === 'EXTRA_LARGE' ? 1 : 2;
       set({
         preferences: { ...prefs, elderMode: prefs.elderMode ?? true },
+        currentLanguage: savedLang || 'en',
         fontScaleMultiplier: MULTIPLIERS[prefs.textSize] || 1.2,
         numColumns: numCols,
         cardWidthPercent: numCols === 1 ? '100%' : '48%',
@@ -68,6 +72,7 @@ export const useAccessibilityStore = create<AccessibilityState>((set, get) => ({
 
   setLanguage: (lang: LanguageCode) => {
     set({ currentLanguage: lang });
+    settingsRepository.updatePreferredLanguage(lang).catch(() => {});
   },
 
   t: (key: string) => {

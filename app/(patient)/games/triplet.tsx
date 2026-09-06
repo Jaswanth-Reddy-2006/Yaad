@@ -17,7 +17,7 @@ export default function MatchTripletGameScreen() {
   const params = useLocalSearchParams<{ difficulty?: string }>();
   const difficulty: GameDifficulty = (params.difficulty as GameDifficulty) || 'EASY';
 
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -65,7 +65,7 @@ export default function MatchTripletGameScreen() {
       {/* Header */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={handleBackPress}
           style={styles.backBtn}
@@ -74,11 +74,12 @@ export default function MatchTripletGameScreen() {
         </TouchableOpacity>
 
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} style={{ marginLeft: SPACING.xs }}>
-          Match the Triplet ({difficulty})
+          {t('match_the_triplet')} ({difficulty})
         </Typography>
       </View>
 
       <GameHeader
+        title={t('match_the_triplet')}
         difficulty={gameState.difficulty}
         matchesCount={gameState.matchesCount}
         totalRequiredMatches={gameState.totalRequiredMatches}
@@ -86,7 +87,7 @@ export default function MatchTripletGameScreen() {
         hintsUsed={gameState.hintsUsed}
         onHint={() => controllerRef.current?.useHint()}
         onRestart={() => controllerRef.current?.restart()}
-        gameInstruction="Look at the cards carefully. Tap three cards. All three cards should be the same."
+        gameInstruction={t('triplet_instruction')}
       />
 
       {/* Game Board Grid */}
@@ -115,10 +116,10 @@ export default function MatchTripletGameScreen() {
           <View style={styles.modalCard}>
             <LogOut size={40} color="#DC2626" />
             <Typography size="xl" weight="bold" align="center" style={{ marginTop: SPACING.md }}>
-              Leave this game?
+              {t('leave_game_title')}
             </Typography>
             <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: 4 }}>
-              Your current progress will not be saved as completed.
+              {t('leave_game_desc')}
             </Typography>
 
             <View style={{ flexDirection: 'row', marginTop: SPACING.lg, gap: SPACING.sm }}>
@@ -128,7 +129,7 @@ export default function MatchTripletGameScreen() {
                 style={[styles.modalActionBtn, { backgroundColor: COLORS.surfaceVariant }]}
               >
                 <Typography size="sm" weight="bold" color="#0F172A">
-                  Continue Game
+                  {t('continue_game')}
                 </Typography>
               </TouchableOpacity>
               <TouchableOpacity
@@ -137,7 +138,7 @@ export default function MatchTripletGameScreen() {
                 style={[styles.modalActionBtn, { backgroundColor: '#DC2626' }]}
               >
                 <Typography size="sm" weight="bold" color="#FFFFFF">
-                  Leave
+                  {t('leave')}
                 </Typography>
               </TouchableOpacity>
             </View>

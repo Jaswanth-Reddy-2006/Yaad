@@ -10,7 +10,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
 export default function RegisterPatientScreen() {
   const router = useRouter();
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const [fullName, setFullName] = useState('');
@@ -66,7 +66,7 @@ export default function RegisterPatientScreen() {
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.backButton}
@@ -77,10 +77,10 @@ export default function RegisterPatientScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-          Create Account
+          {t('create_account') || 'Create Account'}
         </Typography>
         <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 4, marginBottom: SPACING.md }}>
-          Patient Details
+          {t('patient_details') || 'Patient Details'}
         </Typography>
 
         {errorMsg ? (
@@ -94,7 +94,7 @@ export default function RegisterPatientScreen() {
         {/* Input 1: Full Name */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Full Name
+            {t('full_name') || 'Full Name'}
           </Typography>
           <TextInput
             value={fullName}
@@ -108,7 +108,7 @@ export default function RegisterPatientScreen() {
         {/* Input 2: Date of Birth */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Date of Birth
+            {t('dob') || 'Date of Birth'}
           </Typography>
           <View style={styles.inputIconWrapper}>
             <TextInput
@@ -125,7 +125,7 @@ export default function RegisterPatientScreen() {
         {/* Input 3: Phone Number */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Phone Number
+            {t('phone_number') || 'Phone Number'}
           </Typography>
           <TextInput
             value={phone}
@@ -140,7 +140,7 @@ export default function RegisterPatientScreen() {
         {/* Input 4: Password */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Password
+            {t('password') || 'Password'}
           </Typography>
           <View style={styles.inputIconWrapper}>
             <TextInput
@@ -160,7 +160,7 @@ export default function RegisterPatientScreen() {
         {/* Input 5: Confirm Password */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Confirm Password
+            {t('confirm_password') || 'Confirm Password'}
           </Typography>
           <TextInput
             value={confirmPassword}
@@ -184,19 +184,19 @@ export default function RegisterPatientScreen() {
             <Square size={20} color={COLORS.textMuted} style={{ marginRight: 8 }} />
           )}
           <Typography size="xs" color={COLORS.textMuted} style={{ flex: 1 }}>
-            I agree to the{' '}
+            {t('agree_terms') || 'I agree to the'}{' '}
             <Typography size="xs" weight="bold" color={COLORS.primary}>
-              Terms of Service
+              {t('terms_service') || 'Terms of Service'}
             </Typography>{' '}
-            and{' '}
+            {t('and') || 'and'}{' '}
             <Typography size="xs" weight="bold" color={COLORS.primary}>
-              Privacy Policy
+              {t('privacy_policy') || 'Privacy Policy'}
             </Typography>
           </Typography>
         </TouchableOpacity>
 
         <Button
-          title={loading ? 'Registering...' : 'Register'}
+          title={loading ? (t('loading') || 'Registering...') : (t('register') || 'Register')}
           variant="primary"
           disabled={loading}
           onPress={handleRegister}
@@ -209,9 +209,9 @@ export default function RegisterPatientScreen() {
           style={styles.loginLink}
         >
           <Typography size="sm" color={COLORS.textMuted} align="center">
-            Already have an account?{' '}
+            {t('already_have_account') || 'Already have an account?'}{' '}
             <Typography size="sm" weight="bold" color={COLORS.primary}>
-              Login Now
+              {t('login_now') || 'Login Now'}
             </Typography>
           </Typography>
         </TouchableOpacity>

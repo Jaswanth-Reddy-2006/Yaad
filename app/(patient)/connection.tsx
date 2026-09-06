@@ -48,7 +48,7 @@ export default function PatientConnectionScreen() {
       {/* Top Header with Back Arrow Square Button */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.backSquareBtn}
@@ -68,7 +68,7 @@ export default function PatientConnectionScreen() {
           <View style={styles.timerBadge}>
             <Clock size={20} color="#D97706" style={{ marginRight: 8 }} />
             <Text style={styles.timerText}>
-              {t('valid_for')} {formatTimer(secondsRemaining)} min
+              {t('valid_for')} {formatTimer(secondsRemaining)} {t('min')}
             </Text>
           </View>
 

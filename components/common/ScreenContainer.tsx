@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.xl,
+    paddingBottom: 110,
   },
   viewContent: {
     flex: 1,

@@ -113,7 +113,7 @@ export const BottomNavBar: React.FC = () => {
                 style={{ backgroundColor: '#DCFCE7', padding: 12, borderRadius: RADIUS.md, borderWidth: 1, borderColor: '#86EFAC', alignItems: 'center' }}
               >
                 <Typography size="sm" weight="bold" color="#15803D">
-                  "What should I do now?"
+                  {t('voice_prompt_do_now')}
                 </Typography>
               </TouchableOpacity>
 
@@ -127,7 +127,7 @@ export const BottomNavBar: React.FC = () => {
                 style={{ backgroundColor: '#DBEAFE', padding: 12, borderRadius: RADIUS.md, borderWidth: 1, borderColor: '#93C5FD', alignItems: 'center' }}
               >
                 <Typography size="sm" weight="bold" color="#1E40AF">
-                  "What is my next reminder?"
+                  {t('voice_prompt_next_reminder')}
                 </Typography>
               </TouchableOpacity>
 
@@ -141,7 +141,7 @@ export const BottomNavBar: React.FC = () => {
                 style={{ backgroundColor: '#FEF2F2', padding: 12, borderRadius: RADIUS.md, borderWidth: 1, borderColor: '#FCA5A5', alignItems: 'center' }}
               >
                 <Typography size="sm" weight="bold" color="#991B1B">
-                  "Help me"
+                  {t('voice_prompt_help_me')}
                 </Typography>
               </TouchableOpacity>
             </View>

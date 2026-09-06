@@ -11,7 +11,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 export default function RoleSelectScreen() {
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<'CAREGIVER' | 'PATIENT'>('CAREGIVER');
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const handleContinue = () => {
@@ -57,14 +57,14 @@ export default function RoleSelectScreen() {
         </View>
 
         <Typography size="xxl" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-          Create Account
+          {t('create_account') || 'Create Account'}
         </Typography>
         <Typography size="xs" color={COLORS.textMuted} align="center" style={{ marginTop: 4, marginBottom: SPACING.lg }}>
-          Join Yaad and stay connected with your loved ones
+          {t('join_yaad_desc') || 'Join Yaad and stay connected with your loved ones'}
         </Typography>
 
         <Typography size="sm" weight="bold" color={COLORS.textMuted} style={{ marginBottom: SPACING.xs }}>
-          I am a...
+          {t('i_am_a') || 'I am a...'}
         </Typography>
 
         {/* Role Card 1: Caregiver */}
@@ -83,10 +83,10 @@ export default function RoleSelectScreen() {
 
           <View style={{ flex: 1, marginLeft: SPACING.md }}>
             <Typography size="lg" weight="bold">
-              Caregiver
+              {t('caregiver') || 'Caregiver'}
             </Typography>
             <Typography size="xs" color={COLORS.textMuted}>
-              I want to care for my loved one
+              {t('caregiver_desc') || 'I want to care for my loved one'}
             </Typography>
           </View>
 
@@ -113,10 +113,10 @@ export default function RoleSelectScreen() {
 
           <View style={{ flex: 1, marginLeft: SPACING.md }}>
             <Typography size="lg" weight="bold">
-              Patient
+              {t('patient') || 'Patient'}
             </Typography>
             <Typography size="xs" color={COLORS.textMuted}>
-              I need care and support
+              {t('patient_desc') || 'I need care and support'}
             </Typography>
           </View>
 
@@ -128,7 +128,7 @@ export default function RoleSelectScreen() {
         </TouchableOpacity>
 
         <Button
-          title="Continue"
+          title={t('continue')}
           variant="primary"
           onPress={handleContinue}
           style={styles.continueBtn}
@@ -140,9 +140,9 @@ export default function RoleSelectScreen() {
           style={styles.loginLink}
         >
           <Typography size="sm" color={COLORS.textMuted} align="center">
-            Already have an account?{' '}
+            {t('already_have_account') || 'Already have an account?'}{' '}
             <Typography size="sm" weight="bold" color={COLORS.primary}>
-              Login Now
+              {t('login_now') || 'Login Now'}
             </Typography>
           </Typography>
         </TouchableOpacity>
@@ -150,7 +150,7 @@ export default function RoleSelectScreen() {
         {/* Quick Test UI Shortcut Buttons */}
         <View style={styles.testShortcutContainer}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} align="center" style={{ marginBottom: SPACING.xs }}>
-            QUICK UI TEST LOGIN SHORTCUTS
+            {t('quick_login_shortcuts') || 'QUICK UI TEST LOGIN SHORTCUTS'}
           </Typography>
 
           <View style={styles.testBtnRow}>
@@ -161,7 +161,7 @@ export default function RoleSelectScreen() {
             >
               <User size={16} color="#1E40AF" style={{ marginRight: 6 }} />
               <Typography size="xs" weight="bold" color="#1E40AF">
-                Login as Patient
+                {t('login_as_patient') || 'Login as Patient'}
               </Typography>
             </TouchableOpacity>
 
@@ -172,7 +172,7 @@ export default function RoleSelectScreen() {
             >
               <HeartHandshake size={16} color="#15803D" style={{ marginRight: 6 }} />
               <Typography size="xs" weight="bold" color="#15803D">
-                Login as Caregiver
+                {t('login_as_caregiver') || 'Login as Caregiver'}
               </Typography>
             </TouchableOpacity>
           </View>

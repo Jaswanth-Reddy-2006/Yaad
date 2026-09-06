@@ -9,7 +9,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
 interface RecallExerciseItem {
   id: string;
-  title: string;
+  titleKey: string;
   pastelBg: string;
   borderColor: string;
   titleColor: string;
@@ -20,7 +20,7 @@ interface RecallExerciseItem {
 const EXERCISES_LIST: RecallExerciseItem[] = [
   {
     id: '1',
-    title: 'RECALL DAILY EVENTS',
+    titleKey: 'recall_daily_events',
     pastelBg: '#F5EFFE',
     borderColor: '#C084FC',
     titleColor: '#6D28D9',
@@ -29,7 +29,7 @@ const EXERCISES_LIST: RecallExerciseItem[] = [
   },
   {
     id: '2',
-    title: 'NAME THAT OBJECT',
+    titleKey: 'name_that_object',
     pastelBg: '#E6F9ED',
     borderColor: '#86EFAC',
     titleColor: '#15803D',
@@ -38,7 +38,7 @@ const EXERCISES_LIST: RecallExerciseItem[] = [
   },
   {
     id: '3',
-    title: 'SEQUENCE MEMORY',
+    titleKey: 'sequence_memory',
     pastelBg: '#FFFBEB',
     borderColor: '#FDE68A',
     titleColor: '#D97706',
@@ -57,7 +57,7 @@ export default function RecallMemoryScreen() {
       {/* Header: Back Arrow Button on Left + Bold RECALL MEMORY Title Center */}
       <View style={styles.topHeaderRow}>
         <TouchableOpacity
-          accessibilityLabel="Go Back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.backSquareBtn}
@@ -66,7 +66,7 @@ export default function RecallMemoryScreen() {
         </TouchableOpacity>
 
         <Text style={[styles.headerTitleText, { color: isHc ? COLORS.hcTextPrimary : '#0F172A' }]}>
-          RECALL MEMORY
+          {t('recall_memory')}
         </Text>
 
         <View style={{ width: 44 }} />
@@ -100,7 +100,7 @@ export default function RecallMemoryScreen() {
                 minimumFontScale={0.7}
                 style={[styles.gameTitleText, { color: isHc ? COLORS.hcTextPrimary : item.titleColor }]}
               >
-                {item.title}
+                {t(item.titleKey)}
               </Text>
             </View>
           </TouchableOpacity>

@@ -10,7 +10,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   return (
@@ -20,7 +20,7 @@ export default function OnboardingScreen() {
         <View style={styles.logoSection}>
           <AppLogo size="large" />
           <Typography size="xs" color={COLORS.textMuted} align="center" style={{ marginTop: 4 }}>
-            Together in Every Memory, Every Day
+            {t('onboarding_subtitle') || 'Together in Every Memory, Every Day'}
           </Typography>
         </View>
 
@@ -40,10 +40,10 @@ export default function OnboardingScreen() {
             </View>
             <View style={{ flex: 1, marginLeft: SPACING.md }}>
               <Typography size="base" weight="bold">
-                Cognitive Activities
+                {t('cognitive_activities') || 'Cognitive Activities'}
               </Typography>
               <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 2 }}>
-                Engaging exercises to keep the mind active.
+                {t('cognitive_activities_desc') || 'Engaging exercises to keep the mind active.'}
               </Typography>
             </View>
           </View>
@@ -55,10 +55,10 @@ export default function OnboardingScreen() {
             </View>
             <View style={{ flex: 1, marginLeft: SPACING.md }}>
               <Typography size="base" weight="bold">
-                Smart Reminders
+                {t('smart_reminders') || 'Smart Reminders'}
               </Typography>
               <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 2 }}>
-                Timely alerts for medications, tasks & more.
+                {t('smart_reminders_desc') || 'Timely alerts for medications, tasks & more.'}
               </Typography>
             </View>
           </View>
@@ -70,10 +70,10 @@ export default function OnboardingScreen() {
             </View>
             <View style={{ flex: 1, marginLeft: SPACING.md }}>
               <Typography size="base" weight="bold">
-                Caregiver Insights
+                {t('caregiver_insights') || 'Caregiver Insights'}
               </Typography>
               <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 2 }}>
-                Track progress and important insights.
+                {t('caregiver_insights_desc') || 'Track progress and important insights.'}
               </Typography>
             </View>
           </View>
@@ -85,10 +85,10 @@ export default function OnboardingScreen() {
             </View>
             <View style={{ flex: 1, marginLeft: SPACING.md }}>
               <Typography size="base" weight="bold">
-                Secure & Trusted
+                {t('secure_trusted') || 'Secure & Trusted'}
               </Typography>
               <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 2 }}>
-                Your data is safe, private and protected.
+                {t('secure_trusted_desc') || 'Your data is safe, private and protected.'}
               </Typography>
             </View>
           </View>
@@ -96,7 +96,7 @@ export default function OnboardingScreen() {
 
         {/* Primary Action Button: Get Started */}
         <Button
-          title="Get Started"
+          title={t('get_started') || 'Get Started'}
           variant="primary"
           onPress={() => router.push('/auth/role-select')}
           style={styles.getStartedBtn}
@@ -110,7 +110,7 @@ export default function OnboardingScreen() {
         >
           <Globe size={18} color={COLORS.textSecondary} style={{ marginRight: 6 }} />
           <Typography size="sm" weight="semibold" color={COLORS.textSecondary}>
-            Choose Language
+            {t('choose_language')}
           </Typography>
         </TouchableOpacity>
       </ScrollView>
