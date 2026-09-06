@@ -135,12 +135,32 @@ export const TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
     "take_medicine": "Take Medicine",
     "lunch_time": "Lunch Time",
     "doctor_appointment": "Doctor Appointment",
-    "find_the_match": "FIND THE MATCH",
-    "remember_pictures": "REMEMBER PICTURES",
-    "spot_the_difference": "SPOT THE DIFFERENCE",
-    "recall_daily_events": "RECALL DAILY EVENTS",
-    "name_that_object": "NAME THAT OBJECT",
-    "sequence_memory": "SEQUENCE MEMORY",
+    "find_the_match": "Find the Match",
+    "match_the_cards": "Match the Cards",
+    "match_cards_desc": "Find two pictures that are the same.",
+    "remember_the_pictures": "Remember the Pictures",
+    "remember_pictures_desc": "Look carefully and remember.",
+    "find_three": "Find Three",
+    "find_three_desc": "Find three pictures that belong together.",
+    "daily_routine_recall": "Daily Routine Recall",
+    "daily_routine_desc": "Remember the sequence of daily activities like breakfast, medicine, and walking.",
+    "object_location": "Object–Location Memory",
+    "object_location_desc": "Memorize where each object is placed in the room, then recall its spot.",
+    "story_recall": "Story Recall",
+    "story_recall_desc": "Look at a short picture story, then answer simple questions about people, objects, and events.",
+    "count_the_sheep": "Count the Sheep",
+    "count_sheep_desc": "Watch the sheep enter the house and count how many went inside.",
+    "follow_the_cup": "Follow the Glass",
+    "follow_cup_desc": "Follow the glass with the hidden star and guess where it is.",
+    "animal_sounds": "Animal Sounds",
+    "animal_sounds_desc": "Listen to the sound and tap the matching animal.",
+    "lets_play": "Let's Play",
+    "choose_a_game": "Choose a game",
+    "remember_pictures": "Remember Pictures",
+    "spot_the_difference": "Spot the Difference",
+    "recall_daily_events": "Recall Daily Events",
+    "name_that_object": "Name That Object",
+    "sequence_memory": "Sequence Memory",
     "match_the_triplet": "Match the Triplet",
     "match_the_pair": "Match the Pair",
     "match_pair_sub": "Find and match all the pairs!",
@@ -4991,6 +5011,12 @@ export const TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
 };
 
 export function getTranslation(key: string, lang: LanguageCode = 'en'): string {
+  if (!key) return '';
   const langDict = TRANSLATIONS[lang] || TRANSLATIONS.en;
-  return langDict[key] || TRANSLATIONS.en[key] || key;
+  const raw = langDict?.[key] || TRANSLATIONS.en?.[key];
+  if (raw) {
+    return raw.replace(/_/g, ' ');
+  }
+  const formatted = key.replace(/_/g, ' ');
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }

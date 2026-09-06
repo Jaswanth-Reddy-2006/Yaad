@@ -1,124 +1,171 @@
 import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import {
+  Sparkles,
+  CheckCircle2,
+  Eye,
+  Clock,
+  Search,
+  Layers,
+  Calendar,
+  Zap,
+} from 'lucide-react-native';
 import { Typography } from '../common/Typography';
-import { RADIUS } from '../../constants/theme';
+import { GamePicture } from './GamePicture';
+import { RADIUS, SPACING } from '../../constants/theme';
 
 export interface LocalGamePreviewVideoProps {
   gameType: 'PAIR' | 'REMEMBER' | 'SPOT' | 'SORT' | 'OBJECT' | 'EVENTS';
-  pastelBg: string;
+  pastelBg?: string;
 }
 
+/**
+ * High-quality, clean visual game preview illustration for patient game selection cards.
+ * Native, responsive, accessible, with clear graphical differentiation.
+ */
 export const LocalGamePreviewVideo: React.FC<LocalGamePreviewVideoProps> = ({
   gameType,
-  pastelBg,
+  pastelBg = 'transparent',
 }) => {
-  const getOfflineVideoDataUri = (type: string): string => {
-    let svgBody = '';
-
-    if (type === 'PAIR') {
-      svgBody = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 240" width="100%" height="100%">
-          <defs>
-            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#F3E8FF" />
-              <stop offset="100%" stop-color="#E9D5FF" />
-            </linearGradient>
-            <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.12"/>
-            </filter>
-          </defs>
-
-          <rect width="440" height="240" fill="url(#bgGrad)" rx="16"/>
-
-          <!-- Card 1: Back -->
-          <rect x="25" y="45" width="85" height="125" rx="12" fill="#7C3AED" filter="url(#shadow)"/>
-          <circle cx="67" cy="107" r="18" fill="#FFFFFF" opacity="0.3"/>
-
-          <!-- Card 2: Matching Revealed -->
-          <rect x="125" y="45" width="85" height="125" rx="12" fill="#FFFFFF" stroke="#16A34A" stroke-width="4" filter="url(#shadow)">
-            <animate attributeName="stroke-width" values="4;7;4" dur="1.5s" repeatCount="indefinite"/>
-          </rect>
-          <circle cx="167" cy="107" r="22" fill="#DCFCE7"/>
-          <text x="167" y="113" font-size="14" font-weight="bold" fill="#16A34A" text-anchor="middle">APPLE</text>
-
-          <!-- Card 3: Matching Revealed -->
-          <rect x="225" y="45" width="85" height="125" rx="12" fill="#FFFFFF" stroke="#16A34A" stroke-width="4" filter="url(#shadow)">
-            <animate attributeName="stroke-width" values="4;7;4" dur="1.5s" repeatCount="indefinite"/>
-          </rect>
-          <circle cx="267" cy="107" r="22" fill="#DCFCE7"/>
-          <text x="267" y="113" font-size="14" font-weight="bold" fill="#16A34A" text-anchor="middle">APPLE</text>
-
-          <!-- Card 4: Back -->
-          <rect x="325" y="45" width="85" height="125" rx="12" fill="#7C3AED" filter="url(#shadow)"/>
-          <circle cx="367" cy="107" r="18" fill="#FFFFFF" opacity="0.3"/>
-
-          <rect x="140" y="192" width="160" height="32" rx="16" fill="#15803D"/>
-          <text x="220" y="213" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">MATCH FOUND</text>
-        </svg>
-      `;
-    } else if (type === 'REMEMBER') {
-      svgBody = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 240" width="100%" height="100%">
-          <rect width="440" height="240" fill="#DCFCE7" rx="16"/>
-          
-          <g>
-            <rect x="40" y="35" width="100" height="100" rx="14" fill="#FFFFFF" stroke="#16A34A" stroke-width="3"/>
-            <text x="90" y="90" font-size="14" font-weight="bold" fill="#16A34A" text-anchor="middle">APPLE</text>
-
-            <rect x="170" y="35" width="100" height="100" rx="14" fill="#FFFFFF" stroke="#16A34A" stroke-width="3"/>
-            <text x="220" y="90" font-size="14" font-weight="bold" fill="#16A34A" text-anchor="middle">FLOWER</text>
-
-            <rect x="300" y="35" width="100" height="100" rx="14" fill="#FFFFFF" stroke="#16A34A" stroke-width="3"/>
-            <text x="350" y="90" font-size="14" font-weight="bold" fill="#16A34A" text-anchor="middle">STAR</text>
-          </g>
-
-          <circle cx="220" cy="180" r="28" fill="none" stroke="#E2E8F0" stroke-width="6"/>
-          <circle cx="220" cy="180" r="28" fill="none" stroke="#F59E0B" stroke-width="6" stroke-dasharray="175" stroke-dashoffset="40">
-            <animateTransform attributeName="transform" type="rotate" from="0 220 180" to="360 220 180" dur="4s" repeatCount="indefinite"/>
-          </circle>
-          <text x="220" y="188" font-size="22" font-weight="bold" fill="#B45309" text-anchor="middle">5s</text>
-
-          <text x="220" y="225" font-size="14" font-weight="bold" fill="#15803D" text-anchor="middle">Memorize Pictures...</text>
-        </svg>
-      `;
-    } else {
-      svgBody = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 240" width="100%" height="100%">
-          <rect width="440" height="240" fill="#FEF3C7" rx="16"/>
-
-          <rect x="40" y="40" width="160" height="120" rx="14" fill="#FFFFFF" stroke="#D97706" stroke-width="3"/>
-          <text x="120" y="105" font-size="16" font-weight="bold" fill="#B45309" text-anchor="middle">SCENE 1</text>
-
-          <rect x="240" y="40" width="160" height="120" rx="14" fill="#FFFFFF" stroke="#D97706" stroke-width="3"/>
-          <text x="320" y="105" font-size="16" font-weight="bold" fill="#B45309" text-anchor="middle">SCENE 2</text>
-
-          <text x="220" y="205" font-size="16" font-weight="bold" fill="#B45309" text-anchor="middle">Spot the Difference</text>
-        </svg>
-      `;
-    }
-
-    return `data:image/svg+xml;utf8,${encodeURIComponent(svgBody)}`;
-  };
-
-  const svgUri = getOfflineVideoDataUri(gameType);
-
-  if (Platform.OS === 'web') {
+  if (gameType === 'PAIR') {
     return (
       <View style={[styles.container, { backgroundColor: pastelBg }]}>
-        <img
-          src={svgUri}
-          alt="Animated Game Demonstration Video"
-          style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 16 }}
-        />
+        <View style={styles.pairCardsContainer}>
+          {/* Card 1: Apple */}
+          <View style={[styles.miniCard, styles.cardTiltedLeft]}>
+            <GamePicture symbolId="apple" size="sm" showLabel={false} />
+          </View>
+
+          {/* Sparkle Match Badge */}
+          <View style={styles.matchLinkBadge}>
+            <Sparkles size={16} color="#EAB308" />
+          </View>
+
+          {/* Card 2: Apple (Matching) */}
+          <View style={[styles.miniCard, styles.cardTiltedRight, styles.matchingCardBorder]}>
+            <GamePicture symbolId="apple" size="sm" showLabel={false} />
+            <View style={styles.miniCheckBadge}>
+              <CheckCircle2 size={12} color="#FFFFFF" />
+            </View>
+          </View>
+        </View>
+
+        {/* Bottom Tag */}
+        <View style={styles.previewTag}>
+          <Typography size="xs" weight="bold" color="#16A34A">
+            Match Pairs
+          </Typography>
+        </View>
       </View>
     );
   }
 
+  if (gameType === 'REMEMBER') {
+    return (
+      <View style={[styles.container, { backgroundColor: pastelBg }]}>
+        <View style={styles.rememberSequenceContainer}>
+          <View style={[styles.miniSequenceCard, { borderColor: '#FECDD3' }]}>
+            <GamePicture symbolId="flower" size="sm" showLabel={false} />
+          </View>
+          <View style={[styles.miniSequenceCard, { borderColor: '#FDE68A' }]}>
+            <GamePicture symbolId="sun" size="sm" showLabel={false} />
+          </View>
+          <View style={[styles.miniSequenceCard, { borderColor: '#BBF7D0' }]}>
+            <GamePicture symbolId="tree" size="sm" showLabel={false} />
+          </View>
+        </View>
+
+        {/* Bottom Tag with Memory Icon */}
+        <View style={[styles.previewTag, { backgroundColor: '#DCFCE7' }]}>
+          <Eye size={13} color="#15803D" style={{ marginRight: 4 }} />
+          <Typography size="xs" weight="bold" color="#15803D">
+            Memorize
+          </Typography>
+        </View>
+      </View>
+    );
+  }
+
+  if (gameType === 'SPOT') {
+    return (
+      <View style={[styles.container, { backgroundColor: pastelBg }]}>
+        <View style={styles.spotScenesContainer}>
+          <View style={[styles.miniSceneBox, { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' }]}>
+            <GamePicture symbolId="sun" size="sm" showLabel={false} />
+          </View>
+          <View style={styles.searchIndicator}>
+            <Search size={14} color="#D97706" />
+          </View>
+          <View style={[styles.miniSceneBox, { backgroundColor: '#FFEDD5', borderColor: '#FED7AA' }]}>
+            <GamePicture symbolId="star" size="sm" showLabel={false} />
+          </View>
+        </View>
+
+        <View style={[styles.previewTag, { backgroundColor: '#FEF3C7' }]}>
+          <Typography size="xs" weight="bold" color="#B45309">
+            Spot Details
+          </Typography>
+        </View>
+      </View>
+    );
+  }
+
+  if (gameType === 'EVENTS') {
+    return (
+      <View style={[styles.container, { backgroundColor: pastelBg }]}>
+        <View style={styles.rememberSequenceContainer}>
+          <View style={[styles.miniSequenceCard, { borderColor: '#C7D2FE' }]}>
+            <Calendar size={22} color="#4F46E5" />
+          </View>
+          <View style={[styles.miniSequenceCard, { borderColor: '#E0E7FF' }]}>
+            <Clock size={22} color="#6366F1" />
+          </View>
+        </View>
+        <View style={[styles.previewTag, { backgroundColor: '#EDE9FE' }]}>
+          <Typography size="xs" weight="bold" color="#6D28D9">
+            Daily Events
+          </Typography>
+        </View>
+      </View>
+    );
+  }
+
+  if (gameType === 'OBJECT') {
+    return (
+      <View style={[styles.container, { backgroundColor: pastelBg }]}>
+        <View style={styles.rememberSequenceContainer}>
+          <View style={[styles.miniSequenceCard, { borderColor: '#BBF7D0' }]}>
+            <GamePicture symbolId="home" size="sm" showLabel={false} />
+          </View>
+          <View style={[styles.miniSequenceCard, { borderColor: '#FED7AA' }]}>
+            <GamePicture symbolId="cup" size="sm" showLabel={false} />
+          </View>
+        </View>
+        <View style={[styles.previewTag, { backgroundColor: '#DCFCE7' }]}>
+          <Typography size="xs" weight="bold" color="#15803D">
+            Name Objects
+          </Typography>
+        </View>
+      </View>
+    );
+  }
+
+  // Fallback / SORT
   return (
     <View style={[styles.container, { backgroundColor: pastelBg }]}>
-      <Typography size="lg" weight="bold" align="center" color="#16A34A">
-        Demo Animation
-      </Typography>
+      <View style={styles.rememberSequenceContainer}>
+        <View style={[styles.miniSequenceCard, { borderColor: '#FDE68A' }]}>
+          <Layers size={22} color="#D97706" />
+        </View>
+        <View style={[styles.miniSequenceCard, { borderColor: '#FDE68A' }]}>
+          <Zap size={22} color="#EAB308" />
+        </View>
+      </View>
+      <View style={[styles.previewTag, { backgroundColor: '#FEF3C7' }]}>
+        <Typography size="xs" weight="bold" color="#B45309">
+          Sequence
+        </Typography>
+      </View>
     </View>
   );
 };
@@ -126,10 +173,113 @@ export const LocalGamePreviewVideo: React.FC<LocalGamePreviewVideoProps> = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 190,
-    borderRadius: RADIUS.md,
-    overflow: 'hidden',
+    height: '100%',
+    minHeight: 110,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: SPACING.xs,
+  },
+  pairCardsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  miniCard: {
+    width: 48,
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.md,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardTiltedLeft: {
+    transform: [{ rotate: '-8deg' }],
+    marginRight: -6,
+    zIndex: 1,
+  },
+  cardTiltedRight: {
+    transform: [{ rotate: '8deg' }],
+    marginLeft: -6,
+    zIndex: 2,
+  },
+  matchingCardBorder: {
+    borderColor: '#16A34A',
+    borderWidth: 2.2,
+    backgroundColor: '#F0FDF4',
+  },
+  matchLinkBadge: {
+    zIndex: 3,
+    backgroundColor: '#FEF3C7',
+    borderRadius: RADIUS.full,
+    padding: 3,
+    borderWidth: 1.5,
+    borderColor: '#FDE68A',
+  },
+  miniCheckBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#16A34A',
+    borderRadius: RADIUS.full,
+    padding: 2,
+  },
+  rememberSequenceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  miniSequenceCard: {
+    width: 42,
+    height: 52,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.md,
+    borderWidth: 1.8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  spotScenesContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  miniSceneBox: {
+    width: 44,
+    height: 54,
+    borderRadius: RADIUS.md,
+    borderWidth: 1.8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchIndicator: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: RADIUS.full,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  previewTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
   },
 });

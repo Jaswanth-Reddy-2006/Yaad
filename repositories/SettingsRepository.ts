@@ -1,7 +1,8 @@
 import { getDatabase } from '../database/db';
 import { AccessibilityPreferences, VoicePreferences } from '../types';
-import { LOCAL_PATIENT_ID } from '../database/seed';
+import { LOCAL_PATIENT_ID, ensurePatientProfile } from '../database/seed';
 import { LanguageCode } from '../constants/translations';
+import { authService } from '../services/AuthService';
 
 export interface ISettingsRepository {
   getAccessibilityPreferences(): Promise<AccessibilityPreferences>;
@@ -13,11 +14,19 @@ export interface ISettingsRepository {
 }
 
 export class SQLiteSettingsRepository implements ISettingsRepository {
+  private async resolvePatientId(): Promise<string> {
+    const authId = await authService.getUserId();
+    return authId || LOCAL_PATIENT_ID;
+  }
+
   async getAccessibilityPreferences(): Promise<AccessibilityPreferences> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     const row = (await db.getFirstAsync(
       'SELECT * FROM accessibility_preferences WHERE patient_id = ?',
-      [LOCAL_PATIENT_ID]
+      [patientId]
     )) as {
       text_size: string;
       high_contrast: number;
@@ -38,12 +47,15 @@ export class SQLiteSettingsRepository implements ISettingsRepository {
 
   async updateAccessibilityPreferences(prefs: Partial<AccessibilityPreferences>): Promise<AccessibilityPreferences> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     const current = await this.getAccessibilityPreferences();
     const updated = { ...current, ...prefs };
 
     await db.runAsync(
       `UPDATE accessibility_preferences SET text_size = ?, high_contrast = ?, easy_read = ? WHERE patient_id = ?`,
-      [updated.textSize, updated.highContrast ? 1 : 0, updated.easyRead ? 1 : 0, LOCAL_PATIENT_ID]
+      [updated.textSize, updated.highContrast ? 1 : 0, updated.easyRead ? 1 : 0, patientId]
     );
 
     return updated;
@@ -51,9 +63,12 @@ export class SQLiteSettingsRepository implements ISettingsRepository {
 
   async getVoicePreferences(): Promise<VoicePreferences> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     const row = (await db.getFirstAsync(
       'SELECT * FROM voice_preferences WHERE patient_id = ?',
-      [LOCAL_PATIENT_ID]
+      [patientId]
     )) as {
       enabled: number;
       speech_rate: number;
@@ -75,12 +90,15 @@ export class SQLiteSettingsRepository implements ISettingsRepository {
 
   async updateVoicePreferences(prefs: Partial<VoicePreferences>): Promise<VoicePreferences> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     const current = await this.getVoicePreferences();
     const updated = { ...current, ...prefs };
 
     await db.runAsync(
       `UPDATE voice_preferences SET enabled = ?, speech_rate = ?, pitch = ?, language = ? WHERE patient_id = ?`,
-      [updated.enabled ? 1 : 0, updated.speechRate, updated.pitch, updated.language, LOCAL_PATIENT_ID]
+      [updated.enabled ? 1 : 0, updated.speechRate, updated.pitch, updated.language, patientId]
     );
 
     return updated;
@@ -88,9 +106,12 @@ export class SQLiteSettingsRepository implements ISettingsRepository {
 
   async getPreferredLanguage(): Promise<LanguageCode> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     const row = (await db.getFirstAsync(
       'SELECT preferred_language FROM patient_profile WHERE id = ?',
-      [LOCAL_PATIENT_ID]
+      [patientId]
     )) as { preferred_language: string } | null;
 
     return (row?.preferred_language as LanguageCode) || 'en';
@@ -98,11 +119,14 @@ export class SQLiteSettingsRepository implements ISettingsRepository {
 
   async updatePreferredLanguage(lang: LanguageCode): Promise<LanguageCode> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     const now = new Date().toISOString();
 
     await db.runAsync(
       'UPDATE patient_profile SET preferred_language = ?, updated_at = ? WHERE id = ?',
-      [lang, now, LOCAL_PATIENT_ID]
+      [lang, now, patientId]
     );
 
     return lang;

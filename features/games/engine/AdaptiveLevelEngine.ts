@@ -30,8 +30,14 @@ export class AdaptiveLevelEngine {
     }
 
     if (currentDifficulty === 'HARD') {
+      if (isHighPerformance && timeTaken < 40) return 'EXPERT';
       if (needsPractice) return 'MEDIUM';
       return 'HARD';
+    }
+
+    if (currentDifficulty === 'EXPERT') {
+      if (needsPractice) return 'HARD';
+      return 'EXPERT';
     }
 
     return 'EASY';

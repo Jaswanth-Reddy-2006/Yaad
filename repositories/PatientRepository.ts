@@ -1,6 +1,7 @@
 import { getDatabase } from '../database/db';
 import { PatientProfile } from '../types';
-import { LOCAL_PATIENT_ID } from '../database/seed';
+import { LOCAL_PATIENT_ID, ensurePatientProfile } from '../database/seed';
+import { authService } from '../services/AuthService';
 
 export interface IPatientRepository {
   getProfile(): Promise<PatientProfile | null>;
@@ -8,11 +9,19 @@ export interface IPatientRepository {
 }
 
 export class SQLitePatientRepository implements IPatientRepository {
+  private async resolvePatientId(): Promise<string> {
+    const authId = await authService.getUserId();
+    return authId || LOCAL_PATIENT_ID;
+  }
+
   async getProfile(): Promise<PatientProfile | null> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     const row = (await db.getFirstAsync(
       'SELECT * FROM patient_profile WHERE id = ?',
-      [LOCAL_PATIENT_ID]
+      [patientId]
     )) as {
       id: string;
       display_name: string;
@@ -38,10 +47,13 @@ export class SQLitePatientRepository implements IPatientRepository {
 
   async updateDisplayName(name: string): Promise<PatientProfile> {
     const db = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId, name);
+
     const now = new Date().toISOString();
     await db.runAsync(
       'UPDATE patient_profile SET display_name = ?, updated_at = ? WHERE id = ?',
-      [name, now, LOCAL_PATIENT_ID]
+      [name, now, patientId]
     );
     const profile = await this.getProfile();
     if (!profile) throw new Error('Failed to update patient profile');

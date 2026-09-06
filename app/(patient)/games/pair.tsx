@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Sparkles, Trophy, RotateCcw, Award, LogOut } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Sparkles,
+  Clock,
+  Target,
+  LogOut,
+} from 'lucide-react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
 import { Typography } from '../../../components/common/Typography';
+import { ListenButton } from '../../../components/common/ListenButton';
 import { GameCard } from '../../../components/games/GameCard';
+import { GameResultModal, LeaveGameModal } from '../../../components/games/GameResultModal';
 import { COLORS, RADIUS, SPACING } from '../../../constants/theme';
 import { GameController, GameState } from '../../../features/games/engine/GameController';
 import { GameDifficulty } from '../../../types';
@@ -13,11 +21,13 @@ import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 export default function PairGameScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ difficulty?: string }>();
-  const difficulty: GameDifficulty = (params.difficulty as GameDifficulty) || 'EASY';
+  const initialDifficulty: GameDifficulty = (params.difficulty as GameDifficulty) || 'EASY';
 
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
+  const { width: screenWidth } = useWindowDimensions();
 
+  const [difficulty, setDifficulty] = useState<GameDifficulty>(initialDifficulty);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const controllerRef = useRef<GameController | null>(null);
@@ -34,8 +44,25 @@ export default function PairGameScreen() {
     };
   }, [difficulty]);
 
+  const handleSelectLevel = (newDifficulty: GameDifficulty) => {
+    if (newDifficulty === difficulty) return;
+    setDifficulty(newDifficulty);
+  };
+
+  const handleNextLevel = () => {
+    if (difficulty === 'EASY') setDifficulty('MEDIUM');
+    else if (difficulty === 'MEDIUM') setDifficulty('HARD');
+    else if (difficulty === 'HARD') setDifficulty('EXPERT');
+    else controllerRef.current?.restart();
+  };
+
   const handleBackPress = () => {
-    if (gameState && (gameState.status === 'PLAYING' || gameState.status === 'EVALUATING' || gameState.status === 'FEEDBACK')) {
+    if (
+      gameState &&
+      (gameState.status === 'PLAYING' ||
+        gameState.status === 'EVALUATING' ||
+        gameState.status === 'FEEDBACK')
+    ) {
       controllerRef.current?.pause();
       setShowLeaveModal(true);
     } else {
@@ -62,257 +89,228 @@ export default function PairGameScreen() {
 
   if (!gameState) return null;
 
-  const hintDisabled = gameState.hintCooldownActive || gameState.hintsUsed >= 3 || gameState.isLocked;
+  const hintDisabled =
+    gameState.hintCooldownActive || gameState.hintsUsed >= 3 || gameState.isLocked;
+
+  // Responsive column calculation: 2x2 for Easy (4 cards), 3x4 for Medium (12 cards), 4x4 for Hard/Expert (16 cards)
+  const numColumns =
+    gameState.cards.length <= 4 ? 2 : gameState.cards.length === 12 ? 3 : 4;
+
+  // Compute exact pixel card sizes to avoid percentage+gap conflicts in flexWrap
+  const horizontalPadding = SPACING.md * 2; // container paddingHorizontal on both sides
+  const cardGap = 10; // gap between cards (px)
+  const totalGaps = (numColumns - 1) * cardGap;
+  const cardPixelWidth = Math.floor((screenWidth - horizontalPadding - totalGaps) / numColumns);
+  const cardPixelHeight = Math.round(cardPixelWidth * (numColumns === 2 ? 0.95 : numColumns === 3 ? 0.88 : 0.82));
+
+  // Chunk cards into rows for stable rendering
+  const cardRows: typeof gameState.cards[] = [];
+  for (let i = 0; i < gameState.cards.length; i += numColumns) {
+    cardRows.push(gameState.cards.slice(i, i + numColumns));
+  }
+
+  // Prompt text
+  const flippedUnmatched = gameState.cards.filter((c) => c.isFlipped && !c.isMatched);
+  let promptText = t('match_pair_instruction') || '👉 Tap two cards to find matching pictures';
+  if (gameState.matchesCount === gameState.totalRequiredMatches && gameState.status === 'COMPLETED') {
+    promptText = '🎉 ' + (t('wonderful_job') || 'Wonderful Job! All pairs matched!');
+  } else if (flippedUnmatched.length === 1) {
+    const symTitle = t(flippedUnmatched[0].symbolId) || flippedUnmatched[0].title;
+    promptText = `✨ Find the matching ${symTitle}!`;
+  } else if (gameState.status === 'FEEDBACK') {
+    promptText = '🎉 ' + (t('great_job') || 'Great match!');
+  }
+
+  // Progress percentage
+  const progressPercent = Math.min(
+    100,
+    Math.round((gameState.matchesCount / Math.max(1, gameState.totalRequiredMatches)) * 100)
+  );
+
+  const voiceInstructions = `Match the Cards. Look at the cards carefully and tap two cards to find matching pictures. Take your time.`;
+
+  const levelNum = difficulty === 'EASY' ? 1 : difficulty === 'MEDIUM' ? 2 : difficulty === 'HARD' ? 3 : 4;
+  const levelLabel = `Level ${levelNum}`;
 
   return (
-    <ScreenContainer scrollable style={styles.container}>
-      {/* Header */}
-      <View style={styles.topHeaderRow}>
+    <ScreenContainer scrollable={true} style={styles.container}>
+      {/* Top Navigation Row: Back Button & Listen Button */}
+      <View style={styles.navRow}>
         <TouchableOpacity
-          accessibilityLabel={t('go_back')}
+          accessibilityLabel={t('go_back') || 'Go Back'}
           accessibilityRole="button"
           onPress={handleBackPress}
-          style={styles.backBtn}
+          style={[styles.backSquareBtn, { backgroundColor: isHc ? '#1E293B' : '#FFFFFF' }]}
         >
-          <ArrowLeft size={28} color={isHc ? COLORS.hcTextPrimary : '#0F172A'} />
+          <ArrowLeft size={24} color={isHc ? COLORS.hcTextPrimary : '#6D28D9'} strokeWidth={2.5} />
         </TouchableOpacity>
 
-        <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} style={{ marginLeft: SPACING.xs }}>
-          {t('play_game')} • {t('match_the_pair')} ({difficulty})
-        </Typography>
+        <ListenButton
+          textToSpeak={voiceInstructions}
+          label="LISTEN"
+          size="sm"
+          variant="secondary"
+        />
       </View>
 
-      {/* Game Stats & Hint Button Bar */}
-      <View style={styles.statsBar}>
-        <View style={styles.statBox}>
-          <Typography size="xs" color={COLORS.textMuted}>
-            {t('matched')}
+      {/* Title & Level Header */}
+      <View style={styles.titleSection}>
+        <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} align="center">
+          {t('match_the_cards') || 'Match the Cards'}
+        </Typography>
+        <View style={styles.difficultyBadge}>
+          <Typography size="xs" weight="bold" color="#6D28D9">
+            {levelLabel} • {gameState.totalRequiredMatches} Pairs
           </Typography>
-          <Typography size="lg" weight="bold" color="#16A34A">
+        </View>
+      </View>
+
+      {/* Clean Minimal Stat Chips Row (Matched, Time, Hint) */}
+      <View style={styles.statsChipsRow}>
+        {/* Stat 1: Matched Pairs */}
+        <View style={[styles.statChip, { backgroundColor: isHc ? '#064E3B' : '#DCFCE7', borderColor: '#BBF7D0' }]}>
+          <Target size={18} color="#16A34A" />
+          <Typography size="sm" weight="bold" color="#15803D" style={{ marginLeft: 6 }}>
             {gameState.matchesCount} / {gameState.totalRequiredMatches}
           </Typography>
         </View>
 
-        <View style={styles.statBox}>
-          <Typography size="xs" color={COLORS.textMuted}>
-            {t('time')}
-          </Typography>
-          <Typography size="lg" weight="bold" color="#2563EB">
+        {/* Stat 2: Timer */}
+        <View style={[styles.statChip, { backgroundColor: isHc ? '#1E3A8A' : '#DBEAFE', borderColor: '#BFDBFE' }]}>
+          <Clock size={18} color="#2563EB" />
+          <Typography size="sm" weight="bold" color="#1D4ED8" style={{ marginLeft: 6 }}>
             {formatTimer(gameState.elapsedSeconds)}
           </Typography>
         </View>
 
+        {/* Stat 3: Hint Action Button */}
         <TouchableOpacity
           activeOpacity={0.8}
           disabled={hintDisabled}
           onPress={() => controllerRef.current?.useHint()}
-          style={[styles.hintBtn, hintDisabled ? styles.hintBtnDisabled : null]}
+          style={[
+            styles.statChip,
+            { backgroundColor: isHc ? '#78350F' : '#FEF3C7', borderColor: '#FDE68A' },
+            hintDisabled ? styles.hintBtnDisabled : null,
+          ]}
         >
-          <Sparkles size={18} color={hintDisabled ? COLORS.textMuted : '#D97706'} style={{ marginRight: 4 }} />
-          <Typography size="xs" weight="bold" color={hintDisabled ? COLORS.textMuted : '#B45309'}>
-            {t('hint')} ({3 - gameState.hintsUsed})
+          <Sparkles size={16} color={hintDisabled ? COLORS.textMuted : '#D97706'} />
+          <Typography size="sm" weight="bold" color={hintDisabled ? COLORS.textMuted : '#B45309'} style={{ marginLeft: 5 }}>
+            {t('hint') || 'Hint'} ({3 - gameState.hintsUsed})
           </Typography>
         </TouchableOpacity>
       </View>
 
-      {/* Board Grid */}
+      {/* Board Grid: Row-by-row layout with exact pixel widths to ensure correct wrapping */}
       <View style={styles.boardGrid}>
-        {gameState.cards.map((card, idx) => (
-          <GameCard
-            key={card.id}
-            card={card}
-            positionIndex={idx}
-            disabled={gameState.isLocked}
-            onSelect={(id) => controllerRef.current?.selectCard(id)}
-          />
+        {cardRows.map((row, rowIdx) => (
+          <View key={`row-${rowIdx}`} style={[styles.cardRow, { gap: cardGap }]}>
+            {row.map((card, colIdx) => (
+              <GameCard
+                key={card.id}
+                card={card}
+                positionIndex={rowIdx * numColumns + colIdx}
+                numColumns={numColumns}
+                customWidth={cardPixelWidth}
+                disabled={gameState.isLocked}
+                onSelect={(id) => controllerRef.current?.selectCard(id)}
+              />
+            ))}
+          </View>
         ))}
       </View>
 
-      {/* Encouragement Box */}
-      <View style={styles.encouragementBox}>
-        <Award size={20} color="#16A34A" style={{ marginRight: 8 }} />
-        <Typography size="xs" color="#166534" weight="bold">
-          {t('great_job_encouragement')}
-        </Typography>
-      </View>
-
       {/* Abandon Confirmation Modal */}
-      <Modal visible={showLeaveModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <LogOut size={40} color="#DC2626" />
-            <Typography size="xl" weight="bold" align="center" style={{ marginTop: SPACING.md }}>
-              {t('leave_game_title')}
-            </Typography>
-            <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: 4 }}>
-              {t('leave_game_desc')}
-            </Typography>
+      <LeaveGameModal
+        visible={showLeaveModal}
+        gameTitle="Match the Pairs"
+        onCancel={cancelLeave}
+        onConfirm={confirmLeave}
+      />
 
-            <View style={{ flexDirection: 'row', marginTop: SPACING.lg, gap: SPACING.sm }}>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={cancelLeave}
-                style={[styles.modalActionBtn, { backgroundColor: COLORS.surfaceVariant }]}
-              >
-                <Typography size="sm" weight="bold" color="#0F172A">
-                  {t('continue_game')}
-                </Typography>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={confirmLeave}
-                style={[styles.modalActionBtn, { backgroundColor: '#DC2626' }]}
-              >
-                <Typography size="sm" weight="bold" color="#FFFFFF">
-                  {t('leave')}
-                </Typography>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Celebratory Results Modal */}
-      <Modal visible={gameState.status === 'COMPLETED'} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.trophyCircle}>
-              <Trophy size={48} color="#D97706" />
-            </View>
-
-            <Typography size="xxl" weight="bold" align="center" style={{ marginTop: SPACING.md }}>
-              {t('wonderful_job')}
-            </Typography>
-
-            <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: 4 }}>
-              {t('matched_all_pairs')} ({formatTimer(gameState.elapsedSeconds)})
-            </Typography>
-
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => controllerRef.current?.restart()}
-              style={styles.playAgainBtn}
-            >
-              <RotateCcw size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-              <Typography size="base" weight="bold" color="#FFFFFF">
-                {t('play_next_level')}
-              </Typography>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => router.back()}
-              style={{ marginTop: SPACING.md }}
-            >
-              <Typography size="sm" color={COLORS.textMuted} weight="bold">
-                {t('back_to_games')}
-              </Typography>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* Victory Celebration Modal */}
+      <GameResultModal
+        visible={gameState.status === 'COMPLETED'}
+        result={gameState.result || null}
+        playAgainLabel={difficulty === 'EXPERT' ? 'PLAY AGAIN' : 'NEXT LEVEL'}
+        onPlayAgain={handleNextLevel}
+        onGoHome={() => router.replace('/(patient)/games')}
+      />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingBottom: SPACING.lg,
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.xl,
   },
-  topHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.xs,
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statsBar: {
+  navRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    marginVertical: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.surfaceVariant,
+    paddingVertical: SPACING.xs,
   },
-  statBox: {
+  backSquareBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  hintBtn: {
+  titleSection: {
+    alignItems: 'center',
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.sm,
+  },
+  difficultyBadge: {
+    backgroundColor: '#F5EFFE',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
+    marginTop: 4,
+  },
+  statsChipsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 8,
+    justifyContent: 'space-between',
+    marginVertical: SPACING.xs,
+    gap: 8,
+  },
+  statChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 8,
     borderRadius: RADIUS.full,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 2,
   },
   hintBtnDisabled: {
     backgroundColor: '#F3F4F6',
     borderColor: '#E5E7EB',
-    opacity: 0.6,
+    opacity: 0.55,
   },
   boardGrid: {
+    flexDirection: 'column',
+    gap: 10,
+    marginTop: SPACING.sm,
+  },
+  cardRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'center',
-    marginVertical: SPACING.sm,
-  },
-  encouragementBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#DCFCE7',
-    padding: SPACING.md,
-    borderRadius: RADIUS.lg,
-    marginTop: SPACING.md,
-    borderWidth: 1,
-    borderColor: '#86EFAC',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: SPACING.lg,
-  },
-  modalCard: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
-    alignItems: 'center',
-  },
-  modalActionBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: RADIUS.lg,
-    alignItems: 'center',
-  },
-  trophyCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: RADIUS.full,
-    backgroundColor: '#FEF3C7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playAgainBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: 14,
-    borderRadius: RADIUS.lg,
-    marginTop: SPACING.lg,
-    width: '100%',
   },
 });

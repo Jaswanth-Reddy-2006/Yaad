@@ -1,6 +1,7 @@
 import { getDatabase } from '../database/db';
 import { Reminder, ReminderStatus } from '../types';
-import { LOCAL_PATIENT_ID } from '../database/seed';
+import { LOCAL_PATIENT_ID, ensurePatientProfile } from '../database/seed';
+import { authService } from '../services/AuthService';
 
 export interface IReminderRepository {
   getReminders(): Promise<Reminder[]>;
@@ -10,11 +11,19 @@ export interface IReminderRepository {
 }
 
 export class SQLiteReminderRepository implements IReminderRepository {
+  private async resolvePatientId(): Promise<string> {
+    const authId = await authService.getUserId();
+    return authId || LOCAL_PATIENT_ID;
+  }
+
   async getReminders(): Promise<Reminder[]> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     const rows = (await db.getAllAsync(
       'SELECT * FROM reminders WHERE patient_id = ? ORDER BY id ASC',
-      [LOCAL_PATIENT_ID]
+      [patientId]
     )) as Array<{
       id: string;
       patient_id: string;
@@ -48,17 +57,23 @@ export class SQLiteReminderRepository implements IReminderRepository {
 
   async updateStatus(id: string, status: ReminderStatus): Promise<void> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     await db.runAsync(
       'UPDATE reminders SET status = ? WHERE id = ? AND patient_id = ?',
-      [status, id, LOCAL_PATIENT_ID]
+      [status, id, patientId]
     );
   }
 
   async snoozeReminder(id: string): Promise<void> {
     const db: any = await getDatabase();
+    const patientId = await this.resolvePatientId();
+    await ensurePatientProfile(db, patientId);
+
     await db.runAsync(
       'UPDATE reminders SET is_snoozed = 1, status = "UPCOMING" WHERE id = ? AND patient_id = ?',
-      [id, LOCAL_PATIENT_ID]
+      [id, patientId]
     );
   }
 }

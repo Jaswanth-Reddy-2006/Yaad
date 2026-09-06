@@ -56,13 +56,12 @@ export class ModelAssetResolver {
       resolvedPathCache.set(direction, resolved);
       return resolved;
     } else {
-      // Desktop / Node / Jest environment
-      const path = require('path');
-      const baseDir = path.resolve(__dirname, `../../assets/models/onnx/${direction}-onnx-int8`);
+      // Desktop / Node / Jest fallback environment without node-specific imports
+      const baseDir = `../../assets/models/onnx/${direction}-onnx-int8`;
       const resolved: ResolvedDirectionModels = {
-        encoderPath: path.join(baseDir, 'encoder.onnx'),
-        decoderPath: path.join(baseDir, 'decoder.onnx'),
-        lmHeadPath: path.join(baseDir, 'lm_head.onnx'),
+        encoderPath: `${baseDir}/encoder.onnx`,
+        decoderPath: `${baseDir}/decoder.onnx`,
+        lmHeadPath: `${baseDir}/lm_head.onnx`,
       };
 
       resolvedPathCache.set(direction, resolved);

@@ -3,37 +3,61 @@ import { PatientProfile, ConnectionIdentity, DailyTask, Reminder } from '../type
 
 export const LOCAL_PATIENT_ID = 'local-dev-patient-uuid-001';
 
-export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
+export async function ensurePatientProfile(
+  db: any,
+  patientId: string,
+  displayName: string = 'Dada (Patient)'
+): Promise<void> {
+  if (!patientId) return;
   const now = new Date().toISOString();
 
-  // Check if profile exists
-  const existingProfile = await db.getFirstAsync<{ id: string }>(
-    'SELECT id FROM patient_profile WHERE id = ?',
-    [LOCAL_PATIENT_ID]
-  );
-
-  if (!existingProfile) {
-    // 1. Insert Patient Profile
+  try {
+    // 1. Ensure patient profile exists
     await db.runAsync(
-      `INSERT INTO patient_profile (id, display_name, age, preferred_language, timezone, created_at, updated_at)
+      `INSERT OR IGNORE INTO patient_profile (id, display_name, age, preferred_language, timezone, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [LOCAL_PATIENT_ID, 'Dada (Patient)', 72, 'en', 'Asia/Kolkata', now, now]
+      [patientId, displayName, 72, 'en', 'Asia/Kolkata', now, now]
     );
 
-    // 2. Insert Accessibility Preferences
+    // 2. Ensure accessibility preferences exist
     await db.runAsync(
-      `INSERT INTO accessibility_preferences (patient_id, text_size, high_contrast, easy_read)
+      `INSERT OR IGNORE INTO accessibility_preferences (patient_id, text_size, high_contrast, easy_read)
        VALUES (?, ?, ?, ?)`,
-      [LOCAL_PATIENT_ID, 'LARGE', 0, 1]
+      [patientId, 'LARGE', 0, 1]
     );
 
-    // 3. Insert Voice Preferences
+    // 3. Ensure voice preferences exist
     await db.runAsync(
-      `INSERT INTO voice_preferences (patient_id, enabled, speech_rate, pitch, language)
+      `INSERT OR IGNORE INTO voice_preferences (patient_id, enabled, speech_rate, pitch, language)
        VALUES (?, ?, ?, ?, ?)`,
-      [LOCAL_PATIENT_ID, 1, 0.85, 1.0, 'en-IN']
+      [patientId, 1, 0.85, 1.0, 'en-IN']
     );
+  } catch (e) {
+    // Guard against concurrency or already-existing rows
+  }
+}
 
+export async function seedDatabase(db: SQLiteDatabase | any): Promise<void> {
+  const now = new Date().toISOString();
+
+  // Known profiles to ensure
+  const defaultProfiles = [
+    { id: LOCAL_PATIENT_ID, name: 'Dada (Patient)' },
+    { id: 'pt-001', name: 'Ramesh Kumar' },
+    { id: 'usr-new-001', name: 'Patient' },
+  ];
+
+  for (const prof of defaultProfiles) {
+    await ensurePatientProfile(db, prof.id, prof.name);
+  }
+
+  // Check if initial tasks exist for LOCAL_PATIENT_ID
+  const existingTasks = (await db.getFirstAsync(
+    'SELECT COUNT(*) as count FROM daily_tasks WHERE patient_id = ?',
+    [LOCAL_PATIENT_ID]
+  )) as { count: number } | null;
+
+  if (!existingTasks || existingTasks.count === 0) {
     // 4. Insert Connection Identity (Opaque local token & real readable QR payload)
     const token = 'DEV-PATIENT-CONN-987654321';
     const code = 'YAAD-789';
@@ -47,7 +71,7 @@ export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
     });
 
     await db.runAsync(
-      `INSERT INTO connection_identity (patient_id, connection_token, connection_code, qr_payload, created_at)
+      `INSERT OR IGNORE INTO connection_identity (patient_id, connection_token, connection_code, qr_payload, created_at)
        VALUES (?, ?, ?, ?, ?)`,
       [LOCAL_PATIENT_ID, token, code, qrPayload, now]
     );
@@ -62,11 +86,13 @@ export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
     ];
 
     for (const task of initialTasks) {
-      await db.runAsync(
-        `INSERT INTO daily_tasks (id, patient_id, title, time_slot, category, is_completed, completed_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [task.id, LOCAL_PATIENT_ID, task.title, task.timeSlot, task.category, task.isCompleted ? 1 : 0, task.completedAt || null]
-      );
+      for (const prof of defaultProfiles) {
+        await db.runAsync(
+          `INSERT OR IGNORE INTO daily_tasks (id, patient_id, title, time_slot, category, is_completed, completed_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [`${task.id}-${prof.id}`, prof.id, task.title, task.timeSlot, task.category, task.isCompleted ? 1 : 0, task.completedAt || null]
+        );
+      }
     }
 
     // 6. Insert Initial Reminders
@@ -110,11 +136,13 @@ export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
     ];
 
     for (const rem of initialReminders) {
-      await db.runAsync(
-        `INSERT INTO reminders (id, patient_id, title, description, category, scheduled_time, status, is_snoozed, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [rem.id, LOCAL_PATIENT_ID, rem.title, rem.description, rem.category, rem.scheduledTime, rem.status, 0, rem.createdAt]
-      );
+      for (const prof of defaultProfiles) {
+        await db.runAsync(
+          `INSERT OR IGNORE INTO reminders (id, patient_id, title, description, category, scheduled_time, status, is_snoozed, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [`${rem.id}-${prof.id}`, prof.id, rem.title, rem.description, rem.category, rem.scheduledTime, rem.status, 0, rem.createdAt]
+        );
+      }
     }
   }
 }

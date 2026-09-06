@@ -1,6 +1,6 @@
 export type UserRole = 'PATIENT' | 'CAREGIVER' | 'DOCTOR' | 'HEALTHCARE_WORKER' | 'ADMIN';
-export type GameType = 'PAIR' | 'TRIPLET';
-export type GameDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
+export type GameType = 'PAIR' | 'TRIPLET' | 'COLOR_SEQUENCE' | string;
+export type GameDifficulty = 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
 export type GameStatus = 'IDLE' | 'READY' | 'PLAYING' | 'EVALUATING' | 'FEEDBACK' | 'PAUSED' | 'COMPLETED' | 'ABANDONED' | 'ERROR';
 
 export interface PatientProfile {
