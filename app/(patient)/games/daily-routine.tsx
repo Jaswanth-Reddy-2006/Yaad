@@ -21,6 +21,14 @@ import {
   Volume2,
   Calendar,
   Check,
+  Utensils,
+  Pill,
+  Footprints,
+  Droplet,
+  Coffee,
+  Phone,
+  BookOpen,
+  Moon,
 } from 'lucide-react-native';
 import { ScreenContainer } from '../../../components/common/ScreenContainer';
 import { Typography } from '../../../components/common/Typography';
@@ -32,11 +40,36 @@ import { voiceService } from '../../../services/VoiceService';
 import { GameResult } from '../../../types';
 import { gameRepository } from '../../../repositories/GameRepository';
 
+export function ActivityIcon({ id, color, size = 26 }: { id: string; color?: string; size?: number }) {
+  const iconColor = color || '#0F172A';
+  switch (id) {
+    case 'breakfast':
+    case 'lunch':
+      return <Utensils size={size} color={iconColor} />;
+    case 'medicine':
+    case 'evening_medicine':
+      return <Pill size={size} color={iconColor} />;
+    case 'walk':
+      return <Footprints size={size} color={iconColor} />;
+    case 'water':
+      return <Droplet size={size} color={iconColor} />;
+    case 'nap':
+      return <Moon size={size} color={iconColor} />;
+    case 'chai':
+      return <Coffee size={size} color={iconColor} />;
+    case 'call':
+      return <Phone size={size} color={iconColor} />;
+    case 'reading':
+      return <BookOpen size={size} color={iconColor} />;
+    default:
+      return <Clock size={size} color={iconColor} />;
+  }
+}
+
 export interface RoutineActivity {
   id: string;
   name: string;
   time: string;
-  icon: string;
   color: string;
   cardBg: string;
   borderColor: string;
@@ -48,7 +81,6 @@ export const ALL_ACTIVITIES: Record<string, RoutineActivity> = {
     id: 'breakfast',
     name: 'Eat Breakfast',
     time: '8:00 AM',
-    icon: '🥣',
     color: '#EA580C',
     cardBg: '#FFF7ED',
     borderColor: '#FED7AA',
@@ -58,7 +90,6 @@ export const ALL_ACTIVITIES: Record<string, RoutineActivity> = {
     id: 'medicine',
     name: 'Take Medicine',
     time: '8:30 AM',
-    icon: '💊',
     color: '#2563EB',
     cardBg: '#EFF6FF',
     borderColor: '#BFDBFE',
@@ -68,7 +99,6 @@ export const ALL_ACTIVITIES: Record<string, RoutineActivity> = {
     id: 'walk',
     name: 'Morning Walk',
     time: '9:00 AM',
-    icon: '🚶',
     color: '#16A34A',
     cardBg: '#F0FDF4',
     borderColor: '#BBF7D0',
@@ -78,7 +108,6 @@ export const ALL_ACTIVITIES: Record<string, RoutineActivity> = {
     id: 'water',
     name: 'Drink Water',
     time: '11:00 AM',
-    icon: '💧',
     color: '#0284C7',
     cardBg: '#F0F9FF',
     borderColor: '#BAE6FD',
@@ -88,7 +117,6 @@ export const ALL_ACTIVITIES: Record<string, RoutineActivity> = {
     id: 'lunch',
     name: 'Eat Lunch',
     time: '1:00 PM',
-    icon: '🥗',
     color: '#D97706',
     cardBg: '#FFFBEB',
     borderColor: '#FDE68A',
@@ -98,7 +126,6 @@ export const ALL_ACTIVITIES: Record<string, RoutineActivity> = {
     id: 'nap',
     name: 'Afternoon Rest',
     time: '2:30 PM',
-    icon: '😴',
     color: '#7C3AED',
     cardBg: '#FAF5FF',
     borderColor: '#DDD6FE',
@@ -108,7 +135,6 @@ export const ALL_ACTIVITIES: Record<string, RoutineActivity> = {
     id: 'chai',
     name: 'Evening Chai',
     time: '4:30 PM',
-    icon: '🫖',
     color: '#B45309',
     cardBg: '#FEF3C7',
     borderColor: '#FDE68A',
@@ -118,7 +144,6 @@ export const ALL_ACTIVITIES: Record<string, RoutineActivity> = {
     id: 'call',
     name: 'Call Family',
     time: '5:30 PM',
-    icon: '📞',
     color: '#059669',
     cardBg: '#ECFDF5',
     borderColor: '#A7F3D0',
@@ -128,7 +153,6 @@ export const ALL_ACTIVITIES: Record<string, RoutineActivity> = {
     id: 'evening_medicine',
     name: 'Evening Medicine',
     time: '7:30 PM',
-    icon: '💊',
     color: '#DC2626',
     cardBg: '#FEF2F2',
     borderColor: '#FECDD3',
@@ -138,7 +162,6 @@ export const ALL_ACTIVITIES: Record<string, RoutineActivity> = {
     id: 'reading',
     name: 'Read Book / Paper',
     time: '8:30 PM',
-    icon: '📖',
     color: '#4F46E5',
     cardBg: '#EEF2FF',
     borderColor: '#C7D2FE',
@@ -201,7 +224,7 @@ const STEP_LABELS = ['1st', '2nd', '3rd', '4th'];
 
 export default function DailyRoutineRecallGameScreen() {
   const router = useRouter();
-  const { preferences, t } = useAccessibilityStore();
+  const { preferences, currentLanguage, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
   const { width: windowWidth } = useWindowDimensions();
 
@@ -245,10 +268,7 @@ export default function DailyRoutineRecallGameScreen() {
     startTimeRef.current = Date.now();
 
     // Voice reading sequence
-    const speech = config.activities
-      .map((a, idx) => `Step ${idx + 1}: ${a.name}`)
-      .join('. Then, ');
-    voiceService.speak(`Remember the routine sequence: ${speech}.`);
+    voiceService.speak(t('memorize_routine_order'));
   };
 
   useEffect(() => {
@@ -287,7 +307,7 @@ export default function DailyRoutineRecallGameScreen() {
     setIsWrong(false);
     setWrongActivityId(null);
 
-    voiceService.speak(`What is the 1st activity in the routine?`);
+    voiceService.speak(t('memorize_routine_sub'));
   };
 
   const handleSelectActivity = (activity: RoutineActivity) => {
@@ -309,8 +329,7 @@ export default function DailyRoutineRecallGameScreen() {
       const nextPlaced = [...placedActivities, activity];
       setPlacedActivities(nextPlaced);
 
-      const stepOrdinal = STEP_LABELS[currentStepIndex] || `Step ${currentStepIndex + 1}`;
-      voiceService.speak(`Correct! The ${stepOrdinal} activity is ${activity.name}!`);
+      voiceService.speak(`${t('match_enc_1')} ${t('well_done')}`);
 
       setTimeout(() => {
         if (currentStepIndex < currentLevelConfig.activities.length - 1) {
@@ -319,8 +338,7 @@ export default function DailyRoutineRecallGameScreen() {
           setSelectedActivityId(null);
           setIsWrong(false);
           setWrongActivityId(null);
-          const nextOrdinal = STEP_LABELS[nextIdx] || `Step ${nextIdx + 1}`;
-          voiceService.speak(`What comes ${nextOrdinal}?`);
+          voiceService.speak(t('tap_tiles_order'));
         } else {
           // Finished routine!
           finishGame();
@@ -331,11 +349,12 @@ export default function DailyRoutineRecallGameScreen() {
       setIsWrong(true);
       setWrongActivityId(activity.id);
       setMistakesCount((m) => m + 1);
-      voiceService.speak(`Not quite, ${activity.name} was not the ${STEP_LABELS[currentStepIndex]} activity. Try again!`);
+      voiceService.speak(t('try_again_routine'));
     }
   };
 
   const finishGame = () => {
+    voiceService.speak(t('completion_pair_1') || t('wonderful_job'));
     const elapsedSecs = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
     const totalSteps = currentLevelConfig.activities.length;
     const finalAccuracy = Math.round((totalSteps / Math.max(totalSteps, totalSteps + mistakesCount)) * 100);
@@ -456,9 +475,9 @@ export default function DailyRoutineRecallGameScreen() {
                   </View>
 
                   {/* Icon */}
-                  <Typography size="xxl" style={{ marginHorizontal: SPACING.sm }}>
-                    {activity.icon}
-                  </Typography>
+                  <View style={{ marginHorizontal: SPACING.sm }}>
+                    <ActivityIcon id={activity.id} color={activity.color} size={28} />
+                  </View>
 
                   {/* Activity Details */}
                   <View style={{ flex: 1 }}>
@@ -494,7 +513,7 @@ export default function DailyRoutineRecallGameScreen() {
           >
             <Sparkles size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
             <Typography size="base" weight="bold" color="#FFFFFF">
-              {t('i_remember_routine_btn') || "I'm Ready! Order Routine 🎯"}
+              {t('i_remember_routine_btn') || "I'm Ready! Order Routine"}
             </Typography>
           </TouchableOpacity>
         </View>
@@ -552,7 +571,9 @@ export default function DailyRoutineRecallGameScreen() {
                   </Typography>
                   {placed ? (
                     <>
-                      <Typography size="lg" style={{ marginTop: 2 }}>{placed.icon}</Typography>
+                      <View style={{ marginTop: 4 }}>
+                        <ActivityIcon id={placed.id} color={placed.color} size={22} />
+                      </View>
                       <Typography size="xs" weight="bold" numberOfLines={1} color="#15803D" style={{ marginTop: 2 }}>
                         {t(placed.id) || placed.name}
                       </Typography>
@@ -610,9 +631,9 @@ export default function DailyRoutineRecallGameScreen() {
                     },
                   ]}
                 >
-                  <Typography size="xxl" style={{ marginRight: SPACING.sm }}>
-                    {activity.icon}
-                  </Typography>
+                  <View style={{ marginRight: SPACING.sm }}>
+                    <ActivityIcon id={activity.id} color={activity.color} size={26} />
+                  </View>
 
                   <View style={{ flex: 1 }}>
                     <Typography size="base" weight="bold" color={textColor}>

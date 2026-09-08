@@ -1,17 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, TextInput, RefreshControl } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Search, Plus, User, CheckCircle2, ChevronRight, WifiOff } from 'lucide-react-native';
 import { Typography } from '../../components/common/Typography';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
+import { authService } from '../../services/AuthService';
 
 export default function MyPatientsScreen() {
   const router = useRouter();
   const { patients, isOfflineMode, lastSyncedTime, fetchDashboardData, isLoading } = useCaregiverStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      async function verifyAuth() {
+        const isAuth = await authService.isAuthenticated();
+        const role = await authService.getUserRole();
+        if (isMounted && (!isAuth || role !== 'CAREGIVER')) {
+          router.replace('/');
+        }
+      }
+      verifyAuth();
+      return () => {
+        isMounted = false;
+      };
+    }, [router])
+  );
 
   useEffect(() => {
     fetchDashboardData();

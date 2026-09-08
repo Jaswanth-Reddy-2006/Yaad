@@ -137,9 +137,13 @@ export class LocalModelTTSProvider {
           callbacks?.onDone?.();
         };
 
-        utterance.onerror = (e) => {
-          console.warn('[LocalTTS] Web utterance error event:', e);
+        utterance.onerror = (e: any) => {
           this.isSynthesizing = false;
+          if (e?.error === 'interrupted' || e?.error === 'canceled') {
+            callbacks?.onDone?.();
+            return;
+          }
+          console.warn('[LocalTTS] Web utterance error event:', e);
           callbacks?.onError?.('Local TTS synthesis error occurred.');
         };
 

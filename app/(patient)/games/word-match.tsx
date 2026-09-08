@@ -56,14 +56,14 @@ const ALL_OBJECTS: ObjectItem[] = [
 interface LevelConfig {
   level: number;
   choiceCount: number;
-  label: string;
+  labelKey: string;
 }
 
 const LEVEL_CONFIGS: Record<number, LevelConfig> = {
-  1: { level: 1, choiceCount: 2, label: 'Level 1 • 2 Choices' },
-  2: { level: 2, choiceCount: 3, label: 'Level 2 • 3 Choices' },
-  3: { level: 3, choiceCount: 4, label: 'Level 3 • 4 Choices' },
-  4: { level: 4, choiceCount: 4, label: 'Level 4 • 4 Choices' },
+  1: { level: 1, choiceCount: 2, labelKey: 'two_choices' },
+  2: { level: 2, choiceCount: 3, labelKey: 'three_choices' },
+  3: { level: 3, choiceCount: 4, labelKey: 'four_choices' },
+  4: { level: 4, choiceCount: 4, labelKey: 'four_choices_l4' },
 };
 
 export default function WordMatchGameScreen() {
@@ -120,7 +120,7 @@ export default function WordMatchGameScreen() {
 
     if (choice.id === targetObject.id) {
       // Correct!
-      voiceService.speak(`That's right! It is ${targetObject.speechName}.`);
+      voiceService.speak(t('match_enc_1'));
       const elapsedSecs = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
       const score = 500 + Math.max(0, 30 - elapsedSecs) * 20;
 
@@ -152,7 +152,7 @@ export default function WordMatchGameScreen() {
       // Wrong choice
       setWrongId(choice.id);
       setIsWrong(true);
-      voiceService.speak(`Not quite. Look at the picture and try again!`);
+      voiceService.speak(t('mismatch_gentle_1'));
 
       setTimeout(() => {
         setIsWrong(false);
@@ -194,13 +194,13 @@ export default function WordMatchGameScreen() {
           </Typography>
           <View style={styles.levelPill}>
             <Typography size="xs" weight="bold" color="#2563EB">
-              {activeLevelConfig.label}
+              {t(activeLevelConfig.labelKey)}
             </Typography>
           </View>
         </View>
 
         <ListenButton
-          textToSpeak={`Name the Object. ${activeLevelConfig.label}. Look at the picture and tap the matching word below.`}
+          textToSpeak={`${t('name_the_object')}. ${t(activeLevelConfig.labelKey)}. ${t('name_object_desc')}`}
           size="sm"
           variant="secondary"
         />
@@ -212,7 +212,7 @@ export default function WordMatchGameScreen() {
           <View style={styles.wrongBanner}>
             <AlertCircle size={22} color="#DC2626" />
             <Typography size="sm" weight="bold" color="#DC2626" style={{ marginLeft: 8 }}>
-              Not quite, try again!
+              {t('try_again_routine') || 'Try again!'}
             </Typography>
           </View>
         ) : (
@@ -302,7 +302,7 @@ export default function WordMatchGameScreen() {
         <GameResultModal
           visible={!!gameResult}
           result={gameResult}
-          playAgainLabel={currentLevel === 4 ? 'PLAY AGAIN' : 'NEXT LEVEL'}
+          playAgainLabel={currentLevel === 4 ? t('play_again') : t('play_next_level')}
           onPlayAgain={handleNextLevel}
           onGoHome={() => router.replace('/(patient)/games')}
         />
@@ -311,7 +311,7 @@ export default function WordMatchGameScreen() {
       {/* Leave Modal */}
       <LeaveGameModal
         visible={showLeaveModal}
-        gameTitle="Name the Object"
+        gameTitle={t('name_the_object')}
         onCancel={() => setShowLeaveModal(false)}
         onConfirm={() => {
           setShowLeaveModal(false);

@@ -19,9 +19,6 @@ export default function OnboardingScreen() {
         {/* Header Logo */}
         <View style={styles.logoSection}>
           <AppLogo size="large" />
-          <Typography size="xs" color={COLORS.textMuted} align="center" style={{ marginTop: 4 }}>
-            {t('onboarding_subtitle') || 'Together in Every Memory, Every Day'}
-          </Typography>
         </View>
 
         {/* Hero Vector Icon Badge */}
@@ -40,10 +37,10 @@ export default function OnboardingScreen() {
             </View>
             <View style={{ flex: 1, marginLeft: SPACING.md }}>
               <Typography size="base" weight="bold">
-                {t('cognitive_activities') || 'Cognitive Activities'}
+                {t('cognitive_activities')}
               </Typography>
               <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 2 }}>
-                {t('cognitive_activities_desc') || 'Engaging exercises to keep the mind active.'}
+                {t('cognitive_activities_desc')}
               </Typography>
             </View>
           </View>
@@ -55,10 +52,10 @@ export default function OnboardingScreen() {
             </View>
             <View style={{ flex: 1, marginLeft: SPACING.md }}>
               <Typography size="base" weight="bold">
-                {t('smart_reminders') || 'Smart Reminders'}
+                {t('smart_reminders')}
               </Typography>
               <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 2 }}>
-                {t('smart_reminders_desc') || 'Timely alerts for medications, tasks & more.'}
+                {t('smart_reminders_desc')}
               </Typography>
             </View>
           </View>
@@ -70,10 +67,10 @@ export default function OnboardingScreen() {
             </View>
             <View style={{ flex: 1, marginLeft: SPACING.md }}>
               <Typography size="base" weight="bold">
-                {t('caregiver_insights') || 'Caregiver Insights'}
+                {t('caregiver_insights')}
               </Typography>
               <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 2 }}>
-                {t('caregiver_insights_desc') || 'Track progress and important insights.'}
+                {t('caregiver_insights_desc')}
               </Typography>
             </View>
           </View>
@@ -85,20 +82,20 @@ export default function OnboardingScreen() {
             </View>
             <View style={{ flex: 1, marginLeft: SPACING.md }}>
               <Typography size="base" weight="bold">
-                {t('secure_trusted') || 'Secure & Trusted'}
+                {t('secure_trusted')}
               </Typography>
               <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 2 }}>
-                {t('secure_trusted_desc') || 'Your data is safe, private and protected.'}
+                {t('secure_trusted_desc')}
               </Typography>
             </View>
           </View>
         </View>
 
-        {/* Primary Action Button: Get Started */}
+        {/* Primary Action Button: Get Started -> Select Language First */}
         <Button
           title={t('get_started') || 'Get Started'}
           variant="primary"
-          onPress={() => router.push('/auth/role-select')}
+          onPress={() => router.push('/auth/language')}
           style={styles.getStartedBtn}
         />
 

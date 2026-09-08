@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
@@ -9,7 +9,12 @@ import {
   Settings,
   ChevronRight,
   Languages,
+  Mic,
+  WifiOff,
+  LogOut,
 } from 'lucide-react-native';
+import { authService } from '../../services/AuthService';
+import { voiceService } from '../../services/VoiceService';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { Typography } from '../../components/common/Typography';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
@@ -17,8 +22,15 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
 export default function PatientHelpScreen() {
   const router = useRouter();
-  const { preferences, t } = useAccessibilityStore();
+  const { preferences, currentLanguage, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
+
+  const handleLogout = async () => {
+    voiceService.stopSpeaking();
+    await authService.clearSession();
+    router.replace('/');
+  };
+
 
   const handleCallCaregiver = () => {
     Linking.openURL('tel:+919876543210').catch(() => {});
@@ -164,7 +176,36 @@ export default function PatientHelpScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Card 5: Testing Translation -> Navigates to dedicated page like Caregivers card */}
+        {/* Card 5: Offline Sync with Caregiver (Zero-Internet Sync) */}
+        <TouchableOpacity
+          activeOpacity={0.88}
+          onPress={() => router.push('/(patient)/offline-sync')}
+          style={[
+            styles.horizontalHelpCard,
+            { backgroundColor: isHc ? COLORS.hcCardBackground : '#ECFDF5', borderColor: '#6EE7B7' },
+          ]}
+        >
+          <View style={[styles.iconCircleBadge, { backgroundColor: '#059669' }]}>
+            <WifiOff size={32} color="#FFFFFF" />
+          </View>
+
+          <View style={styles.textCenterPortion}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+              style={[styles.cardTitleText, { color: isHc ? COLORS.hcTextPrimary : '#047857' }]}
+            >
+              {t('offline_sync_patient')}
+            </Text>
+          </View>
+
+          <View style={styles.rightChevronPortion}>
+            <ChevronRight size={26} color={isHc ? COLORS.hcTextPrimary : '#047857'} strokeWidth={2.5} />
+          </View>
+        </TouchableOpacity>
+
+        {/* Card 6: Testing Translation -> Navigates to dedicated page like Caregivers card */}
         <TouchableOpacity
           activeOpacity={0.88}
           onPress={() => router.push('/(patient)/testing-translation')}
@@ -192,7 +233,37 @@ export default function PatientHelpScreen() {
             <ChevronRight size={26} color={isHc ? COLORS.hcTextPrimary : '#B45309'} strokeWidth={2.5} />
           </View>
         </TouchableOpacity>
+
+        {/* Card 7: Voice Testing -> Navigates to dedicated voice test page */}
+        <TouchableOpacity
+          activeOpacity={0.88}
+          onPress={() => router.push('/(patient)/voice-test')}
+          style={[
+            styles.horizontalHelpCard,
+            { backgroundColor: isHc ? COLORS.hcCardBackground : '#F0FDF4', borderColor: '#A7F3D0' },
+          ]}
+        >
+          <View style={[styles.iconCircleBadge, { backgroundColor: '#16A34A' }]}>
+            <Mic size={32} color="#FFFFFF" />
+          </View>
+
+          <View style={styles.textCenterPortion}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+              style={[styles.cardTitleText, { color: isHc ? COLORS.hcTextPrimary : '#15803D' }]}
+            >
+              {t('voice_test')}
+            </Text>
+          </View>
+
+          <View style={styles.rightChevronPortion}>
+            <ChevronRight size={26} color={isHc ? COLORS.hcTextPrimary : '#15803D'} strokeWidth={2.5} />
+          </View>
+        </TouchableOpacity>
       </View>
+
     </ScreenContainer>
   );
 }

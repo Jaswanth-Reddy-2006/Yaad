@@ -21,7 +21,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
   onGoHome,
   playAgainLabel,
 }) => {
-  const { preferences, t } = useAccessibilityStore();
+  const { preferences, currentLanguage, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
   const { width, height } = useWindowDimensions();
 
@@ -58,7 +58,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
 
           {/* 2. Congratulations Titles */}
           <Typography size={isCompactScreen ? "lg" : "xl"} weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-            {accuracy === 100 ? (t('perfect_memory') || '🌟 Perfect Memory!') : (t('great_effort') || '🎉 Great Job!')}
+            {accuracy === 100 ? (t('perfect_memory') || 'Perfect Memory!') : (t('great_effort') || 'Great Job!')}
           </Typography>
           <Typography size="xs" color={COLORS.textSecondary} align="center" style={{ marginTop: 2, marginBottom: isCompactScreen ? SPACING.sm : SPACING.md }}>
             {t('game_completed_sub') || 'You finished this cognitive round successfully.'}

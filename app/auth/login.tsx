@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Mail, Lock, Eye, EyeOff, CheckSquare, Square, AlertCircle } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, CheckSquare, Square, AlertCircle, ArrowLeft } from 'lucide-react-native';
 import { AppLogo } from '../../components/common/AppLogo';
 import { Typography } from '../../components/common/Typography';
 import { Button } from '../../components/common/Button';
@@ -65,6 +65,20 @@ export default function LoginScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: isHc ? COLORS.hcBackground : COLORS.background }]}>
+      {/* Top Header Row with Back Button */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          accessibilityLabel={t('go_back') || 'Go Back'}
+          accessibilityRole="button"
+          onPress={() => {
+            router.replace('/auth/role-select');
+          }}
+          style={styles.backButton}
+        >
+          <ArrowLeft size={28} color={isHc ? COLORS.hcTextPrimary : '#0F172A'} />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header Logo */}
         <View style={styles.logoRow}>
@@ -146,43 +160,19 @@ export default function LoginScreen() {
 
           <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
             <Typography size="xs" weight="semibold" color={COLORS.gameBlue}>
-              {t('forgot_password_q') || 'Forgot Password?'}
+              {t('forgot_password')}
             </Typography>
           </TouchableOpacity>
         </View>
 
         {/* Primary Login Button */}
         <Button
-          title={loading ? (t('loading') || 'Logging in...') : (t('login') || 'Login')}
+          title={loading ? t('loading') : t('login')}
           variant="primary"
           disabled={loading}
           onPress={handleLogin}
           style={styles.loginBtn}
         />
-
-        {/* Social Login Divider */}
-        <View style={styles.dividerRow}>
-          <View style={styles.dividerLine} />
-          <Typography size="xs" color={COLORS.textMuted} style={{ marginHorizontal: SPACING.md }}>
-            {t('or_continue_with') || 'or continue with'}
-          </Typography>
-          <View style={styles.dividerLine} />
-        </View>
-
-        {/* Social Buttons */}
-        <View style={styles.socialRow}>
-          <TouchableOpacity activeOpacity={0.8} style={styles.socialBtn}>
-            <Typography size="base" weight="bold">
-              Google
-            </Typography>
-          </TouchableOpacity>
-
-          <TouchableOpacity activeOpacity={0.8} style={styles.socialBtn}>
-            <Typography size="base" weight="bold">
-              Apple
-            </Typography>
-          </TouchableOpacity>
-        </View>
 
         {/* Sign Up Link */}
         <TouchableOpacity
@@ -191,9 +181,9 @@ export default function LoginScreen() {
           style={styles.signupLink}
         >
           <Typography size="sm" color={COLORS.textMuted} align="center">
-            {t('dont_have_account') || "Don't have an account?"}{' '}
+            {t('dont_have_account')}{' '}
             <Typography size="sm" weight="bold" color={COLORS.gameBlue}>
-              {t('sign_up') || 'Sign Up'}
+              {t('register')}
             </Typography>
           </Typography>
         </TouchableOpacity>
@@ -206,9 +196,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerRow: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
   scrollContent: {
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.xl,
+    paddingTop: SPACING.sm,
     paddingBottom: SPACING.xl,
   },
   logoRow: {
@@ -254,30 +254,6 @@ const styles = StyleSheet.create({
   loginBtn: {
     backgroundColor: COLORS.primary,
     marginTop: SPACING.xs,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: SPACING.lg,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E2E8F0',
-  },
-  socialRow: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  socialBtn: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
   },
   signupLink: {
     marginTop: SPACING.xl,

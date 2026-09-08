@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Users, Bell, AlertTriangle, CheckCircle2, ChevronRight, Plus, User, WifiOff, Activity, Clock } from 'lucide-react-native';
 import { Typography } from '../../components/common/Typography';
 import { AppLogo } from '../../components/common/AppLogo';
@@ -9,6 +9,7 @@ import { ActivePatientSwitcher } from '../../components/caregiver/ActivePatientS
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
+import { authService } from '../../services/AuthService';
 
 export default function CaregiverHomeScreen() {
   const router = useRouter();
@@ -25,9 +26,26 @@ export default function CaregiverHomeScreen() {
   } = useCaregiverStore();
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      async function verifyAuth() {
+        const isAuth = await authService.isAuthenticated();
+        const role = await authService.getUserRole();
+        if (isMounted && (!isAuth || role !== 'CAREGIVER')) {
+          router.replace('/');
+          return;
+        }
+        if (isMounted) {
+          fetchDashboardData();
+        }
+      }
+      verifyAuth();
+      return () => {
+        isMounted = false;
+      };
+    }, [router])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);

@@ -53,7 +53,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'dog',
     name: 'Dog',
-    soundText: '🐶 Bark',
+    soundText: 'Bark',
     component: DogIllustration,
     cardBg: '#FFF7ED',
     borderColor: '#FFEDD5',
@@ -62,7 +62,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'cat',
     name: 'Cat',
-    soundText: '🐱 Meow',
+    soundText: 'Meow',
     component: CatIllustration,
     cardBg: '#FEFCE8',
     borderColor: '#FEF08A',
@@ -71,7 +71,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'cow',
     name: 'Cow',
-    soundText: '🐮 Moo',
+    soundText: 'Moo',
     component: CowIllustration,
     cardBg: '#FFF1F2',
     borderColor: '#FFE4E6',
@@ -80,7 +80,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'chicken',
     name: 'Chicken',
-    soundText: '🐔 Cluck / Crow',
+    soundText: 'Cluck / Crow',
     component: ChickenIllustration,
     cardBg: '#FFFBEB',
     borderColor: '#FDE68A',
@@ -89,7 +89,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'goat',
     name: 'Goat',
-    soundText: '🐐 Bleat',
+    soundText: 'Bleat',
     component: GoatIllustration,
     cardBg: '#F8FAFC',
     borderColor: '#E2E8F0',
@@ -98,7 +98,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'horse',
     name: 'Horse',
-    soundText: '🐴 Neigh',
+    soundText: 'Neigh',
     component: HorseIllustration,
     cardBg: '#FFF7ED',
     borderColor: '#FED7AA',
@@ -107,7 +107,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'elephant',
     name: 'Elephant',
-    soundText: '🐘 Trumpet',
+    soundText: 'Trumpet',
     component: ElephantIllustration,
     cardBg: '#F1F5F9',
     borderColor: '#CBD5E1',
@@ -116,7 +116,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'lion',
     name: 'Lion',
-    soundText: '🦁 Roar',
+    soundText: 'Roar',
     component: LionIllustration,
     cardBg: '#FFFBEB',
     borderColor: '#FDE68A',
@@ -125,7 +125,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'frog',
     name: 'Frog',
-    soundText: '🐸 Croak',
+    soundText: 'Croak',
     component: FrogIllustration,
     cardBg: '#F0FDF4',
     borderColor: '#BBF7D0',
@@ -134,7 +134,7 @@ const ALL_ANIMALS: AnimalItem[] = [
   {
     id: 'bird',
     name: 'Bird',
-    soundText: '🐦 Chirp',
+    soundText: 'Chirp',
     component: BirdIllustration,
     cardBg: '#F0F9FF',
     borderColor: '#E0F2FE',
@@ -158,7 +158,7 @@ const LEVEL_CONFIGS: Record<number, LevelConfig> = {
 
 export default function AnimalSoundsGameScreen() {
   const router = useRouter();
-  const { preferences, t } = useAccessibilityStore();
+  const { preferences, currentLanguage, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
   const { width: windowWidth } = useWindowDimensions();
 
@@ -225,7 +225,7 @@ export default function AnimalSoundsGameScreen() {
 
     if (animal.id === targetAnimal.id) {
       // Correct animal selected!
-      voiceService.speak(`That's right! The ${targetAnimal.name} made that sound.`);
+      voiceService.speak(t('sound_correct_animal'));
       const elapsedSecs = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
       const score = 500 + Math.max(0, 30 - elapsedSecs) * 20;
 
@@ -257,7 +257,7 @@ export default function AnimalSoundsGameScreen() {
       // Wrong animal!
       setWrongId(animal.id);
       setIsWrong(true);
-      voiceService.speak(`Not quite. Listen to the sound again and tap the right animal.`);
+      voiceService.speak(t('sound_wrong_animal'));
 
       setTimeout(() => {
         setIsWrong(false);

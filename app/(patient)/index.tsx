@@ -1,28 +1,103 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Gamepad2, Brain, Calendar, Bell, ChevronRight } from 'lucide-react-native';
+import { Gamepad2, Brain, Calendar, Bell, ChevronRight, LogOut } from 'lucide-react-native';
+import { authService } from '../../services/AuthService';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { AppHeader } from '../../components/common/AppHeader';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useAccessibilityStore } from '../../store/useAccessibilityStore';
+import { useVoiceStore } from '../../store/useVoiceStore';
+import { voiceService } from '../../services/VoiceService';
+import { voiceContentResolver } from '../../services/voice/VoiceContentResolver';
+import { offlineProximitySync } from '../../services/sync/OfflineProximitySync';
+import { GameAlarmModal } from '../../components/games/GameAlarmModal';
+import { PatientGameSchedule } from '../../types';
 
 export default function PatientHomeScreen() {
   const router = useRouter();
-  const { preferences, t } = useAccessibilityStore();
+  const { preferences, currentLanguage, t } = useAccessibilityStore();
+  const { isVoiceEnabled } = useVoiceStore();
   const isHc = preferences.highContrast;
+
+  const handleLogout = async () => {
+    voiceService.stopSpeaking();
+    await authService.clearSession();
+    router.replace('/');
+  };
+
+
+  const hasSpokenWelcomeRef = useRef(false);
+  const lastLanguageRef = useRef(currentLanguage);
+
+  const [isGameAlarmVisible, setIsGameAlarmVisible] = useState(false);
+  const [gameSchedule, setGameSchedule] = useState<PatientGameSchedule | null>(null);
+
+  useEffect(() => {
+    async function checkAlarmSchedule() {
+      const schedule = await offlineProximitySync.getGameSchedule();
+      setGameSchedule(schedule);
+
+      if (schedule.isAlarmEnabled && schedule.playTimes && schedule.playTimes.length > 0) {
+        // Format current time e.g. "11:00 AM"
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const hasMatchingTime = schedule.playTimes.some(
+          (t) => t.toLowerCase() === timeStr.toLowerCase()
+        );
+        if (hasMatchingTime) {
+          setIsGameAlarmVisible(true);
+        }
+      }
+    }
+
+    checkAlarmSchedule();
+    const interval = setInterval(checkAlarmSchedule, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!isVoiceEnabled) return;
+    const isNewLang = lastLanguageRef.current !== currentLanguage;
+    if (hasSpokenWelcomeRef.current && !isNewLang) return;
+
+    const timer = setTimeout(() => {
+      const welcomeText = t('welcome_yaad');
+      voiceService.speak(welcomeText, undefined, undefined, 'NORMAL', 'WELCOME_YAAD');
+      hasSpokenWelcomeRef.current = true;
+      lastLanguageRef.current = currentLanguage;
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [isVoiceEnabled, currentLanguage, t]);
+
+  const handleNavigate = (route: string) => {
+    voiceService.stopSpeaking();
+    router.push(route as any);
+  };
 
   return (
     <ScreenContainer scrollable={false} style={styles.container}>
       {/* Top Header: App Logo ("Yaad") */}
-      <AppHeader />
+      <AppHeader
+        rightAction={
+          <TouchableOpacity
+            accessibilityLabel={t('logout') || 'Log Out'}
+            accessibilityRole="button"
+            onPress={handleLogout}
+            style={styles.homeLogoutBtn}
+          >
+            <LogOut size={20} color="#DC2626" />
+          </TouchableOpacity>
+        }
+      />
 
       {/* 4-Card Primary Menu */}
       <View style={styles.verticalStackContainer}>
         {/* Card 1: Play Game */}
         <TouchableOpacity
           activeOpacity={0.88}
-          onPress={() => router.push('/(patient)/games')}
+          onPress={() => handleNavigate('/(patient)/games')}
           style={[
             styles.horizontalPatientCard,
             {
@@ -54,7 +129,7 @@ export default function PatientHomeScreen() {
         {/* Card 2: Recall Memory */}
         <TouchableOpacity
           activeOpacity={0.88}
-          onPress={() => router.push('/(patient)/recall-memory')}
+          onPress={() => handleNavigate('/(patient)/recall-memory')}
           style={[
             styles.horizontalPatientCard,
             {
@@ -86,7 +161,7 @@ export default function PatientHomeScreen() {
         {/* Card 3: Day Schedule */}
         <TouchableOpacity
           activeOpacity={0.88}
-          onPress={() => router.push('/(patient)/my-day')}
+          onPress={() => handleNavigate('/(patient)/my-day')}
           style={[
             styles.horizontalPatientCard,
             {
@@ -118,7 +193,7 @@ export default function PatientHomeScreen() {
         {/* Card 4: Reminders */}
         <TouchableOpacity
           activeOpacity={0.88}
-          onPress={() => router.push('/(patient)/reminders')}
+          onPress={() => handleNavigate('/(patient)/reminders')}
           style={[
             styles.horizontalPatientCard,
             {
@@ -147,11 +222,32 @@ export default function PatientHomeScreen() {
           </View>
         </TouchableOpacity>
       </View>
+
+      {/* Cognitive Game Alarm Modal */}
+      <GameAlarmModal
+        visible={isGameAlarmVisible}
+        targetMinutes={gameSchedule?.minimumPlaytimeMinutes || 10}
+        onDismiss={() => setIsGameAlarmVisible(false)}
+        onStartPlaying={() => {
+          setIsGameAlarmVisible(false);
+          router.push('/(patient)/games');
+        }}
+      />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  homeLogoutBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
   },

@@ -402,7 +402,7 @@ export default function SheepCountGameScreen() {
           setTimeout(() => {
             if (!isMountedRef.current) return;
             setPhase('WALK_OUT');
-            voiceService.speak('Look! Some sheep are leaving the barn to the left.');
+            voiceService.speak(t('sheep_walk_leave'));
             setTimeout(() => startExitSequence(exits, config), 600);
           }, 800);
         } else {
@@ -410,7 +410,7 @@ export default function SheepCountGameScreen() {
           setTimeout(() => {
             if (!isMountedRef.current) return;
             setPhase('GUESS');
-            voiceService.speak('How many sheep went into the barn? Tap your answer!');
+            voiceService.speak(t('tap_how_many_sheep_left'));
           }, 600);
         }
         return;
@@ -449,7 +449,7 @@ export default function SheepCountGameScreen() {
           setTimeout(() => {
             if (!isMountedRef.current) return;
             setPhase('GUESS');
-            voiceService.speak('How many sheep are left inside the barn? Tap your answer!');
+            voiceService.speak(t('how_many_sheep_left_inside'));
           }, 600);
           return;
         }
@@ -499,11 +499,7 @@ export default function SheepCountGameScreen() {
     setPhase('WALK_IN');
     startTimeRef.current = Date.now();
 
-    if (exits > 0) {
-      voiceService.speak(`Watch closely! ${enters} sheep enter from the right, and ${exits} sheep leave to the left. Count how many stay inside.`);
-    } else {
-      voiceService.speak('Watch closely! Count the sheep as they walk into the barn from the right.');
-    }
+    voiceService.speak(t('sheep_walk_enter'));
 
     startFullSequence(enters, exits, config);
   };
@@ -526,11 +522,7 @@ export default function SheepCountGameScreen() {
     if (chosenNum === remainingCount) {
       // Correct!
       setIsWrong(false);
-      if (exitCount > 0) {
-        voiceService.speak(`Wonderful! ${enterCount} entered and ${exitCount} left, leaving exactly ${remainingCount} inside the barn.`);
-      } else {
-        voiceService.speak(`That's right! Exactly ${remainingCount} sheep went into the barn. Wonderful focus!`);
-      }
+      voiceService.speak(`${t('excellent')} ${t('well_done')}`);
 
       const elapsedSecs = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
       const score = 600 + Math.max(0, 30 - elapsedSecs) * 20;
@@ -567,11 +559,7 @@ export default function SheepCountGameScreen() {
     } else {
       // Incorrect!
       setIsWrong(true);
-      if (exitCount > 0) {
-        voiceService.speak(`Not quite. ${enterCount} entered and ${exitCount} left, so ${remainingCount} sheep remain. Let's try again!`);
-      } else {
-        voiceService.speak(`Not quite! ${remainingCount} sheep went inside. Let's try again!`);
-      }
+      voiceService.speak(t('oops_try_again'));
 
       setTimeout(() => {
         if (isMountedRef.current) {

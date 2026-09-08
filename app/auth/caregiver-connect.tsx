@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { QrCode, ArrowRight, CheckCircle2, UserCheck, AlertCircle } from 'lucide-react-native';
+import { QrCode, ArrowLeft, ArrowRight, CheckCircle2, UserCheck, AlertCircle } from 'lucide-react-native';
 import { Typography } from '../../components/common/Typography';
 import { Button } from '../../components/common/Button';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
@@ -17,9 +17,17 @@ export default function CaregiverConnectScreen() {
   const [errorMsg, setErrorMsg] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/auth/role-select');
+    }
+  };
+
   const handlePairing = () => {
     if (!code || code.trim().length < 4) {
-      setErrorMsg('Please enter a valid Patient Connection Code (e.g. YAAD-789).');
+      setErrorMsg(t('enter_patient_code') || 'Please enter a valid Patient Connection Code.');
       return;
     }
 
@@ -38,6 +46,18 @@ export default function CaregiverConnectScreen() {
   return (
     <View style={[styles.container, { backgroundColor: isHc ? COLORS.hcBackground : COLORS.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Top Header Row with Back Button */}
+        <View style={styles.topHeaderRow}>
+          <TouchableOpacity
+            onPress={handleBack}
+            style={styles.backSquareBtn}
+            accessibilityLabel={t('go_back') || 'Go Back'}
+            accessibilityRole="button"
+          >
+            <ArrowLeft size={22} color="#0F172A" />
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.heroCircleWrapper}>
           <View style={styles.heroCircle}>
             <QrCode size={52} color={COLORS.primary} />
@@ -73,7 +93,7 @@ export default function CaregiverConnectScreen() {
         {/* Input: Connection Code */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            {t('enter_patient_connection_code') || 'Enter Patient Connection Code'}
+            {t('patient_connection_code')}
           </Typography>
           <TextInput
             value={code}
@@ -81,8 +101,8 @@ export default function CaregiverConnectScreen() {
               setCode(text.toUpperCase());
               if (errorMsg) setErrorMsg('');
             }}
-            placeholder="e.g. YAAD-789"
-            placeholderTextColor={COLORS.textMuted}
+            placeholder="---"
+            placeholderTextColor="#94A3B8"
             autoCapitalize="characters"
             maxLength={10}
             style={styles.codeInput}
@@ -100,18 +120,29 @@ export default function CaregiverConnectScreen() {
         >
           <QrCode size={20} color={COLORS.primary} style={{ marginRight: 8 }} />
           <Typography size="sm" weight="bold" color={COLORS.primary}>
-            {t('scan_patient_qr') || 'Scan Patient QR Code'}
+            {t('scan_patient_qr')}
           </Typography>
         </TouchableOpacity>
 
         {/* Pair Patient Action */}
         <Button
-          title={loading ? (t('loading') || 'Verifying Code...') : (t('connect_to_patient') || 'Connect to Patient')}
+          title={loading ? t('loading') : t('connect_with_patient')}
           variant="primary"
           disabled={loading || success}
           onPress={handlePairing}
           style={styles.connectBtn}
         />
+
+        {/* Skip to Dashboard Option */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => router.replace('/caregiver/home')}
+          style={{ marginTop: SPACING.md, paddingVertical: 8, alignItems: 'center' }}
+        >
+          <Typography size="sm" weight="semibold" color={COLORS.textSecondary}>
+            {t('skip') || 'Skip for now'} → {t('go_to_home') || 'Go to Home'}
+          </Typography>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -123,8 +154,28 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.xl,
+    paddingTop: SPACING.lg,
     paddingBottom: SPACING.xl,
+  },
+  topHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
+  },
+  backSquareBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.md,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   heroCircleWrapper: {
     alignItems: 'center',
@@ -166,11 +217,11 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.md,
     paddingVertical: 14,
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    letterSpacing: 2,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    letterSpacing: 4,
+    borderWidth: 2,
+    borderColor: '#86EFAC',
     color: '#0F172A',
     textAlign: 'center',
   },

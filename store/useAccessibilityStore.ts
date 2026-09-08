@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { AccessibilityPreferences } from '../types';
 import { settingsRepository } from '../repositories/SettingsRepository';
 import { LanguageCode, getTranslation } from '../constants/translations';
+import { useVoiceStore } from './useVoiceStore';
+import { resolveVoiceLanguage } from '../constants/voiceLanguages';
 
 interface AccessibilityState {
   preferences: AccessibilityPreferences;
@@ -46,14 +48,19 @@ export const useAccessibilityStore = create<AccessibilityState>((set, get) => ({
         settingsRepository.getPreferredLanguage().catch(() => 'en' as LanguageCode),
       ]);
       const numCols = prefs.textSize === 'EXTRA_LARGE' ? 1 : 2;
+      const finalLang = savedLang || 'en';
       set({
         preferences: { ...prefs, elderMode: prefs.elderMode ?? true },
-        currentLanguage: savedLang || 'en',
+        currentLanguage: finalLang,
         fontScaleMultiplier: MULTIPLIERS[prefs.textSize] || 1.2,
         numColumns: numCols,
         cardWidthPercent: numCols === 1 ? '100%' : '48%',
         isLoading: false,
       });
+
+      // Synchronize voice store language
+      const voiceLang = resolveVoiceLanguage(finalLang);
+      useVoiceStore.getState().setLanguage(voiceLang.ttsLocale);
     } catch {
       set({ isLoading: false });
     }
@@ -73,6 +80,10 @@ export const useAccessibilityStore = create<AccessibilityState>((set, get) => ({
   setLanguage: (lang: LanguageCode) => {
     set({ currentLanguage: lang });
     settingsRepository.updatePreferredLanguage(lang).catch(() => {});
+
+    // Synchronize voice store language immediately
+    const voiceLang = resolveVoiceLanguage(lang);
+    useVoiceStore.getState().setLanguage(voiceLang.ttsLocale);
   },
 
   t: (key: string) => {

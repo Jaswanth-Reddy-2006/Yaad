@@ -137,6 +137,18 @@ export interface VoiceSTTCallbacks {
   onModeChange?: (mode: STTMode) => void;
 }
 
+export type VoicePriority = 'CRITICAL' | 'HIGH' | 'NORMAL' | 'LOW';
+
+export interface VoiceQueueItem {
+  id: string;
+  text: string;
+  languageIdentifier: string;
+  priority: VoicePriority;
+  contentId?: string;
+  callbacks?: VoiceTTSCallbacks;
+  createdAt: number;
+}
+
 export interface VoiceTTSCallbacks {
   onStart?: () => void;
   onDone?: () => void;

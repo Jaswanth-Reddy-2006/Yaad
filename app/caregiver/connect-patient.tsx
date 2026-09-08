@@ -1,22 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Info, Camera, QrCode, CheckCircle2, ChevronDown } from 'lucide-react-native';
 import { Typography } from '../../components/common/Typography';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
+import { authService } from '../../services/AuthService';
 
 export default function ConnectPatientScreen() {
   const router = useRouter();
   const connectPatientStore = useCaregiverStore((state) => state.connectPatient);
   const isLoading = useCaregiverStore((state) => state.isLoading);
 
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      async function verifyAuth() {
+        const isAuth = await authService.isAuthenticated();
+        const role = await authService.getUserRole();
+        if (isMounted && (!isAuth || role !== 'CAREGIVER')) {
+          router.replace('/');
+        }
+      }
+      verifyAuth();
+      return () => {
+        isMounted = false;
+      };
+    }, [router])
+  );
+
   const [patientName, setPatientName] = useState('');
   const [relationship, setRelationship] = useState('Family Member');
   const [notes, setNotes] = useState('');
-  const [codeInputValue, setCodeInputValue] = useState('YAAD-789');
+  const [codeInputValue, setCodeInputValue] = useState('');
   const [isScanning, setIsScanning] = useState(false);
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/caregiver/home');
+    }
+  };
 
   const handleConnect = async () => {
     if (!codeInputValue.trim()) {
@@ -55,7 +81,12 @@ export default function ConnectPatientScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header Row */}
         <View style={styles.topHeaderRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backSquareBtn}>
+          <TouchableOpacity
+            onPress={handleBack}
+            style={styles.backSquareBtn}
+            accessibilityLabel="Go Back"
+            accessibilityRole="button"
+          >
             <ArrowLeft size={22} color="#0F172A" />
           </TouchableOpacity>
           <Typography size="xxl" weight="bold" color="#0F172A" style={{ marginLeft: SPACING.sm }}>
@@ -142,11 +173,12 @@ export default function ConnectPatientScreen() {
 
           {/* Single Code Input Field */}
           <TextInput
-            placeholder="e.g., YAAD-789"
+            placeholder="---"
             placeholderTextColor="#94A3B8"
             value={codeInputValue}
             onChangeText={setCodeInputValue}
             autoCapitalize="characters"
+            maxLength={10}
             style={styles.codeInputBox}
           />
         </View>
@@ -252,17 +284,17 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
   },
   codeInputBox: {
-    backgroundColor: '#F8FAF8',
+    backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.lg,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: '#86EFAC',
     paddingHorizontal: SPACING.md,
-    paddingVertical: 12,
-    fontSize: 18,
+    paddingVertical: 14,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#16A34A',
+    color: '#0F172A',
     textAlign: 'center',
-    letterSpacing: 3,
+    letterSpacing: 4,
     marginTop: SPACING.xs,
   },
   connectPatientBtn: {

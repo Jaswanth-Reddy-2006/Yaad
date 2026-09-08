@@ -82,9 +82,9 @@ export default function ColorSequenceScreen() {
     const totalDuration = seq.length * 1100 + 400;
     setTimeout(() => {
       setPhase('TAPPING');
-      voiceService.speak('Your turn! Tap the tiles in order.');
+      voiceService.speak(t('your_turn_tap_order'));
     }, totalDuration);
-  }, [tileAnims]);
+  }, [tileAnims, t]);
 
   const startNewRound = useCallback((roundLength: number) => {
     const seq = generateSequence(roundLength);
@@ -116,6 +116,7 @@ export default function ColorSequenceScreen() {
     
     setPhase('GAME_OVER');
     setGameResult(result);
+    voiceService.speak(t('completion_pair_1') || t('wonderful_job'));
     gameRepository.saveResult(result).catch(() => {});
   };
 
@@ -132,7 +133,7 @@ export default function ColorSequenceScreen() {
         const newCorrect = correctRounds + 1;
         setCorrectRounds(newCorrect);
         setPhase('CORRECT_ROUND');
-        voiceService.speak('Excellent! Well done!');
+        voiceService.speak(`${t('excellent')} ${t('well_done')}`);
         
         setTimeout(() => {
           const nextLength = sequence.length + 1;
@@ -155,7 +156,7 @@ export default function ColorSequenceScreen() {
       );
       setTimeout(() => setWrongTileIndex(null), 700);
       
-      voiceService.speak('Oops, try again!');
+      voiceService.speak(t('oops_try_again'));
       
       if (newMistakes >= 3) {
         setTimeout(() => finishGame(correctRounds, newMistakes), 800);
@@ -187,10 +188,10 @@ export default function ColorSequenceScreen() {
         <View style={styles.headerCenter}>
           <Typography size="lg" weight="bold" color="#0F172A" align="center">{t('color_sequence')}</Typography>
           <Typography size="xs" color={COLORS.textMuted} align="center">
-            {phase === 'WATCHING' ? t('watch_carefully') : phase === 'TAPPING' ? `${t('tap')} ${playerTaps.length + 1} / ${sequence.length}` : phase === 'CORRECT_ROUND' ? `✓ ${t('well_done')}` : ''}
+            {phase === 'WATCHING' ? t('watch_carefully') : phase === 'TAPPING' ? `${t('tap')} ${playerTaps.length + 1} / ${sequence.length}` : phase === 'CORRECT_ROUND' ? t('well_done') : ''}
           </Typography>
         </View>
-        <ListenButton textToSpeak="Color Sequence. Watch the tiles light up then tap them in the same order!" size="sm" variant="secondary" />
+        <ListenButton textToSpeak={`${t('color_sequence')}. ${t('color_sequence_desc')}`} size="sm" variant="secondary" />
       </View>
       
       {/* Mistake indicators */}
@@ -241,9 +242,9 @@ export default function ColorSequenceScreen() {
       {/* Status message */}
       <View style={styles.statusBox}>
         {phase === 'READY' && <Typography size="base" color="#15803D" align="center">{t('get_ready')}</Typography>}
-        {phase === 'WATCHING' && <Typography size="base" weight="semibold" color="#D97706" align="center">👀 {t('watch_the_sequence')}</Typography>}
-        {phase === 'TAPPING' && <Typography size="base" weight="semibold" color="#2563EB" align="center">👆 {t('tap_in_same_order')}</Typography>}
-        {phase === 'CORRECT_ROUND' && <Typography size="lg" weight="bold" color="#16A34A" align="center">✓ {t('excellent')}</Typography>}
+        {phase === 'WATCHING' && <Typography size="base" weight="semibold" color="#D97706" align="center">{t('watch_the_sequence')}</Typography>}
+        {phase === 'TAPPING' && <Typography size="base" weight="semibold" color="#2563EB" align="center">{t('tap_in_same_order')}</Typography>}
+        {phase === 'CORRECT_ROUND' && <Typography size="lg" weight="bold" color="#16A34A" align="center">{t('excellent')}</Typography>}
       </View>
       
       <LeaveGameModal

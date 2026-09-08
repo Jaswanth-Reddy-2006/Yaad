@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
-import { User, LogOut, Shield, Bell, HeartHandshake, ChevronRight, Users, Plus, Link2Off } from 'lucide-react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { User, LogOut, Shield, Bell, HeartHandshake, ChevronRight, Users, Plus, Link2Off, Globe, Check } from 'lucide-react-native';
 import { Typography } from '../../components/common/Typography';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
 import { ActivePatientSwitcher } from '../../components/caregiver/ActivePatientSwitcher';
@@ -9,14 +9,46 @@ import { AppLogo } from '../../components/common/AppLogo';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { authService } from '../../services/AuthService';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
+import { useAccessibilityStore } from '../../store/useAccessibilityStore';
+import { INDIAN_LANGUAGES, LanguageCode } from '../../constants/translations';
 
 export default function CaregiverProfileScreen() {
   const router = useRouter();
   const { caregiverName, patients } = useCaregiverStore();
+  const { currentLanguage, setLanguage, t } = useAccessibilityStore();
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      async function verifyAuth() {
+        const isAuth = await authService.isAuthenticated();
+        const role = await authService.getUserRole();
+        if (isMounted && (!isAuth || role !== 'CAREGIVER')) {
+          router.replace('/');
+        }
+      }
+      verifyAuth();
+      return () => {
+        isMounted = false;
+      };
+    }, [router])
+  );
 
   const handleLogout = async () => {
     await authService.clearSession();
-    router.replace('/auth/role-select');
+    useCaregiverStore.setState({
+      caregiverName: 'Caregiver',
+      activePatientId: '',
+      patients: [],
+      reminders: [],
+      alerts: [],
+      lastSyncedTime: null,
+    });
+    if (router.canDismiss?.()) {
+      router.dismissAll();
+    }
+    router.replace('/');
   };
 
   const handleRemoveConnection = (patientId: string, patientName: string) => {
@@ -135,6 +167,62 @@ export default function CaregiverProfileScreen() {
             </Typography>
             <ChevronRight size={18} color="#94A3B8" />
           </TouchableOpacity>
+
+          {/* Language Selector Row */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setShowLanguagePicker(!showLanguagePicker)}
+            style={styles.optionItem}
+          >
+            <Globe size={20} color="#059669" style={{ marginRight: SPACING.md }} />
+            <View style={{ flex: 1 }}>
+              <Typography size="base" weight="semibold" color="#0F172A">
+                {t('language') || 'Language'}
+              </Typography>
+              <Typography size="xs" color="#64748B">
+                {INDIAN_LANGUAGES.find((l) => l.code === currentLanguage)?.nativeName || 'English'} ({INDIAN_LANGUAGES.find((l) => l.code === currentLanguage)?.name || 'English'})
+              </Typography>
+            </View>
+            <ChevronRight
+              size={18}
+              color="#94A3B8"
+              style={{ transform: [{ rotate: showLanguagePicker ? '90deg' : '0deg' }] }}
+            />
+          </TouchableOpacity>
+
+          {showLanguagePicker && (
+            <View style={styles.languageDropdown}>
+              <ScrollView style={{ maxHeight: 220 }} nestedScrollEnabled showsVerticalScrollIndicator={true}>
+                {INDIAN_LANGUAGES.map((lang) => {
+                  const isSelected = currentLanguage === lang.code;
+                  return (
+                    <TouchableOpacity
+                      key={lang.code}
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        setLanguage(lang.code as LanguageCode);
+                        setShowLanguagePicker(false);
+                      }}
+                      style={[
+                        styles.langPickerRow,
+                        isSelected && { backgroundColor: '#DCFCE7' },
+                      ]}
+                    >
+                      <Typography
+                        size="sm"
+                        weight={isSelected ? 'bold' : 'regular'}
+                        color={isSelected ? '#15803D' : '#0F172A'}
+                        style={{ flex: 1 }}
+                      >
+                        {lang.nativeName} ({lang.name})
+                      </Typography>
+                      {isSelected && <Check size={16} color="#15803D" />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
         </View>
 
         {/* Logout Button */}
@@ -251,5 +339,20 @@ const styles = StyleSheet.create({
     marginTop: SPACING.lg,
     borderWidth: 1,
     borderColor: '#FCA5A5',
+  },
+  languageDropdown: {
+    backgroundColor: '#F8FAF8',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
+  langPickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.md,
+    marginVertical: 2,
   },
 });

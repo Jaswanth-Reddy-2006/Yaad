@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { HeartHandshake, User, CheckCircle2, Circle, Users, LogIn } from 'lucide-react-native';
+import { HeartHandshake, User, CheckCircle2, Circle, Users, LogIn, ArrowLeft } from 'lucide-react-native';
 import { Typography } from '../../components/common/Typography';
 import { Button } from '../../components/common/Button';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
@@ -48,6 +48,20 @@ export default function RoleSelectScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: isHc ? COLORS.hcBackground : COLORS.background }]}>
+      {/* Top Header Row with Back Button */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          accessibilityLabel={t('go_back') || 'Go Back'}
+          accessibilityRole="button"
+          onPress={() => {
+            router.replace('/auth/language');
+          }}
+          style={styles.backButton}
+        >
+          <ArrowLeft size={28} color={isHc ? COLORS.hcTextPrimary : '#0F172A'} />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Family Vector Icon Badge */}
         <View style={styles.illustrationWrapper}>
@@ -56,11 +70,8 @@ export default function RoleSelectScreen() {
           </View>
         </View>
 
-        <Typography size="xxl" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
+        <Typography size="xxl" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} style={{ marginBottom: SPACING.md }}>
           {t('create_account') || 'Create Account'}
-        </Typography>
-        <Typography size="xs" color={COLORS.textMuted} align="center" style={{ marginTop: 4, marginBottom: SPACING.lg }}>
-          {t('join_yaad_desc') || 'Join Yaad and stay connected with your loved ones'}
         </Typography>
 
         <Typography size="sm" weight="bold" color={COLORS.textMuted} style={{ marginBottom: SPACING.xs }}>
@@ -84,9 +95,6 @@ export default function RoleSelectScreen() {
           <View style={{ flex: 1, marginLeft: SPACING.md }}>
             <Typography size="lg" weight="bold">
               {t('caregiver') || 'Caregiver'}
-            </Typography>
-            <Typography size="xs" color={COLORS.textMuted}>
-              {t('caregiver_desc') || 'I want to care for my loved one'}
             </Typography>
           </View>
 
@@ -114,9 +122,6 @@ export default function RoleSelectScreen() {
           <View style={{ flex: 1, marginLeft: SPACING.md }}>
             <Typography size="lg" weight="bold">
               {t('patient') || 'Patient'}
-            </Typography>
-            <Typography size="xs" color={COLORS.textMuted}>
-              {t('patient_desc') || 'I need care and support'}
             </Typography>
           </View>
 
@@ -186,9 +191,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerRow: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
   scrollContent: {
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.xl,
+    paddingTop: SPACING.sm,
     paddingBottom: SPACING.xl,
   },
   illustrationWrapper: {

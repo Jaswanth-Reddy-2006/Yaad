@@ -1,16 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { ArrowLeft, User, CheckCircle2, TrendingUp, MessageSquare, FileText, Activity, Brain, Clock, ShieldCheck, Calendar } from 'lucide-react-native';
 import { Typography } from '../../components/common/Typography';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
+import { authService } from '../../services/AuthService';
 
 export default function PatientDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const patientId = (params.patientId as string) || 'p-1';
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      async function verifyAuth() {
+        const isAuth = await authService.isAuthenticated();
+        const role = await authService.getUserRole();
+        if (isMounted && (!isAuth || role !== 'CAREGIVER')) {
+          router.replace('/');
+        }
+      }
+      verifyAuth();
+      return () => {
+        isMounted = false;
+      };
+    }, [router])
+  );
 
   const patients = useCaregiverStore((state) => state.patients);
   const reminders = useCaregiverStore((state) => state.reminders);

@@ -9,7 +9,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 export const BottomNavBar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const { preferences, t } = useAccessibilityStore();
+  const { preferences, currentLanguage, t } = useAccessibilityStore();
   const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   const isHc = preferences.highContrast;

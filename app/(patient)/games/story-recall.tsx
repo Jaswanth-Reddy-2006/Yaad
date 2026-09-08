@@ -475,7 +475,7 @@ export default function StoryRecallGameScreen() {
 
     if (option.isCorrect) {
       // Correct!
-      voiceService.speak(`That's right! ${currentQuestion.explanation}`);
+      voiceService.speak(`${t('match_enc_1')} ${currentQuestion.explanation}`);
       setCorrectAnswersCount((prev) => prev + 1);
 
       setTimeout(() => {
@@ -494,11 +494,12 @@ export default function StoryRecallGameScreen() {
       setIsWrong(true);
       setWrongOptionId(option.id);
       setMistakesCount((prev) => prev + 1);
-      voiceService.speak("That's okay, let's take another look or try again!");
+      voiceService.speak(t('mismatch_gentle_1'));
     }
   };
 
   const finishGame = () => {
+    voiceService.speak(t('completion_pair_1') || t('wonderful_job'));
     const elapsedSecs = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
     const totalQ = currentStory.questions.length;
     const finalAccuracy = Math.round(

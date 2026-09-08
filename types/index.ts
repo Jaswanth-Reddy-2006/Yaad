@@ -73,7 +73,7 @@ export interface GameResult {
   status: 'COMPLETED' | 'ABANDONED';
 }
 
-export type ReminderCategory = 'MEDICINE' | 'HYDRATION' | 'ACTIVITY' | 'APPOINTMENT';
+export type ReminderCategory = 'MEDICINE' | 'HYDRATION' | 'ACTIVITY' | 'APPOINTMENT' | 'HOSPITAL' | 'DOCTOR' | 'EVENT' | 'OTHER';
 export type ReminderStatus = 'UPCOMING' | 'DUE' | 'UNACKNOWLEDGED' | 'COMPLETED' | 'MISSED' | 'SKIPPED' | 'ESCALATED';
 
 export interface Reminder {
@@ -83,21 +83,54 @@ export interface Reminder {
   description: string;
   category: ReminderCategory;
   scheduledTime: string; // HH:MM or ISO string
+  scheduledDate?: string; // YYYY-MM-DD for one-time tasks
   status: ReminderStatus;
   isSnoozed?: boolean;
+  repeat?: 'ONCE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  alarmEnabled?: boolean;
   createdAt: string;
 }
 
-export type TaskCategory = 'MEDICINE' | 'HYDRATION' | 'ACTIVITY' | 'ROUTINE';
+export type TaskCategory = 'MEDICINE' | 'HYDRATION' | 'ACTIVITY' | 'MEAL' | 'WALK' | 'ROUTINE';
 
 export interface DailyTask {
   id: string;
   patientId: string;
   title: string;
+  time?: string; // e.g. '9:00 AM'
   timeSlot: 'MORNING' | 'AFTERNOON' | 'EVENING';
   category: TaskCategory;
   isCompleted: boolean;
   completedAt?: string;
+}
+
+export interface RoutineScheduleItem {
+  id: string;
+  patientId: string;
+  title: string;
+  time: string; // e.g. "9:00 AM"
+  category: TaskCategory;
+  isCompleted: boolean;
+  repeat: 'DAILY';
+}
+
+export interface PatientGameSchedule {
+  patientId: string;
+  playTimes: string[]; // e.g. ['11:00 AM', '05:00 PM']
+  minimumPlaytimeMinutes: number; // e.g. 10
+  playedMinutesToday: number;
+  isAlarmEnabled: boolean;
+  lastPlayedDate?: string;
+}
+
+export interface OfflineProximityPayload {
+  version: number;
+  patientId: string;
+  caregiverId?: string;
+  generatedAt: string;
+  routine: RoutineScheduleItem[];
+  reminders: Reminder[];
+  gameSchedule: PatientGameSchedule;
 }
 
 export interface EmergencyContact {

@@ -405,7 +405,7 @@ export default function ObjectLocationMemoryGameScreen() {
     setGameResult(null);
     startTimeRef.current = Date.now();
 
-    voiceService.speak('Look at the living room! Remember where each item is placed.');
+    voiceService.speak(t('remember_object_placements'));
   };
 
   useEffect(() => {
@@ -443,7 +443,7 @@ export default function ObjectLocationMemoryGameScreen() {
     setIsWrong(false);
     setWrongSlotId(null);
 
-    voiceService.speak('Where was this item located? Tap the spot on the room picture.');
+    voiceService.speak(t('where_item_located'));
   };
 
   const handleSelectLocation = (location: LocationSlot) => {
@@ -461,7 +461,7 @@ export default function ObjectLocationMemoryGameScreen() {
     if (!currentTarget) return;
 
     if (location.id === currentTarget.location.id) {
-      voiceService.speak('That is right! Great job!');
+      voiceService.speak(t('match_enc_1'));
       setSolvedPlacements((prev) => [...prev, currentTarget.object.id]);
 
       setTimeout(() => {
@@ -471,7 +471,7 @@ export default function ObjectLocationMemoryGameScreen() {
           setSelectedSlotId(null);
           setIsWrong(false);
           setWrongSlotId(null);
-          voiceService.speak('Where was this item located?');
+          voiceService.speak(t('where_was_the_item'));
         } else {
           finishGame();
         }
@@ -480,7 +480,7 @@ export default function ObjectLocationMemoryGameScreen() {
       setIsWrong(true);
       setWrongSlotId(location.id);
       setMistakesCount((m) => m + 1);
-      voiceService.speak('Not here! Try another spot on the picture.');
+      voiceService.speak(t('not_here_try_another'));
     }
   };
 

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import PatientHomeScreen from './(patient)/index';
 import OnboardingScreen from './auth/index';
 import { authService } from '../services/AuthService';
@@ -13,25 +13,36 @@ export default function IndexScreen() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
 
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const isAuth = await authService.isAuthenticated();
-        const role = await authService.getUserRole();
-        setIsAuthenticated(isAuth);
-        setUserRole(role);
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      async function checkAuth() {
+        try {
+          const isAuth = await authService.isAuthenticated();
+          const role = await authService.getUserRole();
+          if (isMounted) {
+            setIsAuthenticated(isAuth);
+            setUserRole(role);
+            setLoading(false);
 
-        if (isAuth && role === 'CAREGIVER') {
-          router.replace('/caregiver/home');
+            if (isAuth && role === 'CAREGIVER') {
+              router.replace('/caregiver/home');
+            }
+          }
+        } catch (err) {
+          if (isMounted) {
+            setIsAuthenticated(false);
+            setUserRole(null);
+            setLoading(false);
+          }
         }
-      } catch (err) {
-        setIsAuthenticated(false);
-      } finally {
-        setLoading(false);
       }
-    }
-    checkAuth();
-  }, []);
+      checkAuth();
+      return () => {
+        isMounted = false;
+      };
+    }, [router])
+  );
 
   if (loading) {
     return (

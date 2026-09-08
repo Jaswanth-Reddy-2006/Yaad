@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform, AppState, AppStateStatus } from 'react-native';
 import {
   VoiceIntent,
   VoiceIntentResult,
@@ -10,6 +10,7 @@ import {
   STTLanguageAvailabilityResult,
   STTOptions,
   VoiceLanguageConfig,
+  VoicePriority,
 } from '../types/voice';
 import {
   ALL_VOICE_LANGUAGES,
@@ -25,6 +26,9 @@ import { STT_MODEL_REGISTRY, getSTTModelMetadata } from '../constants/sttModelRe
 import { ttsManager, TTSManager } from './tts/TTSManager';
 import { findMatchingNativeVoice } from './tts/NativeDeviceTTSProvider';
 import { sttManager, STTManager } from './stt/STTManager';
+import { voiceQueueManager, VoiceQueueManager } from './voice/VoiceQueueManager';
+import { voiceTranslator } from './voice/VoiceTranslator';
+import { useAccessibilityStore } from '../store/useAccessibilityStore';
 
 // Re-export voice types, constants, and managers for convenience
 export * from '../types/voice';
@@ -33,6 +37,7 @@ export * from '../constants/ttsModelRegistry';
 export * from '../constants/sttModelRegistry';
 export { ttsManager, TTSManager };
 export { sttManager, STTManager };
+export { voiceQueueManager, VoiceQueueManager };
 export { findMatchingNativeVoice as findMatchingVoice };
 
 /**
@@ -49,20 +54,25 @@ export const SUPPORTED_LANGUAGES: SupportedLanguage[] = ALL_VOICE_LANGUAGES.map(
   locale: lang.ttsLocale,
 }));
 
-export function parseVoiceIntent(query: string): VoiceIntentResult {
+export function parseVoiceIntent(query: string, languageCode: string = 'en'): VoiceIntentResult {
   const normalized = (query || '').toLowerCase().trim();
+  const lang = (languageCode || 'en').toLowerCase().split('-')[0];
 
   if (
     normalized.includes('what should i do') ||
     normalized.includes('next activity') ||
     normalized.includes('play game') ||
     normalized.includes('start game') ||
-    normalized.includes('game')
+    normalized.includes('game') ||
+    normalized.includes('खेल') ||
+    normalized.includes('क्या करूं')
   ) {
     return {
       intent: 'WHAT_TO_DO_NOW',
       spokenText: query,
-      responsePrompt: 'Opening your recommended memory activity now. Match the pictures at your own pace.',
+      responsePrompt: lang === 'hi'
+        ? 'अनुशंसित मेमोरी गतिविधि शुरू हो रही है। अपनी गति से चित्रों को मिलाएं।'
+        : 'Opening your recommended memory activity now. Match the pictures at your own pace.',
     };
   }
 
@@ -70,51 +80,72 @@ export function parseVoiceIntent(query: string): VoiceIntentResult {
     normalized.includes('reminder') ||
     normalized.includes('medicine') ||
     normalized.includes('water') ||
-    normalized.includes('pill')
+    normalized.includes('pill') ||
+    normalized.includes('रिमाइंडर') ||
+    normalized.includes('दवा') ||
+    normalized.includes('पानी')
   ) {
     return {
       intent: 'NEXT_REMINDER',
       spokenText: query,
-      responsePrompt: 'Your next reminder is Morning Medicine at 9:00 AM. Please take it with a glass of water.',
+      responsePrompt: lang === 'hi'
+        ? 'आपका अगला रिमाइंडर सुबह 9:00 बजे सुबह की दवा का है। कृपया पानी के साथ लें।'
+        : 'Your next reminder is Morning Medicine at 9:00 AM. Please take it with a glass of water.',
     };
   }
 
   if (
     normalized.includes('plan') ||
     normalized.includes('today') ||
-    normalized.includes('schedule')
+    normalized.includes('schedule') ||
+    normalized.includes('योजना') ||
+    normalized.includes('आज')
   ) {
     return {
       intent: 'TODAY_PLAN',
       spokenText: query,
-      responsePrompt: 'Today you have morning medicine at 9:00 AM, a cognitive memory game at 10:00 AM, and hydration check at 2:00 PM.',
+      responsePrompt: lang === 'hi'
+        ? 'आज सुबह 9:00 बजे दवा, 10:00 बजे मेमरी गेम और दोपहर 2:00 बजे पानी का रिमाइंडर है।'
+        : 'Today you have morning medicine at 9:00 AM, a cognitive memory game at 10:00 AM, and hydration check at 2:00 PM.',
     };
   }
 
   if (
     normalized.includes('help') ||
     normalized.includes('sos') ||
-    normalized.includes('emergency')
+    normalized.includes('emergency') ||
+    normalized.includes('मदद') ||
+    normalized.includes('सहायता')
   ) {
     return {
       intent: 'HELP_SOS',
       spokenText: query,
-      responsePrompt: 'Help request received. Opening emergency assistance and notifying your caregiver.',
+      responsePrompt: lang === 'hi'
+        ? 'सहायता का अनुरोध प्राप्त हुआ। आपातकालीन पृष्ठ खोला जा रहा है।'
+        : 'Help request received. Opening emergency assistance and notifying your caregiver.',
     };
   }
 
-  if (normalized.includes('repeat') || normalized.includes('say again')) {
+  if (
+    normalized.includes('repeat') ||
+    normalized.includes('say again') ||
+    normalized.includes('फिर से')
+  ) {
     return {
       intent: 'REPEAT',
       spokenText: query,
-      responsePrompt: 'Repeating your daily routine overview.',
+      responsePrompt: lang === 'hi'
+        ? 'आपकी दैनिक दिनचर्या फिर से दोहराई जा रही है।'
+        : 'Repeating your daily routine overview.',
     };
   }
 
   return {
     intent: 'UNKNOWN',
     spokenText: query,
-    responsePrompt: 'I am listening. You can ask "What should I do now?", "Next reminder", or "Help me".',
+    responsePrompt: lang === 'hi'
+      ? 'मैं आपकी बात सुन रहा हूँ। आप पूछ सकते हैं "मुझे अब क्या करना चाहिए?", "अगला रिमाइंडर" या "मेरी मदद करें"।'
+      : 'I am listening. You can ask "What should I do now?", "Next reminder", or "Help me".',
   };
 }
 
@@ -212,34 +243,70 @@ export class VoiceService {
     return sttManager.isListening();
   }
 
+  private appStateSubscription: any = null;
+
+  constructor() {
+    if (typeof AppState !== 'undefined' && AppState.addEventListener) {
+      this.appStateSubscription = AppState.addEventListener(
+        'change',
+        (nextAppState: AppStateStatus) => {
+          if (nextAppState === 'background' || nextAppState === 'inactive') {
+            console.log('[VoiceService] App entered background/inactive state. Pausing voice queue...');
+            voiceQueueManager.stop(true);
+          }
+        }
+      );
+    }
+  }
+
   /**
    * Cleanup listeners and audio resources.
    */
   public destroy(): void {
+    if (this.appStateSubscription?.remove) {
+      this.appStateSubscription.remove();
+    }
     sttManager.destroy();
+    voiceQueueManager.stop(true);
   }
 
   /**
-   * Stop any active Text-to-Speech synthesis.
+   * Stop any active Text-to-Speech synthesis and clear queue.
    */
   public async stopSpeaking(): Promise<void> {
-    await ttsManager.stop();
+    await voiceQueueManager.stop(true);
   }
 
   /**
-   * Speak out text using offline-first hybrid TTS (Local Model -> Native Device TTS).
+   * Speak out text using offline-first hybrid TTS queue with priority, duplicate debouncing,
+   * and automatic localization from English to user's selected language.
    */
   public async speak(
     text: string,
-    languageIdentifier: string = 'en-IN',
-    callbacks?: VoiceTTSCallbacks
+    languageIdentifier?: string,
+    callbacks?: VoiceTTSCallbacks,
+    priority: VoicePriority = 'NORMAL',
+    contentId?: string
   ): Promise<void> {
-    await ttsManager.speak(text, languageIdentifier, callbacks);
+    // 1. Strictly resolve active language from useAccessibilityStore as single source of truth
+    const activeLangCode = useAccessibilityStore.getState().currentLanguage || 'en';
+    const resolvedVoiceLang = resolveVoiceLanguage(activeLangCode);
+    const effectiveLang = resolvedVoiceLang.ttsLocale;
+
+    // 2. Automatically translate English content into user's selected language using existing TranslationService
+    const targetLangCode = activeLangCode;
+    const localizedText = await voiceTranslator.translate(text, targetLangCode);
+
+    await voiceQueueManager.enqueue(localizedText, effectiveLang, priority, contentId, callbacks);
   }
 
   public async processQueryAndSpeak(query: string, languageIdentifier?: string): Promise<VoiceIntentResult> {
-    const intentResult = parseVoiceIntent(query);
-    await this.speak(intentResult.responsePrompt, languageIdentifier);
+    const activeLangCode = useAccessibilityStore.getState().currentLanguage || 'en';
+    const resolvedVoiceLang = resolveVoiceLanguage(activeLangCode);
+    const effectiveLang = resolvedVoiceLang.ttsLocale;
+
+    const intentResult = parseVoiceIntent(query, effectiveLang);
+    await this.speak(intentResult.responsePrompt, effectiveLang, undefined, 'HIGH', intentResult.intent);
     return intentResult;
   }
 
@@ -249,7 +316,7 @@ export class VoiceService {
   }
 
   public isSpeaking(): boolean {
-    return ttsManager.isSpeaking();
+    return voiceQueueManager.isSpeaking();
   }
 }
 

@@ -30,16 +30,16 @@ export const ListenButton: React.FC<ListenButtonProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handlePress = async () => {
-    if (isPlaying) {
+    if (isPlaying || voiceService.isSpeaking()) {
+      await voiceService.stopSpeaking();
       await voiceService.stop();
       setIsPlaying(false);
     } else {
       setIsPlaying(true);
-      await voiceService.speak(textToSpeak);
-      // Reset state once done
-      setTimeout(() => {
-        setIsPlaying(false);
-      }, Math.max(2000, textToSpeak.length * 75));
+      await voiceService.speak(textToSpeak, undefined, {
+        onDone: () => setIsPlaying(false),
+        onError: () => setIsPlaying(false),
+      });
     }
   };
 

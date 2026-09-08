@@ -254,7 +254,11 @@ export class NativeDeviceTTSProvider {
           callbacks?.onDone?.();
         };
 
-        utterance.onerror = (e) => {
+        utterance.onerror = (e: any) => {
+          if (e?.error === 'interrupted' || e?.error === 'canceled') {
+            callbacks?.onDone?.();
+            return;
+          }
           console.warn('[NativeTTS] Utterance error event:', e);
           callbacks?.onError?.('Native text-to-speech synthesis error.');
         };

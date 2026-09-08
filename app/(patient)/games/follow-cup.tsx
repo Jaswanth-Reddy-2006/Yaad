@@ -222,7 +222,7 @@ export default function FollowTheCupGameScreen() {
       useNativeDriver: true,
     }).start();
 
-    voiceService.speak('Look at the ball! Watch it get covered.');
+    voiceService.speak(t('watch_star_covered'));
 
     // Step 2 (COVER): After 2.4s, smoothly lower the glass to completely hide the ball
     setTimeout(() => {
@@ -248,7 +248,7 @@ export default function FollowTheCupGameScreen() {
   // Step 3 (SHUFFLE): Slide glasses horizontally across positions
   const startShuffleProcess = (config: LevelConfig, currentCups: CupItemState[]) => {
     setPhase('SHUFFLE');
-    voiceService.speak('Follow the glass as it moves!');
+    voiceService.speak(t('follow_glass_moving'));
 
     let stateCups = [...currentCups];
     let swapsDone = 0;
@@ -257,7 +257,7 @@ export default function FollowTheCupGameScreen() {
       if (swapsDone >= config.swapCount || !isMountedRef.current) {
         // Step 4 (PICK): Stop and ask the user to guess
         setPhase('PICK');
-        voiceService.speak('Where is the ball? Tap the glass to guess!');
+        voiceService.speak(t('where_is_ball_guess'));
         return;
       }
 
@@ -356,7 +356,7 @@ export default function FollowTheCupGameScreen() {
     if (cup.isWinner) {
       // Correct glass!
       setIsWrong(false);
-      voiceService.speak('You found the ball! Wonderful focus!');
+      voiceService.speak(t('found_ball_great'));
       const elapsedSecs = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
       const score = 600 + Math.max(0, 30 - elapsedSecs) * 20;
 
@@ -391,7 +391,7 @@ export default function FollowTheCupGameScreen() {
     } else {
       // Wrong glass!
       setIsWrong(true);
-      voiceService.speak('Not under this glass. Look where it was!');
+      voiceService.speak(t('not_under_glass'));
 
       // Lift the actual winning glass so patient sees the ball
       const winningCup = cups.find((c) => c.isWinner);

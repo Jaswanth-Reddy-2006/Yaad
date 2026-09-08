@@ -12,6 +12,16 @@ export default function RegistrationSuccessScreen() {
   const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
+  const handleGoHome = async () => {
+    const { authService } = require('../../services/AuthService');
+    const role = await authService.getUserRole();
+    if (role === 'CAREGIVER') {
+      router.replace('/caregiver/home');
+    } else {
+      router.replace('/(patient)');
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: isHc ? COLORS.hcBackground : COLORS.background }]}>
       <View style={styles.card}>
@@ -26,17 +36,17 @@ export default function RegistrationSuccessScreen() {
         </View>
 
         <Typography size="xxl" weight="bold" align="center" color={isHc ? COLORS.hcTextPrimary : '#0F172A'} style={{ marginTop: SPACING.lg }}>
-          {t('registration_success') || 'Registration Successful!'}
+          {t('registration_success')}
         </Typography>
 
         <Typography size="sm" color={COLORS.textMuted} align="center" style={{ marginTop: SPACING.xs, lineHeight: 22, paddingHorizontal: SPACING.md }}>
-          {t('registration_success_desc') || 'Welcome to Yaad. You can now login and start your journey of care and connection.'}
+          {t('registration_success_desc')}
         </Typography>
 
         <Button
-          title={t('go_to_login') || 'Go to Login'}
+          title={t('get_started') || 'Get Started'}
           variant="primary"
-          onPress={() => router.replace('/auth/login')}
+          onPress={handleGoHome}
           style={styles.goToLoginBtn}
         />
       </View>

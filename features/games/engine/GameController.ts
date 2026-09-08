@@ -4,6 +4,8 @@ import { GameTimer } from './GameTimer';
 import { HintEngine } from './HintEngine';
 import { gameRepository } from '../../../repositories/GameRepository';
 import { voiceService } from '../../../services/VoiceService';
+import { voiceContentResolver } from '../../../services/voice/VoiceContentResolver';
+import { useAccessibilityStore } from '../../../store/useAccessibilityStore';
 
 export interface GameState {
   cards: GameCardItem[];
@@ -69,6 +71,10 @@ export class GameController {
     };
   }
 
+  private getCurrentLanguage(): string {
+    return useAccessibilityStore.getState().currentLanguage || 'en';
+  }
+
   public getState(): GameState {
     return { ...this.state };
   }
@@ -79,10 +85,10 @@ export class GameController {
     this.timer.start();
     this.notify();
 
-    const msg = this.state.gameType === 'PAIR'
-      ? 'Look at the cards carefully. Tap two cards to find a matching pair.'
-      : 'Look at the cards carefully. Tap three cards. All three cards should be the same.';
-    voiceService.speak(msg);
+    const lang = this.getCurrentLanguage();
+    const category = this.state.gameType === 'PAIR' ? 'PAIR_INSTRUCTION' : 'TRIPLET_INSTRUCTION';
+    const { key, text } = voiceContentResolver.getRandomPhrase(category, lang);
+    voiceService.speak(text, lang, undefined, 'NORMAL', key);
   }
 
   public async selectCard(cardId: string): Promise<void> {
@@ -126,6 +132,7 @@ export class GameController {
 
     const firstSymbol = selectedCards[0].symbolId;
     const isMatch = selectedCards.every((c) => c.symbolId === firstSymbol);
+    const lang = this.getCurrentLanguage();
 
     if (isMatch) {
       this.state.matchesCount++;
@@ -135,10 +142,8 @@ export class GameController {
       this.state.selectedCardIds = [];
       this.state.isLocked = false;
 
-      const feedback = this.state.gameType === 'PAIR'
-        ? 'Great! You found a match.'
-        : 'Great! You found a triplet.';
-      voiceService.speak(feedback);
+      const { key, text } = voiceContentResolver.getRandomPhrase('MATCH_PRAISE', lang);
+      voiceService.speak(text, lang, undefined, 'HIGH', key);
 
       if (this.state.matchesCount >= this.state.totalRequiredMatches) {
         await this.handleCompletion();
@@ -149,7 +154,9 @@ export class GameController {
     } else {
       this.state.status = 'FEEDBACK';
       this.state.mistakes++;
-      voiceService.speak('These cards are different. Try again.');
+
+      const { key, text } = voiceContentResolver.getRandomPhrase('MISMATCH_GENTLE', lang);
+      voiceService.speak(text, lang, undefined, 'NORMAL', key);
 
       if (this.evaluationTimeout) clearTimeout(this.evaluationTimeout);
       this.evaluationTimeout = setTimeout(() => {
@@ -186,7 +193,10 @@ export class GameController {
     );
     this.notify();
 
-    voiceService.speak('Here is a hint for you. Look at the glowing cards.');
+    const lang = this.getCurrentLanguage();
+    const category = this.state.gameType === 'PAIR' ? 'HINT_PAIR' : 'HINT_TRIPLET';
+    const { key, text } = voiceContentResolver.getRandomPhrase(category, lang);
+    voiceService.speak(text, lang, undefined, 'HIGH', key);
 
     if (this.hintCooldownTimeout) clearTimeout(this.hintCooldownTimeout);
     this.hintCooldownTimeout = setTimeout(() => {
@@ -234,10 +244,10 @@ export class GameController {
     this.state.result = savedResult;
     this.notify();
 
-    const completeSpeech = this.state.gameType === 'PAIR'
-      ? 'Excellent! You found all the pairs. Wonderful job!'
-      : 'Excellent! You found all the triplets. Wonderful job!';
-    voiceService.speak(completeSpeech);
+    const lang = this.getCurrentLanguage();
+    const category = this.state.gameType === 'PAIR' ? 'COMPLETION_PAIR' : 'COMPLETION_TRIPLET';
+    const { key, text } = voiceContentResolver.getRandomPhrase(category, lang);
+    voiceService.speak(text, lang, undefined, 'HIGH', key);
   }
 
   public abandon(): void {

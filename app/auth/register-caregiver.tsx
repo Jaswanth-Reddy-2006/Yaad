@@ -10,7 +10,7 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
 export default function RegisterCaregiverScreen() {
   const router = useRouter();
-  const { preferences } = useAccessibilityStore();
+  const { preferences, t } = useAccessibilityStore();
   const isHc = preferences.highContrast;
 
   const [fullName, setFullName] = useState('');
@@ -26,17 +26,17 @@ export default function RegisterCaregiverScreen() {
 
   const handleRegister = async () => {
     if (!fullName || !email || !password) {
-      setErrorMsg('Please fill in all required fields.');
+      setErrorMsg(t('fill_all_fields'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMsg('Passwords do not match.');
+      setErrorMsg(t('passwords_not_match'));
       return;
     }
 
     if (!agreeTerms) {
-      setErrorMsg('Please agree to the Terms of Service and Privacy Policy.');
+      setErrorMsg(t('please_agree_terms'));
       return;
     }
 
@@ -55,7 +55,7 @@ export default function RegisterCaregiverScreen() {
       await authService.saveSession(caregiverSession);
       router.push('/auth/caregiver-connect');
     } catch (err: any) {
-      setErrorMsg(err?.message || 'Registration failed.');
+      setErrorMsg(err?.message || t('registration_failed'));
     } finally {
       setLoading(false);
     }
@@ -66,9 +66,11 @@ export default function RegisterCaregiverScreen() {
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('go_back')}
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => {
+            router.replace('/auth/role-select');
+          }}
           style={styles.backButton}
         >
           <ArrowLeft size={28} color={isHc ? COLORS.hcTextPrimary : '#0F172A'} />
@@ -77,10 +79,10 @@ export default function RegisterCaregiverScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Typography size="xxl" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-          Create Account
+          {t('create_account')}
         </Typography>
         <Typography size="xs" color={COLORS.textMuted} style={{ marginTop: 4, marginBottom: SPACING.md }}>
-          Caregiver Details
+          {t('caregiver_details')}
         </Typography>
 
         {errorMsg ? (
@@ -94,12 +96,12 @@ export default function RegisterCaregiverScreen() {
         {/* Input 1: Full Name */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Full Name
+            {t('full_name')}
           </Typography>
           <TextInput
             value={fullName}
             onChangeText={setFullName}
-            placeholder="e.g. Aarav Sharma"
+            placeholder="Aarav Sharma"
             placeholderTextColor={COLORS.textMuted}
             style={styles.input}
           />
@@ -108,7 +110,7 @@ export default function RegisterCaregiverScreen() {
         {/* Input 2: Email Address */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Email Address
+            {t('email_address')}
           </Typography>
           <TextInput
             value={email}
@@ -124,7 +126,7 @@ export default function RegisterCaregiverScreen() {
         {/* Input 3: Phone Number */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Phone Number
+            {t('phone_number')}
           </Typography>
           <TextInput
             value={phone}
@@ -139,7 +141,7 @@ export default function RegisterCaregiverScreen() {
         {/* Input 4: Password */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Password
+            {t('password')}
           </Typography>
           <View style={styles.passwordWrapper}>
             <TextInput
@@ -159,7 +161,7 @@ export default function RegisterCaregiverScreen() {
         {/* Input 5: Confirm Password */}
         <View style={styles.inputGroup}>
           <Typography size="xs" weight="bold" color={COLORS.textMuted} style={{ marginBottom: 4 }}>
-            Confirm Password
+            {t('confirm_password')}
           </Typography>
           <TextInput
             value={confirmPassword}
@@ -183,19 +185,12 @@ export default function RegisterCaregiverScreen() {
             <Square size={20} color={COLORS.textMuted} style={{ marginRight: 8 }} />
           )}
           <Typography size="xs" color={COLORS.textMuted} style={{ flex: 1 }}>
-            I agree to the{' '}
-            <Typography size="xs" weight="bold" color={COLORS.primary}>
-              Terms of Service
-            </Typography>{' '}
-            and{' '}
-            <Typography size="xs" weight="bold" color={COLORS.primary}>
-              Privacy Policy
-            </Typography>
+            {t('agree_terms')}
           </Typography>
         </TouchableOpacity>
 
         <Button
-          title={loading ? 'Registering...' : 'Register'}
+          title={t('register')}
           variant="primary"
           disabled={loading}
           onPress={handleRegister}
@@ -208,9 +203,9 @@ export default function RegisterCaregiverScreen() {
           style={styles.loginLink}
         >
           <Typography size="sm" color={COLORS.textMuted} align="center">
-            Already have an account?{' '}
+            {t('already_have_account')}{' '}
             <Typography size="sm" weight="bold" color={COLORS.primary}>
-              Login Now
+              {t('login_now')}
             </Typography>
           </Typography>
         </TouchableOpacity>

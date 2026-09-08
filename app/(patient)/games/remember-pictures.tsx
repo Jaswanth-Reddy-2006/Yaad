@@ -91,6 +91,7 @@ export default function RememberPicturesGameScreen() {
     setPhase('LOOK');
     setGameResult(null);
     startTimeRef.current = Date.now();
+    voiceService.speak(t('memorize_pictures_instruction'));
   };
 
   const handleLookAgain = () => {
@@ -99,6 +100,7 @@ export default function RememberPicturesGameScreen() {
     setSelectedIds([]);
     setCountdown(3);
     setPhase('LOOK');
+    voiceService.speak(t('memorize_pictures_instruction'));
   };
 
   useEffect(() => {
@@ -116,6 +118,7 @@ export default function RememberPicturesGameScreen() {
           if (prev <= 1) {
             if (timerRef.current) clearInterval(timerRef.current);
             setPhase('TEST');
+            voiceService.speak(t('what_did_you_see'));
             return 0;
           }
           return prev - 1;
@@ -156,7 +159,7 @@ export default function RememberPicturesGameScreen() {
       setIsWrong(true);
 
       // Voice audio feedback
-      voiceService.speak('Wrong picture, try again!');
+      voiceService.speak(t('wrong_picture_try_again'));
 
       // Automatically reset selection after short delay so the user can try again
       setTimeout(() => {
@@ -189,6 +192,7 @@ export default function RememberPicturesGameScreen() {
 
     setGameResult(fallbackResult);
     setPhase('COMPLETED');
+    voiceService.speak(t('completion_pair_1') || t('wonderful_job'));
 
     // Persist to local database
     gameRepository.saveResult({

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Switch, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Sun, Moon, Globe, ChevronDown, Check, ArrowLeft, Mic } from 'lucide-react-native';
+import { Sun, Moon, Globe, ChevronDown, Check, ArrowLeft, Mic, LogOut } from 'lucide-react-native';
+import { authService } from '../../services/AuthService';
+import { voiceService } from '../../services/VoiceService';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { Typography } from '../../components/common/Typography';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
@@ -15,6 +17,13 @@ export default function SettingsScreen() {
 
   const isHc = accPrefs.highContrast;
   const currentLangObj = INDIAN_LANGUAGES.find((l) => l.code === currentLanguage) || INDIAN_LANGUAGES[0];
+
+  const handleLogout = async () => {
+    voiceService.stopSpeaking();
+    await authService.clearSession();
+    router.replace('/');
+  };
+
 
   return (
     <ScreenContainer scrollable={true} style={styles.container}>
@@ -105,26 +114,6 @@ export default function SettingsScreen() {
             </ScrollView>
           ) : null}
         </View>
-
-        {/* Card 3: Developer Voice Test Screen */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => router.push('/(patient)/voice-test')}
-          style={[styles.settingsCard, { backgroundColor: isHc ? COLORS.hcCardBackground : '#FFFFFF' }]}
-        >
-          <View style={[styles.iconCircleBadge, { backgroundColor: '#DCFCE7' }]}>
-            <Mic size={26} color="#16A34A" />
-          </View>
-
-          <View style={{ flex: 1, marginLeft: SPACING.md }}>
-            <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : '#0F172A'}>
-              Voice Test Screen
-            </Typography>
-            <Typography size="sm" color={COLORS.textMuted}>
-              Phase 1 Developer Test
-            </Typography>
-          </View>
-        </TouchableOpacity>
       </View>
     </ScreenContainer>
   );

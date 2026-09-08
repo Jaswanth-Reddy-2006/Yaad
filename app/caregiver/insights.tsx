@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { BarChart3, TrendingUp, Sparkles, Brain, Award, AlertCircle } from 'lucide-react-native';
 import { Typography } from '../../components/common/Typography';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
@@ -8,10 +8,28 @@ import { ActivePatientSwitcher } from '../../components/caregiver/ActivePatientS
 import { AppLogo } from '../../components/common/AppLogo';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
+import { authService } from '../../services/AuthService';
 
 export default function InsightsScreen() {
   const router = useRouter();
   const { patients, activePatientId } = useCaregiverStore();
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      async function verifyAuth() {
+        const isAuth = await authService.isAuthenticated();
+        const role = await authService.getUserRole();
+        if (isMounted && (!isAuth || role !== 'CAREGIVER')) {
+          router.replace('/');
+        }
+      }
+      verifyAuth();
+      return () => {
+        isMounted = false;
+      };
+    }, [router])
+  );
 
   const activePatient = patients.find((p) => p.id === activePatientId) || patients[0] || {
     id: '',

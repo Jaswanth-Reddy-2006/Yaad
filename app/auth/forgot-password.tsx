@@ -32,7 +32,9 @@ export default function ForgotPasswordScreen() {
         <TouchableOpacity
           accessibilityLabel={t('go_back')}
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => {
+            router.replace('/auth/login');
+          }}
           style={styles.backButton}
         >
           <ArrowLeft size={28} color={isHc ? COLORS.hcTextPrimary : '#0F172A'} />
@@ -75,7 +77,7 @@ export default function ForgotPasswordScreen() {
         </View>
 
         <Button
-          title={loading ? (t('loading') || 'Sending...') : (t('send_reset_link') || 'Send Reset Link')}
+          title={loading ? t('loading') : t('send_reset_link')}
           variant="primary"
           disabled={loading || sent}
           onPress={handleSendLink}
@@ -95,9 +97,9 @@ export default function ForgotPasswordScreen() {
           style={styles.loginLink}
         >
           <Typography size="sm" color={COLORS.textMuted} align="center">
-            {t('remember_password_q') || 'Remember your password?'}{' '}
+            {t('already_have_account')}{' '}
             <Typography size="sm" weight="bold" color={COLORS.primary}>
-              {t('login_now') || 'Login Now'}
+              {t('login_now')}
             </Typography>
           </Typography>
         </TouchableOpacity>

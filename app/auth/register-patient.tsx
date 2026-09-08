@@ -26,17 +26,17 @@ export default function RegisterPatientScreen() {
 
   const handleRegister = async () => {
     if (!fullName || !password) {
-      setErrorMsg('Please enter your full name and password.');
+      setErrorMsg(t('fill_all_fields'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMsg('Passwords do not match.');
+      setErrorMsg(t('passwords_not_match'));
       return;
     }
 
     if (!agreeTerms) {
-      setErrorMsg('Please agree to the Terms of Service and Privacy Policy.');
+      setErrorMsg(t('please_agree_terms'));
       return;
     }
 
@@ -53,7 +53,7 @@ export default function RegisterPatientScreen() {
       };
 
       await authService.saveSession(patientSession);
-      router.push('/auth/success');
+      router.replace('/(patient)');
     } catch (err: any) {
       setErrorMsg(err?.message || 'Registration failed.');
     } finally {
@@ -68,7 +68,9 @@ export default function RegisterPatientScreen() {
         <TouchableOpacity
           accessibilityLabel={t('go_back')}
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => {
+            router.replace('/auth/role-select');
+          }}
           style={styles.backButton}
         >
           <ArrowLeft size={28} color={isHc ? COLORS.hcTextPrimary : '#0F172A'} />
@@ -184,19 +186,12 @@ export default function RegisterPatientScreen() {
             <Square size={20} color={COLORS.textMuted} style={{ marginRight: 8 }} />
           )}
           <Typography size="xs" color={COLORS.textMuted} style={{ flex: 1 }}>
-            {t('agree_terms') || 'I agree to the'}{' '}
-            <Typography size="xs" weight="bold" color={COLORS.primary}>
-              {t('terms_service') || 'Terms of Service'}
-            </Typography>{' '}
-            {t('and') || 'and'}{' '}
-            <Typography size="xs" weight="bold" color={COLORS.primary}>
-              {t('privacy_policy') || 'Privacy Policy'}
-            </Typography>
+            {t('agree_terms')}
           </Typography>
         </TouchableOpacity>
 
         <Button
-          title={loading ? (t('loading') || 'Registering...') : (t('register') || 'Register')}
+          title={loading ? t('loading') : t('register')}
           variant="primary"
           disabled={loading}
           onPress={handleRegister}
@@ -209,9 +204,9 @@ export default function RegisterPatientScreen() {
           style={styles.loginLink}
         >
           <Typography size="sm" color={COLORS.textMuted} align="center">
-            {t('already_have_account') || 'Already have an account?'}{' '}
+            {t('already_have_account')}{' '}
             <Typography size="sm" weight="bold" color={COLORS.primary}>
-              {t('login_now') || 'Login Now'}
+              {t('login_now')}
             </Typography>
           </Typography>
         </TouchableOpacity>
