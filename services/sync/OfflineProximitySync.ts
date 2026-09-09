@@ -371,6 +371,32 @@ class OfflineProximitySyncService {
     return updated;
   }
 
+  public async saveOrUpdateReminder(reminder: Reminder): Promise<Reminder[]> {
+    const list = await this.getOneTimeReminders();
+    const idx = list.findIndex((r) => r.id === reminder.id || (r.title === reminder.title && r.scheduledTime === reminder.scheduledTime));
+    let updated: Reminder[];
+    if (idx >= 0) {
+      updated = [...list];
+      updated[idx] = { ...updated[idx], ...reminder };
+    } else {
+      updated = [reminder, ...list];
+    }
+    await this.saveOneTimeReminders(updated);
+    return updated;
+  }
+
+  public async markReminderCompleted(id: string): Promise<Reminder[]> {
+    const list = await this.getOneTimeReminders();
+    const updated: Reminder[] = list.map((r) => {
+      if (r.id === id) {
+        return { ...r, status: 'COMPLETED' as const };
+      }
+      return r;
+    });
+    await this.saveOneTimeReminders(updated);
+    return updated;
+  }
+
   public async getGameSchedule(patientId: string = 'p-1'): Promise<PatientGameSchedule> {
     try {
       const raw = await safeStorage.getItem(this.STORAGE_GAME_SCHEDULE);

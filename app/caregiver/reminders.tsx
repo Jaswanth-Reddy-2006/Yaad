@@ -24,12 +24,20 @@ import {
   Check,
   Camera,
   Image as ImageIcon,
+  Mic,
+  Square,
+  Play,
+  Pause,
+  Cloud,
+  Volume2,
 } from 'lucide-react-native';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
 import { authService } from '../../services/AuthService';
 import { offlineProximitySync } from '../../services/sync/OfflineProximitySync';
+import { voiceNoteService } from '../../services/audio/VoiceNoteService';
+import { cloudSyncService } from '../../services/sync/CloudSyncService';
 import { RoutineScheduleItem, Reminder, PatientGameSchedule, FamilyMemberRecallItem, ObjectRecallItem } from '../../types';
 
 export default function CareScheduleScreen() {
@@ -47,6 +55,7 @@ export default function CareScheduleScreen() {
         }
       }
       verifyAuth();
+      loadData();
       return () => {
         isMounted = false;
       };
@@ -86,6 +95,98 @@ export default function CareScheduleScreen() {
   const [remDate, setRemDate] = useState('Upcoming Saturday');
   const [remTime, setRemTime] = useState('10:00 AM');
   const [remCategory, setRemCategory] = useState<Reminder['category']>('HOSPITAL');
+
+  // Voice Note states for Reminders
+  const [remVoiceNoteUri, setRemVoiceNoteUri] = useState<string | null>(null);
+  const [remVoiceNoteDuration, setRemVoiceNoteDuration] = useState<number>(0);
+  const [remGentleTone, setRemGentleTone] = useState<'CHIME' | 'HARP' | 'ZEN_BELL'>('CHIME');
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+  const [lastCloudSyncTime, setLastCloudSyncTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    let timer: any = null;
+    if (isRecordingVoice) {
+      timer = setInterval(() => {
+        setRecordingSeconds((prev) => {
+          if (prev >= 15) {
+            voiceNoteService.stopRecording().then((res) => {
+              setIsRecordingVoice(false);
+              if (res.uri) {
+                setRemVoiceNoteUri(res.uri);
+                setRemVoiceNoteDuration(res.durationSec);
+              }
+            });
+            return 15;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isRecordingVoice]);
+
+  const startVoiceRecording = async () => {
+    try {
+      const ok = await voiceNoteService.startRecording();
+      if (ok) {
+        setIsRecordingVoice(true);
+        setRecordingSeconds(0);
+      } else {
+        Alert.alert('Microphone', 'Could not start recording. Please check microphone permissions.');
+      }
+    } catch (err: any) {
+      Alert.alert('Microphone Error', err.message || 'Microphone recording failed.');
+    }
+  };
+
+  const stopVoiceRecording = async () => {
+    try {
+      const res = await voiceNoteService.stopRecording();
+      setIsRecordingVoice(false);
+      if (res.uri) {
+        setRemVoiceNoteUri(res.uri);
+        setRemVoiceNoteDuration(res.durationSec);
+      }
+    } catch (err: any) {
+      setIsRecordingVoice(false);
+      Alert.alert('Recording Error', err.message || 'Failed to save recording.');
+    }
+  };
+
+  const togglePreviewVoice = async () => {
+    if (!remVoiceNoteUri) return;
+    if (isPlayingPreview) {
+      voiceNoteService.stop();
+      setIsPlayingPreview(false);
+    } else {
+      setIsPlayingPreview(true);
+      await voiceNoteService.play(remVoiceNoteUri, () => {
+        setIsPlayingPreview(false);
+      });
+    }
+  };
+
+  const handleCloudSync = async () => {
+    setIsSyncingCloud(true);
+    const okPush = await cloudSyncService.pushToCloud(activePatient.id);
+    const pulled = await cloudSyncService.pullFromCloud(activePatient.id);
+    if (pulled && pulled.length > 0) {
+      setRemindersList(pulled);
+    }
+    setIsSyncingCloud(false);
+    setLastCloudSyncTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    Alert.alert(
+      'Internet Cloud Sync',
+      okPush
+        ? `Synced with cloud! ${pulled.length} reminders and care schedules active.`
+        : 'Changes saved locally offline. Will sync to cloud once connected.'
+    );
+  };
 
   // Form states - Game Alarm
   const [newPlayTime, setNewPlayTime] = useState('');
@@ -193,11 +294,19 @@ export default function CareScheduleScreen() {
       title: routineTitle.trim(),
       category: routineCategory,
       repeat: 'DAILY',
+      voiceNoteUrl: remVoiceNoteUri || undefined,
+      voiceNoteDurationSec: remVoiceNoteDuration || undefined,
+      gentleAlarmTone: remGentleTone,
     });
     setRoutineList(updated);
     setRoutineTitle('');
     setRoutineNotes('');
+    setRemVoiceNoteUri(null);
+    setRemVoiceNoteDuration(0);
     setIsAddRoutineModal(false);
+
+    // Auto-sync across distances via internet cloud
+    cloudSyncService.pushToCloud(activePatient.id);
   };
 
   const handleDeleteRoutine = async (id: string) => {
@@ -227,11 +336,19 @@ export default function CareScheduleScreen() {
       scheduledTime: `${remDate} at ${remTime}`,
       repeat: 'ONCE',
       alarmEnabled: true,
+      voiceNoteUrl: remVoiceNoteUri || undefined,
+      voiceNoteDurationSec: remVoiceNoteDuration || undefined,
+      gentleAlarmTone: remGentleTone,
     });
     setRemindersList(updated);
     setRemTitle('');
     setRemDesc('');
+    setRemVoiceNoteUri(null);
+    setRemVoiceNoteDuration(0);
     setIsAddReminderModal(false);
+
+    // Auto-sync across distances via internet cloud
+    cloudSyncService.pushToCloud(activePatient.id);
   };
 
   const handleDeleteReminder = async (id: string) => {
@@ -383,28 +500,42 @@ export default function CareScheduleScreen() {
               <ArrowLeft size={18} color="#111827" />
             </TouchableOpacity>
             <View style={styles.headerTitleCol}>
-              <Text style={styles.headerTitle} numberOfLines={1}>Care Schedule</Text>
+              <Text style={styles.headerTitle} numberOfLines={1}>Care Plan</Text>
               <Text style={styles.headerSubtitle} numberOfLines={1}>
-                Routines for <Text style={styles.boldName}>{activePatient.name}</Text>
+                Schedule & Reminders for <Text style={styles.boldName}>{activePatient.name}</Text>
               </Text>
             </View>
           </View>
 
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => router.push('/caregiver/offline-sync')}
-            style={styles.syncBtn}
-          >
-            <RefreshCw size={12} color="#16A34A" />
-            <Text style={styles.syncBtnText}>Sync</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleCloudSync}
+              disabled={isSyncingCloud}
+              style={[styles.syncBtn, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}
+            >
+              <Cloud size={12} color="#2563EB" />
+              <Text style={[styles.syncBtnText, { color: '#1D4ED8' }]}>
+                {isSyncingCloud ? 'Syncing...' : 'Cloud'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push('/caregiver/offline-sync')}
+              style={styles.syncBtn}
+            >
+              <RefreshCw size={12} color="#16A34A" />
+              <Text style={styles.syncBtnText}>QR</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Patient Context Tag */}
           <View style={styles.patientContextRow}>
             <Text style={styles.patientContextText}>
-              Care Schedule for <Text style={styles.patientContextName}>{activePatient.name}</Text>
+              Active Care Plan for <Text style={styles.patientContextName}>{activePatient.name}</Text>
             </Text>
           </View>
 
@@ -431,22 +562,28 @@ export default function CareScheduleScreen() {
             </View>
           </View>
 
-          {/* Tabs: Daily | Reminders | Alarms | Recall */}
+          {/* 4 Category Action Buttons: Daily Schedule | Reminders | Game Alarms | Memory Recall */}
           <View style={styles.tabsContainer}>
             {[
-              { key: 'DAILY', label: 'Daily' },
-              { key: 'REMINDERS', label: 'Reminders' },
-              { key: 'ALARMS', label: 'Alarms' },
-              { key: 'RECALL', label: 'Recall' },
+              { key: 'DAILY', label: 'Daily Schedule', Icon: Clock },
+              { key: 'REMINDERS', label: 'Reminders', Icon: Calendar },
+              { key: 'ALARMS', label: 'Game Alarms', Icon: Brain },
+              { key: 'RECALL', label: 'Memory Recall', Icon: Users },
             ].map((tab) => {
               const isActive = currentTab === tab.key;
+              const IconComp = tab.Icon;
               return (
                 <TouchableOpacity
                   key={tab.key}
-                  activeOpacity={0.8}
+                  activeOpacity={0.85}
                   onPress={() => setCurrentTab(tab.key as any)}
                   style={[styles.tabButton, isActive && styles.tabButtonActive]}
                 >
+                  <IconComp
+                    size={16}
+                    color={isActive ? '#FFFFFF' : '#475569'}
+                    style={{ marginRight: 6 }}
+                  />
                   <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>
                     {tab.label}
                   </Text>
@@ -459,13 +596,16 @@ export default function CareScheduleScreen() {
           {currentTab === 'DAILY' && (
             <View style={styles.tabContent}>
               <View style={styles.sectionTitleRow}>
-                <Text style={styles.sectionTitle}>Today's Routine</Text>
+                <View>
+                  <Text style={styles.sectionTitle}>Daily Schedule ({routineList.length})</Text>
+                  <Text style={styles.sectionSubtitle}>Recurring everyday routine tasks</Text>
+                </View>
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  onPress={() => setIsAddRoutineModal(true)}
+                  onPress={() => router.push('/caregiver/add-task')}
                   style={styles.addTaskBtn}
                 >
-                  <Plus size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                  <Plus size={15} color="#FFFFFF" style={{ marginRight: 4 }} />
                   <Text style={styles.addTaskBtnText}>Add Task</Text>
                 </TouchableOpacity>
               </View>
@@ -537,13 +677,16 @@ export default function CareScheduleScreen() {
           {currentTab === 'REMINDERS' && (
             <View style={styles.tabContent}>
               <View style={styles.sectionTitleRow}>
-                <Text style={styles.sectionTitle}>Appointments & Reminders</Text>
+                <View>
+                  <Text style={styles.sectionTitle}>Reminders & Visits ({remindersList.length})</Text>
+                  <Text style={styles.sectionSubtitle}>Doctor appointments & upcoming reminders</Text>
+                </View>
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  onPress={() => setIsAddReminderModal(true)}
+                  onPress={() => router.push('/caregiver/add-reminder')}
                   style={styles.addTaskBtn}
                 >
-                  <Plus size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                  <Plus size={15} color="#FFFFFF" style={{ marginRight: 4 }} />
                   <Text style={styles.addTaskBtnText}>Add Reminder</Text>
                 </TouchableOpacity>
               </View>
@@ -752,133 +895,6 @@ export default function CareScheduleScreen() {
           {/* Clearance for Bottom Nav */}
           <View style={{ height: 110 }} />
         </ScrollView>
-
-        {/* Add Routine Modal */}
-        <Modal visible={isAddRoutineModal} animationType="slide" transparent>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalSheet}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalSheetTitle}>Add Daily Task</Text>
-                <TouchableOpacity onPress={() => setIsAddRoutineModal(false)}>
-                  <X size={20} color="#64748B" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-                <Text style={styles.inputLabel}>Task Name *</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="e.g. Morning Blood Pressure Medicine"
-                  placeholderTextColor="#94A3B8"
-                  value={routineTitle}
-                  onChangeText={setRoutineTitle}
-                />
-
-                <Text style={styles.inputLabel}>Scheduled Time</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="e.g. 9:00 AM"
-                  placeholderTextColor="#94A3B8"
-                  value={routineTime}
-                  onChangeText={setRoutineTime}
-                />
-
-                <Text style={styles.inputLabel}>Category</Text>
-                <View style={styles.categoryPickerRow}>
-                  {(['MEDICINE', 'HYDRATION', 'MEAL', 'WALK', 'ACTIVITY', 'ROUTINE'] as const).map((cat) => (
-                    <TouchableOpacity
-                      key={cat}
-                      onPress={() => setRoutineCategory(cat)}
-                      style={[
-                        styles.catPickerPill,
-                        routineCategory === cat && styles.catPickerPillActive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.catPickerText,
-                          routineCategory === cat && styles.catPickerTextActive,
-                        ]}
-                      >
-                        {cat}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.inputLabel}>Notes (Optional)</Text>
-                <TextInput
-                  style={[styles.textInput, { height: 60, textAlignVertical: 'top' }]}
-                  placeholder="e.g. Take with warm water"
-                  placeholderTextColor="#94A3B8"
-                  multiline
-                  value={routineNotes}
-                  onChangeText={setRoutineNotes}
-                />
-
-                <TouchableOpacity
-                  activeOpacity={0.88}
-                  onPress={handleSaveRoutine}
-                  style={styles.saveSubmitBtn}
-                >
-                  <Text style={styles.saveSubmitBtnText}>Save Task to Routine</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Add Reminder Modal */}
-        <Modal visible={isAddReminderModal} animationType="slide" transparent>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalSheet}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalSheetTitle}>Add Reminder</Text>
-                <TouchableOpacity onPress={() => setIsAddReminderModal(false)}>
-                  <X size={20} color="#64748B" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-                <Text style={styles.inputLabel}>Title *</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="e.g. Dr. Sharma Clinic Checkup"
-                  placeholderTextColor="#94A3B8"
-                  value={remTitle}
-                  onChangeText={setRemTitle}
-                />
-
-                <Text style={styles.inputLabel}>Date & Time</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="e.g. Upcoming Saturday at 10:00 AM"
-                  placeholderTextColor="#94A3B8"
-                  value={remDate}
-                  onChangeText={setRemDate}
-                />
-
-                <Text style={styles.inputLabel}>Notes</Text>
-                <TextInput
-                  style={[styles.textInput, { height: 60, textAlignVertical: 'top' }]}
-                  placeholder="e.g. Carry medical file"
-                  placeholderTextColor="#94A3B8"
-                  multiline
-                  value={remDesc}
-                  onChangeText={setRemDesc}
-                />
-
-                <TouchableOpacity
-                  activeOpacity={0.88}
-                  onPress={handleSaveReminder}
-                  style={styles.saveSubmitBtn}
-                >
-                  <Text style={styles.saveSubmitBtnText}>Save Reminder</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
 
         {/* Add Family Modal */}
         <Modal visible={isAddFamilyModal} animationType="slide" transparent>
@@ -1185,17 +1201,27 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#F1F5F3',
-    borderRadius: RADIUS.full,
-    padding: 4,
-    marginBottom: SPACING.xs,
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: SPACING.sm,
   },
   tabButton: {
-    flex: 1,
-    paddingVertical: 9,
+    flexBasis: '48%',
+    flexGrow: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: RADIUS.full,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: RADIUS.lg,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   tabButtonActive: {
     backgroundColor: '#16A34A',
@@ -1219,9 +1245,14 @@ const styles = StyleSheet.create({
     marginVertical: SPACING.xs,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
-    color: '#111827',
+    color: '#0F172A',
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
   },
   addTaskBtn: {
     flexDirection: 'row',
@@ -1642,6 +1673,117 @@ const styles = StyleSheet.create({
   catPickerTextActive: {
     color: '#FFFFFF',
     fontWeight: '800',
+  },
+  voiceRecordSection: {
+    backgroundColor: '#F0FDFA',
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+  },
+  voiceSectionHint: {
+    fontSize: 12.5,
+    color: '#0F766E',
+    lineHeight: 18,
+    marginBottom: SPACING.sm,
+  },
+  startRecordBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#CCFBF1',
+    borderWidth: 1,
+    borderColor: '#99F6E4',
+    borderRadius: RADIUS.md,
+    paddingVertical: 12,
+  },
+  startRecordBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F766E',
+  },
+  recordingActiveBox: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+    alignItems: 'center',
+  },
+  recordingIndicatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  redPulseDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#DC2626',
+    marginRight: 8,
+  },
+  recordingTimerText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#DC2626',
+  },
+  stopRecordBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DC2626',
+    borderRadius: RADIUS.md,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  stopRecordBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  voiceRecordedBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#5EEAD4',
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+  },
+  voiceRecordedInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  voiceRecordedText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#0F766E',
+  },
+  voiceRecordedActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  voicePreviewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#CCFBF1',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.full,
+    gap: 4,
+  },
+  voicePreviewText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F766E',
+  },
+  voiceDeleteBtn: {
+    padding: 6,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#FEE2E2',
   },
   saveSubmitBtn: {
     backgroundColor: '#16A34A',

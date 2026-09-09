@@ -114,6 +114,21 @@ export default function GamesHomeScreen() {
       renderBanner: () => <CountSheepBannerIllustration height={130} />,
     },
     {
+      id: 'family-recall',
+      name: currentLanguage === 'te' ? 'కుటుంబ స్మృతి' : currentLanguage === 'hi' ? 'परिवार की यादें' : 'Family Memory Recall',
+      speechText: currentLanguage === 'te'
+        ? 'కుటుంబ స్మృతి. మీ కుటుంబ సభ్యుల ఫోటోను చూడండి, వారి పేరును గుర్తించి ఎంచుకోండి.'
+        : currentLanguage === 'hi'
+        ? 'परिवार की यादें। अपने परिवार के सदस्यों की तस्वीर देखें और उनका नाम पहचानें।'
+        : 'Family Memory Recall. Look at the photo of your family member, and choose the matching name with love.',
+      cardBg: '#FFF1F2',
+      borderColor: '#FECDD3',
+      titleColor: '#BE123C',
+      btnBg: '#E11D48',
+      route: '/(patient)/games/family-recall',
+      renderBanner: () => <RememberPicturesBannerIllustration height={130} />,
+    },
+    {
       id: 'match-cards',
       name: t('match_the_cards') || 'Match the Cards',
       speechText: t('game_speech_pair') || 'Match the Cards. Tap on the cards to turn them over, and find two cards with the exact same picture. Take your time and find all pairs.',
@@ -387,11 +402,7 @@ export default function GamesHomeScreen() {
                 transform: [{ scale: isSelected ? pulseAnim : 1 }],
               }}
             >
-              <TouchableOpacity
-                activeOpacity={0.92}
-                onPress={() => handleCardPress(game)}
-                accessibilityLabel={`${game.name}. ${game.speechText}`}
-                accessibilityRole="button"
+              <View
                 style={[
                   styles.gameCard,
                   {
@@ -405,19 +416,26 @@ export default function GamesHomeScreen() {
                   },
                 ]}
               >
-                {/* 1. Large Image Banner */}
-                <View style={styles.bannerWrapper}>
-                  {game.renderBanner()}
-                </View>
+                {/* 1 & 2. Clickable Banner & Title (Speaks instructions aloud) */}
+                <TouchableOpacity
+                  activeOpacity={0.88}
+                  onPress={() => handleCardPress(game)}
+                  accessibilityLabel={`${game.name}. ${game.speechText}`}
+                >
+                  {/* 1. Large Image Banner */}
+                  <View style={styles.bannerWrapper}>
+                    {game.renderBanner()}
+                  </View>
 
-                {/* 2. Bold, Elder-Friendly Title (Paragraph Description Removed) */}
-                <View style={styles.cardTextContainer}>
-                  <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : game.titleColor}>
-                    {game.name}
-                  </Typography>
-                </View>
+                  {/* 2. Bold, Elder-Friendly Title */}
+                  <View style={styles.cardTextContainer}>
+                    <Typography size="lg" weight="bold" color={isHc ? COLORS.hcTextPrimary : game.titleColor}>
+                      {game.name}
+                    </Typography>
+                  </View>
+                </TouchableOpacity>
 
-                {/* 3. Wide, Tactile Full-Width PLAY Button (Speech Button Beside Play Removed) */}
+                {/* 3. Wide, Tactile Full-Width PLAY Button */}
                 <View style={styles.actionsRow}>
                   <TouchableOpacity
                     activeOpacity={0.85}
@@ -432,7 +450,7 @@ export default function GamesHomeScreen() {
                     </Typography>
                   </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+              </View>
             </Animated.View>
           );
         })}

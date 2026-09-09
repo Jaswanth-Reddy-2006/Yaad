@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
-import { Home, Bell, User } from 'lucide-react-native';
+import { Home, Calendar, User } from 'lucide-react-native';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 
@@ -11,7 +11,7 @@ export const CaregiverBottomNavBar: React.FC = () => {
   const { t } = useAccessibilityStore();
 
   const isHome = pathname === '/caregiver/home' || pathname === '/caregiver' || pathname.includes('/caregiver/insights');
-  const isReminders = pathname.includes('/caregiver/reminders') || pathname.includes('/caregiver/offline-sync');
+  const isPlan = pathname.includes('/caregiver/reminders') || pathname.includes('/caregiver/offline-sync') || pathname.includes('/caregiver/add-');
   const isProfile = pathname.includes('/caregiver/profile');
 
   return (
@@ -36,22 +36,22 @@ export const CaregiverBottomNavBar: React.FC = () => {
           </Text>
         </TouchableOpacity>
 
-        {/* Tab 2: Reminders */}
+        {/* Tab 2: Care Plan */}
         <TouchableOpacity
           activeOpacity={0.85}
           accessibilityRole="tab"
-          accessibilityLabel="Reminders"
-          accessibilityState={{ selected: isReminders }}
+          accessibilityLabel="Care Plan"
+          accessibilityState={{ selected: isPlan }}
           onPress={() => router.push('/caregiver/reminders')}
-          style={[styles.navTab, isReminders && styles.navTabActive]}
+          style={[styles.navTab, isPlan && styles.navTabActive]}
         >
-          <Bell
+          <Calendar
             size={22}
-            color={isReminders ? '#16A34A' : '#64748B'}
-            strokeWidth={isReminders ? 2.5 : 2}
+            color={isPlan ? '#16A34A' : '#64748B'}
+            strokeWidth={isPlan ? 2.5 : 2}
           />
-          <Text style={[styles.tabLabel, isReminders ? styles.tabLabelActive : styles.tabLabelInactive]}>
-            Remembers
+          <Text style={[styles.tabLabel, isPlan ? styles.tabLabelActive : styles.tabLabelInactive]}>
+            Plan
           </Text>
         </TouchableOpacity>
 

@@ -486,6 +486,9 @@ async def get_patient_reminders(
             category=r.category,
             scheduled_time=r.scheduled_time,
             status=r.status,
+            voice_note_url=r.voice_note_url,
+            voice_note_duration_sec=r.voice_note_duration_sec,
+            gentle_alarm_tone=r.gentle_alarm_tone or "CHIME",
             created_at=r.created_at.isoformat()
         )
         for r in reminders
@@ -508,6 +511,9 @@ async def create_patient_reminder(
         category=req.category,
         scheduled_time=req.scheduled_time,
         repeat_rule=req.repeat or "DAILY",
+        voice_note_url=req.voice_note_url,
+        voice_note_duration_sec=req.voice_note_duration_sec,
+        gentle_alarm_tone=req.gentle_alarm_tone or "CHIME",
         status="UPCOMING"
     )
     db.add(new_rem)
@@ -516,7 +522,7 @@ async def create_patient_reminder(
         user_id=current_user.id,
         action="REMINDER_CREATED",
         resource=f"patient:{patient_id}",
-        details=f"Created reminder '{req.title}' ({req.category}) for {req.scheduled_time}"
+        details=f"Created reminder '{req.title}' ({req.category}) with voice note={bool(req.voice_note_url)}"
     )
     db.add(audit)
 
@@ -531,8 +537,94 @@ async def create_patient_reminder(
         category=new_rem.category,
         scheduled_time=new_rem.scheduled_time,
         status=new_rem.status,
+        voice_note_url=new_rem.voice_note_url,
+        voice_note_duration_sec=new_rem.voice_note_duration_sec,
+        gentle_alarm_tone=new_rem.gentle_alarm_tone,
         created_at=new_rem.created_at.isoformat()
     )
+
+@router.patch("/patients/{patient_id}/reminders/{reminder_id}", response_model=ReminderRead)
+async def update_patient_reminder(
+    patient_id: uuid.UUID,
+    reminder_id: uuid.UUID,
+    req: ReminderUpdate,
+    current_user: User = Depends(require_role([UserRole.CAREGIVER])),
+    db: AsyncSession = Depends(get_db)
+):
+    await verify_caregiver_relationship(current_user.id, patient_id, db)
+
+    res = await db.execute(
+        select(ReminderRecord).where(
+            and_(
+                ReminderRecord.id == reminder_id,
+                ReminderRecord.patient_id == patient_id
+            )
+        )
+    )
+    rem = res.scalars().first()
+    if not rem:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reminder not found.")
+
+    if req.title is not None:
+        rem.title = req.title
+    if req.description is not None:
+        rem.description = req.description
+    if req.category is not None:
+        rem.category = req.category
+    if req.scheduled_time is not None:
+        rem.scheduled_time = req.scheduled_time
+    if req.status is not None:
+        rem.status = req.status
+        if req.status == "COMPLETED" and not rem.completed_at:
+            rem.completed_at = utc_now()
+    if req.voice_note_url is not None:
+        rem.voice_note_url = req.voice_note_url
+    if req.voice_note_duration_sec is not None:
+        rem.voice_note_duration_sec = req.voice_note_duration_sec
+    if req.gentle_alarm_tone is not None:
+        rem.gentle_alarm_tone = req.gentle_alarm_tone
+
+    await db.commit()
+    await db.refresh(rem)
+
+    return ReminderRead(
+        id=str(rem.id),
+        patient_id=str(rem.patient_id),
+        title=rem.title,
+        description=rem.description,
+        category=rem.category,
+        scheduled_time=rem.scheduled_time,
+        status=rem.status,
+        voice_note_url=rem.voice_note_url,
+        voice_note_duration_sec=rem.voice_note_duration_sec,
+        gentle_alarm_tone=rem.gentle_alarm_tone,
+        created_at=rem.created_at.isoformat()
+    )
+
+@router.delete("/patients/{patient_id}/reminders/{reminder_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_patient_reminder(
+    patient_id: uuid.UUID,
+    reminder_id: uuid.UUID,
+    current_user: User = Depends(require_role([UserRole.CAREGIVER])),
+    db: AsyncSession = Depends(get_db)
+):
+    await verify_caregiver_relationship(current_user.id, patient_id, db)
+
+    res = await db.execute(
+        select(ReminderRecord).where(
+            and_(
+                ReminderRecord.id == reminder_id,
+                ReminderRecord.patient_id == patient_id
+            )
+        )
+    )
+    rem = res.scalars().first()
+    if not rem:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reminder not found.")
+
+    await db.delete(rem)
+    await db.commit()
+    return None
 
 @router.get("/alerts", response_model=List[AlertRead])
 async def get_caregiver_alerts(

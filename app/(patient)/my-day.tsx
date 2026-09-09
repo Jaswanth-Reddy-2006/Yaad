@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   Pill,
@@ -21,7 +21,9 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 import { useVoiceStore } from '../../store/useVoiceStore';
 import { voiceService } from '../../services/VoiceService';
 import { offlineProximitySync } from '../../services/sync/OfflineProximitySync';
-import { RoutineScheduleItem } from '../../types';
+import { cloudSyncService } from '../../services/sync/CloudSyncService';
+import { MedicationAlarmModal } from '../../components/reminders/MedicationAlarmModal';
+import { RoutineScheduleItem, Reminder } from '../../types';
 
 function formatTimeForSpeech(timeStr: string, lang: string): string {
   if (!timeStr) return '';
@@ -77,6 +79,8 @@ export default function MyDayScreen() {
   const isHc = preferences.highContrast;
 
   const [scheduleItems, setScheduleItems] = useState<RoutineScheduleItem[]>([]);
+  const [selectedAlarmItem, setSelectedAlarmItem] = useState<RoutineScheduleItem | null>(null);
+  const [isAlarmModalVisible, setIsAlarmModalVisible] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const hasSpokenRef = useRef(false);
 
@@ -262,11 +266,20 @@ export default function MyDayScreen() {
             const isDone = item.isCompleted;
             const translatedTitle = getTranslatedTaskTitle(item.title, t);
 
+            const handleCardPress = () => {
+              if (item.voiceNoteUrl || item.category === 'MEDICINE') {
+                setSelectedAlarmItem(item);
+                setIsAlarmModalVisible(true);
+              } else {
+                handleToggleTask(item.id, translatedTitle, item.isCompleted);
+              }
+            };
+
             return (
               <TouchableOpacity
                 key={item.id}
                 activeOpacity={0.9}
-                onPress={() => handleToggleTask(item.id, translatedTitle, item.isCompleted)}
+                onPress={handleCardPress}
                 style={[
                   styles.taskCard,
                   {
@@ -300,6 +313,15 @@ export default function MyDayScreen() {
                         {cfg.label}
                       </Typography>
                     </View>
+
+                    {item.voiceNoteUrl ? (
+                      <View style={styles.voiceNoteBadge}>
+                        <Volume2 size={13} color="#0F766E" style={{ marginRight: 4 }} />
+                        <Typography size="xs" weight="bold" color="#0F766E" numberOfLines={1}>
+                          Voice
+                        </Typography>
+                      </View>
+                    ) : null}
                   </View>
 
                   <Typography
@@ -333,6 +355,43 @@ export default function MyDayScreen() {
           })
         )}
       </View>
+
+      {/* Routine Task & Medication Alarm Modal */}
+      <MedicationAlarmModal
+        visible={isAlarmModalVisible}
+        reminder={
+          selectedAlarmItem
+            ? {
+                id: selectedAlarmItem.id,
+                patientId: selectedAlarmItem.patientId,
+                title: selectedAlarmItem.title,
+                description: '',
+                category: selectedAlarmItem.category as any,
+                scheduledTime: selectedAlarmItem.time,
+                status: selectedAlarmItem.isCompleted ? 'COMPLETED' : 'UPCOMING',
+                repeat: 'DAILY',
+                alarmEnabled: true,
+                createdAt: '',
+                voiceNoteUrl: selectedAlarmItem.voiceNoteUrl,
+                voiceNoteDurationSec: selectedAlarmItem.voiceNoteDurationSec,
+                gentleAlarmTone: selectedAlarmItem.gentleAlarmTone,
+              }
+            : null
+        }
+        patientName="Amma"
+        onComplete={async (id) => {
+          setIsAlarmModalVisible(false);
+          const updated = await offlineProximitySync.toggleRoutineItem(id);
+          setScheduleItems(updated);
+          setSelectedAlarmItem(null);
+          // Sync completion to caregiver over internet
+          cloudSyncService.pushToCloud('p-1');
+        }}
+        onSnooze={() => {
+          setIsAlarmModalVisible(false);
+          setSelectedAlarmItem(null);
+        }}
+      />
     </ScreenContainer>
   );
 }
@@ -433,5 +492,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+  },
+  voiceNoteBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#CCFBF1',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: '#99F6E4',
   },
 });

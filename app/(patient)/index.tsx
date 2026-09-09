@@ -9,10 +9,11 @@ import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 import { useVoiceStore } from '../../store/useVoiceStore';
 import { voiceService } from '../../services/VoiceService';
-import { voiceContentResolver } from '../../services/voice/VoiceContentResolver';
 import { offlineProximitySync } from '../../services/sync/OfflineProximitySync';
+import { cloudSyncService } from '../../services/sync/CloudSyncService';
 import { GameAlarmModal } from '../../components/games/GameAlarmModal';
-import { PatientGameSchedule } from '../../types';
+import { MedicationAlarmModal } from '../../components/reminders/MedicationAlarmModal';
+import { PatientGameSchedule, Reminder } from '../../types';
 
 export default function PatientHomeScreen() {
   const router = useRouter();
@@ -26,6 +27,10 @@ export default function PatientHomeScreen() {
     router.replace('/');
   };
 
+  const handleNavigate = (route: string) => {
+    voiceService.stopSpeaking();
+    router.push(route as any);
+  };
 
   const hasSpokenWelcomeRef = useRef(false);
   const lastLanguageRef = useRef(currentLanguage);
@@ -33,15 +38,20 @@ export default function PatientHomeScreen() {
   const [isGameAlarmVisible, setIsGameAlarmVisible] = useState(false);
   const [gameSchedule, setGameSchedule] = useState<PatientGameSchedule | null>(null);
 
+  const [isMedAlarmVisible, setIsMedAlarmVisible] = useState(false);
+  const [activeAlarmReminder, setActiveAlarmReminder] = useState<Reminder | null>(null);
+  const snoozedReminderIds = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     async function checkAlarmSchedule() {
+      // 1. Check game alarms
       const schedule = await offlineProximitySync.getGameSchedule();
       setGameSchedule(schedule);
 
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
       if (schedule.isAlarmEnabled && schedule.playTimes && schedule.playTimes.length > 0) {
-        // Format current time e.g. "11:00 AM"
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const hasMatchingTime = schedule.playTimes.some(
           (t) => t.toLowerCase() === timeStr.toLowerCase()
         );
@@ -49,12 +59,31 @@ export default function PatientHomeScreen() {
           setIsGameAlarmVisible(true);
         }
       }
+
+      // 2. Background pull from cloud if connected over internet
+      try {
+        await cloudSyncService.pullFromCloud('p-1');
+      } catch {}
+
+      // 3. Check medication and routine reminders
+      const reminders = await offlineProximitySync.getOneTimeReminders();
+      const due = reminders.find((r) => {
+        if (r.status === 'COMPLETED') return false;
+        if (snoozedReminderIds.current.has(r.id)) return false;
+        if (!r.scheduledTime) return false;
+        return r.scheduledTime.toLowerCase().includes(timeStr.toLowerCase());
+      });
+
+      if (due && !activeAlarmReminder) {
+        setActiveAlarmReminder(due);
+        setIsMedAlarmVisible(true);
+      }
     }
 
     checkAlarmSchedule();
     const interval = setInterval(checkAlarmSchedule, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [activeAlarmReminder]);
 
   useEffect(() => {
     if (!isVoiceEnabled) return;
@@ -70,11 +99,6 @@ export default function PatientHomeScreen() {
 
     return () => clearTimeout(timer);
   }, [isVoiceEnabled, currentLanguage, t]);
-
-  const handleNavigate = (route: string) => {
-    voiceService.stopSpeaking();
-    router.push(route as any);
-  };
 
   return (
     <ScreenContainer scrollable={false} style={styles.container}>
@@ -231,6 +255,29 @@ export default function PatientHomeScreen() {
         onStartPlaying={() => {
           setIsGameAlarmVisible(false);
           router.push('/(patient)/games');
+        }}
+      />
+
+      {/* Medication & Care Routine Alarm Modal */}
+      <MedicationAlarmModal
+        visible={isMedAlarmVisible}
+        reminder={activeAlarmReminder}
+        patientName="Amma"
+        onComplete={async (id) => {
+          setIsMedAlarmVisible(false);
+          await offlineProximitySync.markReminderCompleted(id);
+          setActiveAlarmReminder(null);
+          // Sync completion to caregiver over internet
+          cloudSyncService.pushToCloud('p-1');
+        }}
+        onSnooze={(id) => {
+          setIsMedAlarmVisible(false);
+          snoozedReminderIds.current.add(id);
+          setActiveAlarmReminder(null);
+          // Clear snooze after 10 minutes
+          setTimeout(() => {
+            snoozedReminderIds.current.delete(id);
+          }, 10 * 60 * 1000);
         }}
       />
     </ScreenContainer>

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Index
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Index, Text, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.session import Base
 
@@ -20,6 +20,9 @@ class ReminderRecord(Base):
     repeat_rule = Column(String(30), nullable=False, default="DAILY") # 'ONCE' | 'DAILY' | 'WEEKLY' | 'CUSTOM'
     status = Column(String(30), nullable=False, default="UPCOMING") # 'UPCOMING' | 'DUE' | 'COMPLETED' | 'MISSED' | 'SKIPPED' | 'UNACKNOWLEDGED' | 'ESCALATED'
     is_snoozed = Column(Boolean, nullable=False, default=False)
+    voice_note_url = Column(Text, nullable=True) # Base64 audio URI or audio file URL
+    voice_note_duration_sec = Column(Integer, nullable=True) # Duration in seconds
+    gentle_alarm_tone = Column(String(50), nullable=True, default="CHIME") # 'CHIME' | 'HARP' | 'ZEN_BELL'
     completed_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now)

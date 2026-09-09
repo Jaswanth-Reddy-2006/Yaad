@@ -21,6 +21,8 @@ import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 import { useVoiceStore } from '../../store/useVoiceStore';
 import { voiceService } from '../../services/VoiceService';
 import { offlineProximitySync } from '../../services/sync/OfflineProximitySync';
+import { cloudSyncService } from '../../services/sync/CloudSyncService';
+import { MedicationAlarmModal } from '../../components/reminders/MedicationAlarmModal';
 import { Reminder } from '../../types';
 
 function formatTimeForSpeech(timeStr: string, lang: string): string {
@@ -75,7 +77,13 @@ export default function RemindersScreen() {
   const { isVoiceEnabled, ttsLanguage } = useVoiceStore();
   const isHc = preferences.highContrast;
 
+  const [selectedAlarmReminder, setSelectedAlarmReminder] = useState<Reminder | null>(null);
+  const [isAlarmModalVisible, setIsAlarmModalVisible] = useState(false);
+
   const loadReminders = useCallback(async () => {
+    try {
+      await cloudSyncService.pullFromCloud('p-1');
+    } catch {}
     const list = await offlineProximitySync.getOneTimeReminders();
     setReminders(list);
   }, []);
@@ -212,6 +220,7 @@ export default function RemindersScreen() {
   const handleToggle = async (id: string, title: string, currentStatus: string) => {
     const updated = await offlineProximitySync.toggleReminderCompletion(id);
     setReminders(updated);
+    cloudSyncService.pushToCloud('p-1');
 
     const isNowCompleted = currentStatus !== 'COMPLETED';
     if (isVoiceEnabled) {
@@ -281,7 +290,14 @@ export default function RemindersScreen() {
               <TouchableOpacity
                 key={item.id}
                 activeOpacity={0.9}
-                onPress={() => handleToggle(item.id, translatedTitle, item.status)}
+                onPress={() => {
+                  if (item.voiceNoteUrl && !isDone) {
+                    setSelectedAlarmReminder(item);
+                    setIsAlarmModalVisible(true);
+                  } else {
+                    handleToggle(item.id, translatedTitle, item.status);
+                  }
+                }}
                 style={[
                   styles.taskCard,
                   {
@@ -323,6 +339,15 @@ export default function RemindersScreen() {
                         {cfg.label}
                       </Typography>
                     </View>
+
+                    {item.voiceNoteUrl ? (
+                      <View style={[styles.categoryTag, { backgroundColor: '#CCFBF1' }]}>
+                        <Volume2 size={12} color="#0F766E" style={{ marginRight: 4 }} />
+                        <Typography size="xs" weight="bold" color="#0F766E">
+                          Voice Note
+                        </Typography>
+                      </View>
+                    ) : null}
                   </View>
 
                   <Typography
@@ -362,6 +387,25 @@ export default function RemindersScreen() {
           })
         )}
       </View>
+
+      {/* Medication & Care Routine Alarm Modal */}
+      <MedicationAlarmModal
+        visible={isAlarmModalVisible}
+        reminder={selectedAlarmReminder}
+        patientName="Amma"
+        onComplete={async (id) => {
+          setIsAlarmModalVisible(false);
+          const updated = await offlineProximitySync.markReminderCompleted(id);
+          setReminders(updated);
+          setSelectedAlarmReminder(null);
+          // Sync completion to caregiver over internet
+          cloudSyncService.pushToCloud('p-1');
+        }}
+        onSnooze={() => {
+          setIsAlarmModalVisible(false);
+          setSelectedAlarmReminder(null);
+        }}
+      />
     </ScreenContainer>
   );
 }

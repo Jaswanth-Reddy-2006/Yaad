@@ -55,6 +55,9 @@ class ReminderCreate(BaseModel):
     scheduled_time: str # e.g. "9:00 AM" or ISO string
     repeat: Optional[str] = "DAILY" # ONCE | DAILY | WEEKLY | CUSTOM
     priority: Optional[str] = "NORMAL"
+    voice_note_url: Optional[str] = None
+    voice_note_duration_sec: Optional[int] = None
+    gentle_alarm_tone: Optional[str] = "CHIME"
 
 class ReminderUpdate(BaseModel):
     title: Optional[str] = None
@@ -62,6 +65,9 @@ class ReminderUpdate(BaseModel):
     category: Optional[str] = None
     scheduled_time: Optional[str] = None
     status: Optional[str] = None # UPCOMING | DUE | COMPLETED | MISSED | SKIPPED
+    voice_note_url: Optional[str] = None
+    voice_note_duration_sec: Optional[int] = None
+    gentle_alarm_tone: Optional[str] = None
 
 class ReminderRead(BaseModel):
     id: str
@@ -71,6 +77,9 @@ class ReminderRead(BaseModel):
     category: str
     scheduled_time: str
     status: str
+    voice_note_url: Optional[str] = None
+    voice_note_duration_sec: Optional[int] = None
+    gentle_alarm_tone: Optional[str] = "CHIME"
     created_at: str
 
     class Config:

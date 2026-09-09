@@ -88,6 +88,9 @@ export interface Reminder {
   isSnoozed?: boolean;
   repeat?: 'ONCE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
   alarmEnabled?: boolean;
+  voiceNoteUrl?: string;
+  voiceNoteDurationSec?: number;
+  gentleAlarmTone?: 'CHIME' | 'HARP' | 'ZEN_BELL';
   createdAt: string;
 }
 
@@ -112,6 +115,9 @@ export interface RoutineScheduleItem {
   category: TaskCategory;
   isCompleted: boolean;
   repeat: 'DAILY';
+  voiceNoteUrl?: string;
+  voiceNoteDurationSec?: number;
+  gentleAlarmTone?: 'CHIME' | 'HARP' | 'ZEN_BELL';
 }
 
 export interface PatientGameSchedule {
