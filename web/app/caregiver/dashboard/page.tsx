@@ -125,14 +125,21 @@ export default function CaregiverDashboardPage() {
     }
   ];
 
+  const getAuthHeaders = () => {
+    if (typeof window === 'undefined') return {};
+    const token = localStorage.getItem('auth_token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   // 1. Fetch connected patients list & dashboard caregiver summary
   useEffect(() => {
     async function initDashboard() {
       setLoading(true);
       try {
+        const headers = getAuthHeaders();
         const [patientsRes, dashRes] = await Promise.all([
-          fetch('http://localhost:8000/api/v1/caregiver/patients'),
-          fetch('http://localhost:8000/api/v1/caregiver/dashboard')
+          fetch('http://localhost:8000/api/v1/caregiver/patients', { headers }),
+          fetch('http://localhost:8000/api/v1/caregiver/dashboard', { headers })
         ]);
 
         if (patientsRes.ok) {
@@ -171,11 +178,12 @@ export default function CaregiverDashboardPage() {
 
     async function fetchPatientContext() {
       try {
+        const headers = getAuthHeaders();
         const [overRes, anaRes, remRes, altRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/v1/caregiver/patients/${activePatientId}/overview`),
-          fetch(`http://localhost:8000/api/v1/caregiver/patients/${activePatientId}/analytics`),
-          fetch(`http://localhost:8000/api/v1/caregiver/patients/${activePatientId}/reminders`),
-          fetch('http://localhost:8000/api/v1/caregiver/alerts')
+          fetch(`http://localhost:8000/api/v1/caregiver/patients/${activePatientId}/overview`, { headers }),
+          fetch(`http://localhost:8000/api/v1/caregiver/patients/${activePatientId}/analytics`, { headers }),
+          fetch(`http://localhost:8000/api/v1/caregiver/patients/${activePatientId}/reminders`, { headers }),
+          fetch('http://localhost:8000/api/v1/caregiver/alerts', { headers })
         ]);
 
         if (overRes.ok) setOverview(await overRes.json());
@@ -212,7 +220,11 @@ export default function CaregiverDashboardPage() {
 
   const handleResolveAlert = async (id: string) => {
     try {
-      await fetch(`http://localhost:8000/api/v1/caregiver/alerts/${id}/resolve`, { method: 'POST' });
+      const headers = getAuthHeaders();
+      await fetch(`http://localhost:8000/api/v1/caregiver/alerts/${id}/resolve`, {
+        method: 'POST',
+        headers
+      });
     } catch (err) {
       console.warn("Backend offline, updating locally:", err);
     }

@@ -19,9 +19,13 @@ export default function AdminCreateUserPage() {
     setFeedback(null);
 
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const response = await fetch('http://localhost:8000/api/v1/admin/users/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           full_name: fullName,
           email: email || undefined,
