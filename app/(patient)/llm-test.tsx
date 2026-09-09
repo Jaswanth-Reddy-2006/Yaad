@@ -27,7 +27,7 @@ import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { Typography } from '../../components/common/Typography';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useAccessibilityStore } from '../../store/useAccessibilityStore';
-import { OfflineCompanionEngine } from '../companion/OfflineCompanionEngine';
+import { askMitraCare, LLMSource } from '../companion';
 
 const QUICK_QUESTIONS = [
   { label: 'What is my name?', icon: UserCheck, color: '#2563EB', bg: '#EFF6FF' },
@@ -48,6 +48,7 @@ export default function OfflineCompanionTestScreen() {
   const [inputQuery, setInputQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState<string | null>(null);
   const [response, setResponse] = useState<string | null>(null);
+  const [source, setSource] = useState<LLMSource | null>(null);
   const [intent, setIntent] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -67,15 +68,17 @@ export default function OfflineCompanionTestScreen() {
     setIsLoading(true);
 
     try {
-      // Process question via OfflineCompanionEngine and local SQLite database
-      const result = await OfflineCompanionEngine.processWithDatabase(trimmed);
-      setResponse(result.response);
-      setIntent(result.intent);
-      setConfidence(result.confidence);
+      // Unified LLM single entry point: askMitraCare
+      const result = await askMitraCare(trimmed, { useDatabaseContext: true });
+      setResponse(result.answer);
+      setSource(result.source);
+      setIntent(result.intent || 'UNKNOWN');
+      setConfidence(result.confidence ?? null);
     } catch (err) {
-      console.error('[OfflineCompanionTest] Error processing question:', err);
+      console.error('[CompanionTest] Error processing question:', err);
       setErrorMessage("Sorry, I couldn't get that information right now.");
       setResponse("Sorry, I couldn't get that information right now.");
+      setSource('groq_error');
       setIntent('ERROR');
       setConfidence(0);
     } finally {
@@ -87,6 +90,7 @@ export default function OfflineCompanionTestScreen() {
     setInputQuery('');
     setActiveQuery(null);
     setResponse(null);
+    setSource(null);
     setIntent(null);
     setConfidence(null);
     setValidationError(null);
@@ -145,18 +149,56 @@ export default function OfflineCompanionTestScreen() {
               Companion Response
             </Typography>
           </View>
-          {intent ? (
-            <View style={[styles.intentBadge, { backgroundColor: intent === 'UNKNOWN' ? '#FEF2F2' : '#EFF6FF' }]}>
-              <Text
+          <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+            {source ? (
+              <View
                 style={[
-                  styles.intentBadgeText,
-                  { color: intent === 'UNKNOWN' ? COLORS.danger : COLORS.gameBlue },
+                  styles.intentBadge,
+                  {
+                    backgroundColor:
+                      source === 'local'
+                        ? '#DCFCE7'
+                        : source === 'groq'
+                        ? '#F3E8FF'
+                        : source === 'offline_unknown'
+                        ? '#FEF3C7'
+                        : '#FEE2E2',
+                  },
                 ]}
               >
-                Intent: {intent} {confidence !== null ? `(${Math.round(confidence * 100)}%)` : ''}
-              </Text>
-            </View>
-          ) : null}
+                <Text
+                  style={[
+                    styles.intentBadgeText,
+                    {
+                      color:
+                        source === 'local'
+                          ? '#15803D'
+                          : source === 'groq'
+                          ? '#7C3AED'
+                          : source === 'offline_unknown'
+                          ? '#B45309'
+                          : '#B91C1C',
+                    },
+                  ]}
+                >
+                  Source: {source}
+                </Text>
+              </View>
+            ) : null}
+
+            {intent ? (
+              <View style={[styles.intentBadge, { backgroundColor: intent === 'UNKNOWN' ? '#FEF2F2' : '#EFF6FF' }]}>
+                <Text
+                  style={[
+                    styles.intentBadgeText,
+                    { color: intent === 'UNKNOWN' ? COLORS.danger : COLORS.gameBlue },
+                  ]}
+                >
+                  Intent: {intent} {confidence !== null ? `(${Math.round(confidence * 100)}%)` : ''}
+                </Text>
+              </View>
+            ) : null}
+          </View>
         </View>
 
         {isLoading ? (

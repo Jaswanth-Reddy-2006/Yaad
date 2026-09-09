@@ -300,3 +300,30 @@ export interface MatchEvaluation {
   subIntents?: CompanionIntent[];
 }
 
+export const DEFAULT_UNKNOWN_RESPONSE = "I don't have enough information to answer that right now.";
+
+export type LLMSource = 'local' | 'groq' | 'offline_unknown' | 'groq_error';
+
+export interface LLMResponse {
+  answer: string;
+  source: LLMSource;
+  intent?: CompanionIntent;
+  confidence?: number;
+  confidenceLevel?: ConfidenceLevel;
+  questionType?: QuestionType;
+  topic?: CompanionTopic;
+  category?: QuestionCategory;
+  strategy?: ResponseStrategyType;
+  outcomeType?: OutcomeType;
+  subIntents?: CompanionIntent[];
+  entities?: ExtractedEntities;
+  conversationState?: ConversationState;
+}
+
+export interface LocalSystemResult {
+  known: boolean;
+  answer: string | null;
+  companionResult?: CompanionResult;
+}
+
+
