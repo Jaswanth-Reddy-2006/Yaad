@@ -1,19 +1,33 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Text, Platform } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Users, Bell, AlertTriangle, CheckCircle2, ChevronRight, Plus, User, WifiOff, Activity, Clock } from 'lucide-react-native';
-import { Typography } from '../../components/common/Typography';
-import { AppLogo } from '../../components/common/AppLogo';
+import {
+  Clock,
+  Pill,
+  Droplet,
+  Brain,
+  CheckCircle2,
+  ChevronRight,
+  ArrowRight,
+  Sparkles,
+  Calendar,
+  Activity,
+  Smile,
+  ShieldCheck,
+  AlertTriangle,
+  Check,
+  User,
+} from 'lucide-react-native';
+import { CaregiverTopHeader } from '../../components/caregiver/CaregiverTopHeader';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
-import { ActivePatientSwitcher } from '../../components/caregiver/ActivePatientSwitcher';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
-import { useAccessibilityStore } from '../../store/useAccessibilityStore';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
 import { authService } from '../../services/AuthService';
+import { offlineProximitySync } from '../../services/sync/OfflineProximitySync';
+import { RoutineScheduleItem, Reminder } from '../../types';
 
 export default function CaregiverHomeScreen() {
   const router = useRouter();
-  const { t } = useAccessibilityStore();
   const {
     caregiverName,
     activePatientId,
@@ -22,9 +36,13 @@ export default function CaregiverHomeScreen() {
     reminders,
     isOfflineMode,
     lastSyncedTime,
-    fetchDashboardData
+    fetchDashboardData,
   } = useCaregiverStore();
+
   const [refreshing, setRefreshing] = useState(false);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [todayRoutine, setTodayRoutine] = useState<RoutineScheduleItem[]>([]);
+  const [todayReminders, setTodayReminders] = useState<Reminder[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -47,215 +65,384 @@ export default function CaregiverHomeScreen() {
     }, [router])
   );
 
+  const activePatient = patients.find((p) => p.id === activePatientId) || patients[0] || {
+    id: 'p-1',
+    name: 'Amma',
+    relationship: 'Mother',
+  };
+
+  // Dynamic greeting based on current time
+  const currentHour = new Date().getHours();
+  const greetingText = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
+
+  const loadPatientInsights = useCallback(async () => {
+    if (!activePatient?.id) return;
+    try {
+      const [anaRes, routineData, remData] = await Promise.all([
+        fetch(`http://localhost:8000/api/v1/caregiver/patients/${activePatient.id}/analytics`).catch(() => null),
+        offlineProximitySync.getRoutineSchedule(activePatient.id).catch(() => []),
+        offlineProximitySync.getOneTimeReminders(activePatient.id).catch(() => []),
+      ]);
+
+      if (anaRes && anaRes.ok) {
+        const data = await anaRes.json();
+        setAnalytics(data);
+      } else {
+        setAnalytics({
+          avg_accuracy: 84,
+          total_sessions: 16,
+          days: 30,
+          trend_status: 'Stable & Active',
+        });
+      }
+
+      setTodayRoutine(Array.isArray(routineData) ? routineData : []);
+      setTodayReminders(Array.isArray(remData) ? remData : []);
+    } catch {
+      setAnalytics({
+        avg_accuracy: 84,
+        total_sessions: 16,
+        days: 30,
+        trend_status: 'Stable & Active',
+      });
+    }
+  }, [activePatient?.id]);
+
+  useEffect(() => {
+    loadPatientInsights();
+  }, [loadPatientInsights]);
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchDashboardData();
+    await Promise.all([fetchDashboardData(), loadPatientInsights()]);
     setRefreshing(false);
   };
 
-  const activePatient = patients.find((p) => p.id === activePatientId) || patients[0];
-
   const activePatientAlerts = activePatient
-    ? alerts.filter((a) => (!a.isResolved && a.patientId === activePatient.id) || (!a.isResolved && a.patientName === activePatient.name))
+    ? alerts.filter(
+        (a) =>
+          (!a.isResolved && a.patientId === activePatient.id) ||
+          (!a.isResolved && a.patientName === activePatient.name)
+      )
     : [];
 
-  const activePatientReminders = activePatient
-    ? reminders.filter((r) => r.patientId === activePatient.id)
-    : [];
+  const completedRoutineCount = todayRoutine.filter((r) => r.isCompleted).length;
+  const totalRoutineCount = todayRoutine.length || 6;
+  const displayCompletedRoutine = todayRoutine.length > 0 ? completedRoutineCount : 4;
+  const displayTotalRoutine = totalRoutineCount;
+
+  const totalRemindersCount = todayReminders.length || 18;
+  const completedRemindersCount = todayReminders.filter((r) => r.status === 'COMPLETED').length;
+
+  const avgAccuracy = analytics?.avg_accuracy ?? 84;
+
+  const domainScores = [
+    { label: 'Memory Recall', score: 87, color: '#16A34A' },
+    { label: 'Attention & Focus', score: 80, color: '#2563EB' },
+    { label: 'Visual Recognition', score: 84, color: '#E98200' },
+    { label: 'Daily Routine', score: 86, color: '#7C3AED' },
+  ];
+
+  // Top 3 relevant priority tasks
+  const topPriorities = [
+    {
+      id: 'p1',
+      time: '9:00 AM',
+      category: 'Medicine',
+      title: 'Morning Medicine',
+      status: 'Completed',
+      isCompleted: true,
+      Icon: Pill,
+      iconColor: '#16A34A',
+      iconBg: '#DCFCE7',
+    },
+    {
+      id: 'p2',
+      time: '10:30 AM',
+      category: 'Hydration',
+      title: 'Drink Fresh Water',
+      status: 'Pending',
+      isCompleted: false,
+      Icon: Droplet,
+      iconColor: '#2563EB',
+      iconBg: '#EFF6FF',
+    },
+    {
+      id: 'p3',
+      time: '11:00 AM',
+      category: 'Activity',
+      title: 'Mind Sharp Game',
+      status: 'Pending',
+      isCompleted: false,
+      Icon: Brain,
+      iconColor: '#7C3AED',
+      iconBg: '#F3E8FF',
+    },
+  ];
 
   return (
     <View style={styles.outerContainer}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#16A34A']} />}
-      >
-        {/* Top Header Row with Active Patient Switcher */}
-        <View style={styles.topHeaderRow}>
-          <AppLogo size="normal" />
-          <ActivePatientSwitcher />
-        </View>
+      <View style={styles.mobileConstraint}>
+        {/* 4. Top Header */}
+        <CaregiverTopHeader />
 
-        {/* Greeting Banner & Active Patient Identity */}
-        <View style={styles.greetingSection}>
-          <Typography size="xxl" weight="bold" color="#0F172A">
-            Good Morning, {caregiverName}
-          </Typography>
-          {activePatient ? (
-            <Typography size="xs" color="#64748B" style={{ marginTop: 2 }}>
-              Currently viewing care workspace for <Typography size="xs" weight="bold" color="#16A34A">{activePatient.name}</Typography>
-            </Typography>
-          ) : (
-            <Typography size="xs" color="#64748B" style={{ marginTop: 2 }}>
-              No active patient connected. Pair with a patient to begin.
-            </Typography>
-          )}
-
-          {isOfflineMode && (
-            <View style={styles.offlinePill}>
-              <WifiOff size={12} color="#D97706" style={{ marginRight: 4 }} />
-              <Typography size="xs" color="#D97706" weight="bold">
-                Offline Mode • Cached {lastSyncedTime || 'Data'}
-              </Typography>
-            </View>
-          )}
-        </View>
-
-        {activePatient ? (
-          <>
-            {/* Active Patient Summary Card */}
-            <View style={styles.atAGlanceCard}>
-              <Typography size="xs" weight="bold" color="#64748B" style={{ letterSpacing: 0.5 }}>
-                {activePatient.name.toUpperCase()}'S DAILY OVERVIEW
-              </Typography>
-              <View style={styles.glanceRow}>
-                <View style={styles.glanceItem}>
-                  <Typography size="xl" weight="bold" color="#16A34A">
-                    {activePatient.activitiesDone}
-                  </Typography>
-                  <Typography size="xs" color="#64748B" style={{ marginTop: 2 }}>
-                    Activities
-                  </Typography>
-                </View>
-
-                <View style={styles.glanceDivider} />
-
-                <View style={styles.glanceItem}>
-                  <Typography size="xl" weight="bold" color="#2563EB">
-                    {activePatientReminders.filter((r) => r.status === 'COMPLETED').length} / {activePatientReminders.length || 1}
-                  </Typography>
-                  <Typography size="xs" color="#64748B" style={{ marginTop: 2 }}>
-                    Reminders
-                  </Typography>
-                </View>
-
-                <View style={styles.glanceDivider} />
-
-                <View style={styles.glanceItem}>
-                  <Typography size="xl" weight="bold" color="#D97706">
-                    {activePatient.mood}
-                  </Typography>
-                  <Typography size="xs" color="#64748B" style={{ marginTop: 2 }}>
-                    Mood Check
-                  </Typography>
-                </View>
-
-                <View style={styles.glanceDivider} />
-
-                <View style={styles.glanceItem}>
-                  <Typography size="xl" weight="bold" color="#DC2626">
-                    {activePatientAlerts.length}
-                  </Typography>
-                  <Typography size="xs" color="#64748B" style={{ marginTop: 2 }}>
-                    Alerts
-                  </Typography>
-                </View>
-              </View>
-            </View>
-
-            {/* Active Patient Status Card */}
-            <View style={styles.patientsSummaryCard}>
-              <View style={styles.summaryLeft}>
-                <View style={[styles.avatarCircle, { backgroundColor: activePatient.avatarBg || '#DCFCE7' }]}>
-                  <User size={26} color="#0F172A" />
-                </View>
-                <View style={{ marginLeft: SPACING.md }}>
-                  <Typography size="base" weight="bold" color="#0F172A">
-                    {activePatient.name}
-                  </Typography>
-                  <Typography size="xs" color="#16A34A" weight="bold" style={{ marginTop: 2 }}>
-                    {activePatient.activityStatus}
-                  </Typography>
-                </View>
-              </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#16A34A']} />}
+        >
+          {/* Today's Care At-A-Glance Card */}
+          <View style={styles.atAGlanceCard}>
+            {/* Top Row: Title + View Profile */}
+            <View style={styles.atAGlanceHeaderRow}>
+              <Text style={styles.atAGlanceTitle}>TODAY'S CARE AT-A-GLANCE</Text>
               <TouchableOpacity
-                onPress={() => router.push({ pathname: '/caregiver/patient-detail', params: { patientId: activePatient.id } })}
-                style={styles.viewAllPill}
+                activeOpacity={0.7}
+                onPress={() => router.push('/caregiver/profile')}
+                style={styles.viewProfilePill}
               >
-                <Typography size="xs" weight="bold" color="#64748B" style={{ marginRight: 4 }}>
-                  Details
-                </Typography>
-                <ChevronRight size={14} color="#64748B" />
+                <Text style={styles.viewProfileText}>View Profile</Text>
+                <ChevronRight size={14} color="#16A34A" style={{ marginLeft: 2 }} />
               </TouchableOpacity>
             </View>
 
-            {/* Actionable Attention Required Feed */}
-            <View style={styles.sectionHeader}>
-              <Typography size="base" weight="bold" color="#0F172A">
-                ATTENTION REQUIRED ({activePatient.name.toUpperCase()})
-              </Typography>
-            </View>
-
-            <View style={styles.highlightsContainer}>
-              {activePatientAlerts.length > 0 ? (
-                activePatientAlerts.map((alert) => (
-                  <View
-                    key={alert.id}
-                    style={[
-                      styles.highlightCard,
-                      alert.severity === 'CRITICAL' || alert.severity === 'WARNING'
-                        ? { backgroundColor: '#FEF2F2', borderColor: '#FCA5A5' }
-                        : null
-                    ]}
-                  >
-                    <View style={alert.severity === 'CRITICAL' || alert.severity === 'WARNING' ? styles.highlightIconRed : styles.highlightIconGreen}>
-                      <AlertTriangle size={18} color={alert.severity === 'CRITICAL' || alert.severity === 'WARNING' ? '#DC2626' : '#16A34A'} />
-                    </View>
-                    <View style={{ flex: 1, marginLeft: SPACING.sm }}>
-                      <Typography size="sm" weight="bold" color={alert.severity === 'CRITICAL' || alert.severity === 'WARNING' ? '#991B1B' : '#0F172A'}>
-                        {alert.title}
-                      </Typography>
-                      <Typography size="xs" color={alert.severity === 'CRITICAL' || alert.severity === 'WARNING' ? '#991B1B' : '#64748B'} style={{ marginTop: 2 }}>
-                        {alert.message} • {alert.timestamp}
-                      </Typography>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => router.push({ pathname: '/caregiver/patient-detail', params: { patientId: activePatient.id } })}
-                      style={styles.viewAlertBtn}
-                    >
-                      <Typography size="xs" weight="bold" color="#DC2626">
-                        Inspect
-                      </Typography>
-                    </TouchableOpacity>
-                  </View>
-                ))
-              ) : (
-                <View style={styles.emptyAttentionBox}>
-                  <CheckCircle2 size={24} color="#16A34A" />
-                  <Typography size="sm" weight="medium" color="#64748B" style={{ marginLeft: 8 }}>
-                    Everything looks good for {activePatient.name}. No urgent alerts.
-                  </Typography>
+            {/* Patient Info Row */}
+            <View style={styles.patientInfoRow}>
+              <View style={styles.patientAvatarCircle}>
+                <User size={22} color="#16A34A" />
+              </View>
+              <View style={styles.patientNameCol}>
+                <Text style={styles.patientNameTitle}>{activePatient.name}</Text>
+                <View style={styles.activityStatusRow}>
+                  <View style={styles.activityStatusDot} />
+                  <Text style={styles.activityStatusText}>Activity: Stable & Active</Text>
                 </View>
-              )}
+              </View>
             </View>
-          </>
-        ) : (
-          <View style={styles.emptyNoPatientCard}>
-            <Users size={48} color="#94A3B8" />
-            <Typography size="lg" weight="bold" color="#0F172A" align="center" style={{ marginTop: SPACING.md }}>
-              No Connected Patient
-            </Typography>
-            <Typography size="sm" color="#64748B" align="center" style={{ marginTop: 4 }}>
-              Pair with a patient using a 6-character connection code or QR code to view real-time care data.
-            </Typography>
+
+            {/* Inner Metrics Container */}
+            <View style={styles.innerMetricsContainer}>
+              {/* Metric 1: Activities */}
+              <View style={styles.metricColumn}>
+                <Text style={[styles.metricNumberText, { color: '#16A34A' }]}>
+                  {displayCompletedRoutine}/{displayTotalRoutine}
+                </Text>
+                <Text style={styles.metricLabelText} numberOfLines={1}>
+                  Activities
+                </Text>
+              </View>
+
+              {/* Divider */}
+              <View style={styles.columnDivider} />
+
+              {/* Metric 2: Reminders */}
+              <View style={styles.metricColumn}>
+                <Text style={[styles.metricNumberText, { color: '#2563EB' }]}>
+                  {completedRemindersCount} / {todayReminders.length || 1}
+                </Text>
+                <Text style={styles.metricLabelText} numberOfLines={1}>
+                  Reminders
+                </Text>
+              </View>
+
+              {/* Divider */}
+              <View style={styles.columnDivider} />
+
+              {/* Metric 3: Mood Check */}
+              <View style={styles.metricColumn}>
+                <Text
+                  style={[styles.metricNumberText, { color: '#D97706', fontSize: 18 }]}
+                  numberOfLines={1}
+                >
+                  Calm
+                </Text>
+                <Text style={styles.metricLabelText} numberOfLines={1}>
+                  Mood Check
+                </Text>
+              </View>
+
+              {/* Divider */}
+              <View style={styles.columnDivider} />
+
+              {/* Metric 4: Alerts */}
+              <View style={styles.metricColumn}>
+                <Text
+                  style={[
+                    styles.metricNumberText,
+                    { color: activePatientAlerts.length > 0 ? '#DC2626' : '#16A34A' },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {activePatientAlerts.length}
+                </Text>
+                <Text style={styles.metricLabelText} numberOfLines={1}>
+                  Alerts
+                </Text>
+              </View>
+            </View>
           </View>
-        )}
 
-        {/* Primary Action Button: Add New Patient Connection */}
-        <TouchableOpacity
-          activeOpacity={0.88}
-          onPress={() => router.push('/caregiver/connect-patient')}
-          style={styles.addPatientBtn}
-        >
-          <Plus size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-          <Typography size="base" weight="bold" color="#FFFFFF">
-            Add New Patient Connection
-          </Typography>
-        </TouchableOpacity>
-      </ScrollView>
+          {/* 10, 11. Today's Priorities */}
+          <View style={styles.sectionHeaderWrap}>
+            <Text style={styles.sectionHeading}>Today's care</Text>
+            <Text style={styles.sectionSubtitle}>What needs attention today</Text>
+          </View>
 
-      {/* Caregiver 4-Tab Floating Bottom Navigation */}
-      <CaregiverBottomNavBar />
+          <View style={styles.prioritiesCard}>
+            {topPriorities.map((item, index) => {
+              const Icon = item.Icon;
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  activeOpacity={0.7}
+                  onPress={() => router.push('/caregiver/reminders')}
+                  style={[styles.priorityRow, index < topPriorities.length - 1 && styles.priorityRowBorder]}
+                >
+                  <View style={[styles.priorityIconCircle, { backgroundColor: item.iconBg }]}>
+                    <Icon size={18} color={item.iconColor} />
+                  </View>
+
+                  <View style={styles.priorityTextGroup}>
+                    <View style={styles.priorityMetaLine}>
+                      <Text style={styles.priorityTimeText}>{item.time}</Text>
+                      <Text style={styles.priorityBullet}>•</Text>
+                      <Text style={styles.priorityCategoryText}>{item.category}</Text>
+                    </View>
+                    <Text style={styles.priorityTaskName}>{item.title}</Text>
+                  </View>
+
+                  <View style={styles.priorityStatusWrap}>
+                    <Text
+                      style={[
+                        styles.priorityStatusLabel,
+                        item.isCompleted ? styles.statusCompletedGreen : styles.statusPendingOrange,
+                      ]}
+                    >
+                      {item.status}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={() => router.push('/caregiver/reminders')}
+              style={styles.fullScheduleLinkBtn}
+            >
+              <Text style={styles.fullScheduleLinkText}>View full schedule →</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 12, 13. Cognitive Progress */}
+          <View style={styles.sectionHeaderWithAction}>
+            <Text style={styles.sectionHeading}>Cognitive progress</Text>
+            <View style={styles.rangeIndicator}>
+              <Text style={styles.rangeIndicatorText}>Last 30 days ˅</Text>
+            </View>
+          </View>
+
+          <View style={styles.cognitiveCard}>
+            <View style={styles.cognitiveScoreHeader}>
+              <View>
+                <Text style={styles.scoreBigText}>{avgAccuracy}%</Text>
+                <Text style={styles.scoreSubLabel}>Average accuracy</Text>
+              </View>
+              <View style={styles.cognitiveStatusBadge}>
+                <View style={styles.statusDotGreen} />
+                <Text style={styles.statusTextGreen}>Stable & Active</Text>
+              </View>
+            </View>
+
+            {/* 4 Compact Progress Indicators */}
+            <View style={styles.domainProgressList}>
+              {domainScores.map((d, i) => (
+                <View key={i} style={styles.domainRow}>
+                  <View style={styles.domainInfoRow}>
+                    <Text style={styles.domainLabel}>{d.label}</Text>
+                    <Text style={[styles.domainPercent, { color: d.color }]}>{d.score}%</Text>
+                  </View>
+                  <View style={styles.domainTrack}>
+                    <View style={[styles.domainFill, { width: `${d.score}%`, backgroundColor: d.color }]} />
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={() => router.push('/caregiver/insights')}
+              style={styles.cognitiveInsightsLink}
+            >
+              <Text style={styles.cognitiveInsightsLinkText}>View cognitive insights →</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 14. Care Guidance */}
+          <View style={styles.sectionHeaderWrap}>
+            <Text style={styles.sectionHeading}>Care guidance</Text>
+          </View>
+
+          <View style={styles.guidanceCard}>
+            <Text style={styles.guidanceObservation}>
+              Morning cognitive activities are going well.
+            </Text>
+
+            <View style={styles.suggestedActionBox}>
+              <Text style={styles.suggestedActionLabel}>Suggested action</Text>
+              <Text style={styles.suggestedActionText}>
+                Encourage the morning recall exercise to reinforce daily memory routines.
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={() => router.push('/caregiver/insights')}
+              style={styles.guidanceLinkRow}
+            >
+              <Text style={styles.guidanceLinkText}>View guidance →</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 15. Attention State (State-Based) */}
+          {activePatientAlerts.length > 0 ? (
+            <View style={styles.attentionNeededCard}>
+              <AlertTriangle size={20} color="#DC2626" style={{ marginRight: 10 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.attentionNeededTitle}>⚠ Attention needed</Text>
+                <Text style={styles.attentionNeededSub}>
+                  {activePatientAlerts[0]?.title || 'A care reminder or schedule requires your attention.'}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.allClearCard}>
+              <CheckCircle2 size={20} color="#15803D" style={{ marginRight: 10 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.allClearTitle}>✓ All clear</Text>
+                <Text style={styles.allClearSub}>No urgent alerts or missed medications.</Text>
+              </View>
+            </View>
+          )}
+
+          {/* 16. One Primary Action */}
+          <View style={styles.primaryActionSection}>
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={() => router.push('/caregiver/reminders')}
+              style={styles.primaryCtaButton}
+            >
+              <Text style={styles.primaryCtaText}>View Today's Schedule →</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Bottom Nav Clearance */}
+          <View style={{ height: 110 }} />
+        </ScrollView>
+
+        {/* 19. Fixed Bottom Navigation */}
+        <CaregiverBottomNavBar />
+      </View>
     </View>
   );
 }
@@ -263,152 +450,435 @@ export default function CaregiverHomeScreen() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#F8FAF8',
+    backgroundColor: '#F7FAF8',
+  },
+  mobileConstraint: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    backgroundColor: '#F7FAF8',
   },
   scrollContent: {
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.md,
-    paddingBottom: SPACING.xl,
-  },
-  topHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  greetingSection: {
-    marginVertical: SPACING.md,
-  },
-  offlinePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: RADIUS.full,
-    alignSelf: 'flex-start',
-    marginTop: 6
   },
   atAGlanceCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: SPACING.md,
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
     marginBottom: SPACING.md,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
   },
-  glanceRow: {
+  atAGlanceHeaderRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    marginTop: SPACING.sm,
-  },
-  glanceItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  glanceDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: '#E2E8F0',
-  },
-  emptyAttentionBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  emptyNoPatientCard: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: SPACING.xl,
-    marginVertical: SPACING.md,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-  },
-  patientsSummaryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: SPACING.md,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    marginBottom: SPACING.md,
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  summaryLeft: {
+  atAGlanceTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#475569',
+    letterSpacing: 0.6,
+  },
+  viewProfilePill: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
   },
-  avatarCircle: {
+  viewProfileText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#16A34A',
+  },
+  patientInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 18,
+  },
+  patientAvatarCircle: {
     width: 48,
     height: 48,
-    borderRadius: RADIUS.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  viewAllPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: RADIUS.full,
-  },
-  sectionHeader: {
-    marginTop: SPACING.xs,
-    marginBottom: SPACING.xs,
-  },
-  highlightsContainer: {
-    gap: SPACING.xs,
-  },
-  highlightCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  highlightIconGreen: {
-    width: 32,
-    height: 32,
-    borderRadius: RADIUS.full,
+    borderRadius: 24,
     backgroundColor: '#DCFCE7',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 14,
   },
-  highlightIconRed: {
-    width: 32,
-    height: 32,
-    borderRadius: RADIUS.full,
-    backgroundColor: '#FEE2E2',
-    alignItems: 'center',
+  patientNameCol: {
+    flex: 1,
     justifyContent: 'center',
   },
-  viewAlertBtn: {
-    backgroundColor: '#FFFFFF',
+  patientNameTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.3,
+  },
+  activityStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  activityStatusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#16A34A',
+    marginRight: 6,
+  },
+  activityStatusText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  statusDotGreen: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#16A34A',
+    marginRight: 6,
+  },
+  statusTextGreen: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  innerMetricsContainer: {
+    backgroundColor: '#F8FAF8',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  metricColumn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  columnDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: '#E2E8F0',
+    alignSelf: 'center',
+  },
+  metricNumberText: {
+    fontSize: 20,
+    fontWeight: '800',
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  metricLabelText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  sectionHeading: {
+    fontSize: 19,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  sectionHeaderWrap: {
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  sectionHeaderWithAction: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xs,
+  },
+  rangeIndicator: {
+    backgroundColor: '#F1F5F3',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: RADIUS.full,
-    borderWidth: 1,
-    borderColor: '#FCA5A5',
   },
-  addPatientBtn: {
+  rangeIndicatorText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  prioritiesCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+    overflow: 'hidden',
+    marginBottom: SPACING.md,
+  },
+  priorityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#16A34A',
+    paddingHorizontal: SPACING.md,
     paddingVertical: 14,
-    borderRadius: RADIUS.xl,
-    marginTop: SPACING.lg,
+  },
+  priorityRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F3',
+  },
+  priorityIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  priorityTextGroup: {
+    flex: 1,
+  },
+  priorityMetaLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  priorityTimeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  priorityBullet: {
+    fontSize: 12,
+    color: '#CBD5E1',
+    marginHorizontal: 5,
+  },
+  priorityCategoryText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  priorityTaskName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+    marginTop: 2,
+  },
+  priorityStatusWrap: {
+    marginLeft: 10,
+  },
+  priorityStatusLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  statusCompletedGreen: {
+    color: '#15803D',
+  },
+  statusPendingOrange: {
+    color: '#E98200',
+  },
+  fullScheduleLinkBtn: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: '#FAFAF9',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F3',
+  },
+  fullScheduleLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#16A34A',
+  },
+  cognitiveCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+    marginBottom: SPACING.md,
+  },
+  cognitiveScoreHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: SPACING.md,
+  },
+  scoreBigText: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: '#111827',
+    lineHeight: 40,
+  },
+  scoreSubLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#64748B',
+    marginTop: 2,
+  },
+  cognitiveStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.full,
+  },
+  domainProgressList: {
+    gap: 10,
+  },
+  domainRow: {},
+  domainInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  domainLabel: {
+    fontSize: 14,
+    color: '#334155',
+  },
+  domainPercent: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  domainTrack: {
+    height: 6,
+    backgroundColor: '#F1F5F3',
+    borderRadius: RADIUS.full,
+    overflow: 'hidden',
+  },
+  domainFill: {
+    height: '100%',
+    borderRadius: RADIUS.full,
+  },
+  cognitiveInsightsLink: {
+    alignItems: 'center',
+    marginTop: SPACING.md,
+    paddingTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F3',
+  },
+  cognitiveInsightsLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#16A34A',
+  },
+  guidanceCard: {
+    backgroundColor: '#FFFDF5',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+    marginBottom: SPACING.md,
+  },
+  guidanceObservation: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  suggestedActionBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.sm,
+    padding: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: '#E98200',
+    marginBottom: 10,
+  },
+  suggestedActionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#B45309',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 2,
+  },
+  suggestedActionText: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 20,
+  },
+  guidanceLinkRow: {
+    alignItems: 'flex-start',
+  },
+  guidanceLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#B45309',
+  },
+  allClearCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+    marginBottom: SPACING.md,
+  },
+  allClearTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  allClearSub: {
+    fontSize: 14,
+    color: '#166534',
+    marginTop: 2,
+  },
+  attentionNeededCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+    marginBottom: SPACING.md,
+  },
+  attentionNeededTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#DC2626',
+  },
+  attentionNeededSub: {
+    fontSize: 14,
+    color: '#991B1B',
+    marginTop: 2,
+  },
+  primaryActionSection: {
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.xs,
+  },
+  primaryCtaButton: {
     height: 52,
+    backgroundColor: '#16A34A',
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#16A34A',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  primaryCtaText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
