@@ -129,33 +129,22 @@ class OfflineProximitySyncService {
   }
 
   /**
-   * Generates a compact payload optimized for optical QR code scanning.
-   * Strips heavy base64 strings to ensure camera readability within QR capacity limits.
+   * Generates an ultra-compact payload strictly designed for optical QR code capacity (< 400 bytes).
+   * Ensures instant mobile camera recognition and avoids QR size limits.
    */
   public async generateQuickQRPayload(patientId: string = 'p-1', caregiverId: string = 'cg-1'): Promise<string> {
     const routine = await this.getRoutineSchedule(patientId);
     const reminders = await this.getOneTimeReminders(patientId);
-    const gameSchedule = await this.getGameSchedule(patientId);
-    const familyMembers = await this.getFamilyMembers(patientId);
-    const objects = await this.getObjectRecallItems(patientId);
 
-    // Strip heavy base64 strings for optical QR readability
-    const compactFamily = familyMembers.map(({ photoUri, ...rest }) => rest);
-    const compactObjects = objects.map(({ photoUri, ...rest }) => rest);
-
-    const payload: OfflineProximityPayload = {
-      version: 1,
-      patientId,
-      caregiverId,
-      generatedAt: new Date().toISOString(),
-      routine,
-      reminders,
-      gameSchedule,
-      familyMembers: compactFamily as FamilyMemberRecallItem[],
-      objects: compactObjects as ObjectRecallItem[],
+    const compact = {
+      app: 'yaad',
+      t: 'SYNC',
+      pid: patientId,
+      r: routine.map((item) => [item.title, item.time, item.category]),
+      rem: reminders.map((item) => [item.title, item.scheduledTime, item.scheduledDate || '']),
     };
 
-    return JSON.stringify(payload);
+    return JSON.stringify(compact);
   }
 
   /**
@@ -167,7 +156,55 @@ class OfflineProximitySyncService {
         throw new Error('Invalid payload string');
       }
 
-      const parsed: OfflineProximityPayload = JSON.parse(rawPayload);
+      const rawObj = JSON.parse(rawPayload);
+      let parsed: OfflineProximityPayload;
+
+      // Handle compact QR payload format
+      if (rawObj.t === 'SYNC' && Array.isArray(rawObj.r)) {
+        const routine: RoutineScheduleItem[] = rawObj.r.map((item: any, idx: number) => ({
+          id: `rot-${idx + 1}`,
+          patientId: rawObj.pid || 'p-1',
+          title: String(item[0]),
+          time: String(item[1] || '9:00 AM'),
+          category: (item[2] || 'MEDICINE') as any,
+          isCompleted: false,
+          repeat: 'DAILY',
+        }));
+
+        const reminders: Reminder[] = Array.isArray(rawObj.rem)
+          ? rawObj.rem.map((item: any, idx: number) => ({
+              id: `rem-qr-${idx + 1}`,
+              patientId: rawObj.pid || 'p-1',
+              title: String(item[0]),
+              description: '',
+              category: 'HOSPITAL',
+              scheduledTime: String(item[1] || '10:00 AM'),
+              scheduledDate: String(item[2] || 'Upcoming'),
+              status: 'UPCOMING',
+              repeat: 'ONCE',
+              alarmEnabled: true,
+              createdAt: new Date().toISOString(),
+            }))
+          : [];
+
+        parsed = {
+          version: 1,
+          patientId: rawObj.pid || 'p-1',
+          generatedAt: new Date().toISOString(),
+          routine,
+          reminders,
+          gameSchedule: {
+            patientId: rawObj.pid || 'p-1',
+            playTimes: ['11:00 AM', '05:00 PM'],
+            minimumPlaytimeMinutes: 10,
+            playedMinutesToday: 0,
+            isAlarmEnabled: true,
+          },
+        };
+      } else {
+        parsed = rawObj;
+      }
+
       if (!parsed || !parsed.routine || !parsed.reminders) {
         throw new Error('Payload format not recognized');
       }

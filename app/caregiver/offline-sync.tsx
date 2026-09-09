@@ -21,7 +21,7 @@ import {
   RefreshCw,
   Check,
 } from 'lucide-react-native';
-import QRCode from 'react-native-qrcode-svg';
+import { SafeQRCode } from '../../components/common/SafeQRCode';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
@@ -46,7 +46,6 @@ export default function CaregiverOfflineSyncScreen() {
   };
 
   const [activeTab, setActiveTab] = useState<'NEARBY' | 'QR'>('NEARBY');
-  const [qrType, setQrType] = useState<'QUICK' | 'FULL'>('QUICK');
 
   const [loading, setLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -81,29 +80,24 @@ export default function CaregiverOfflineSyncScreen() {
     loadPatientData();
   }, [loadPatientData]);
 
-  // Load QR payload
+  // Load ultra-compact QR payload (< 400 bytes, safe for camera and QR spec)
   const loadQRPayload = useCallback(async () => {
     setLoading(true);
     try {
-      if (qrType === 'QUICK') {
-        const str = await offlineProximitySync.generateQuickQRPayload(activePatient.id);
-        setPayloadString(str);
-      } else {
-        const str = await offlineProximitySync.generatePayload(activePatient.id);
-        setPayloadString(str);
-      }
+      const str = await offlineProximitySync.generateQuickQRPayload(activePatient.id);
+      setPayloadString(str);
     } catch (e) {
       console.warn('Failed to generate QR payload', e);
     } finally {
       setLoading(false);
     }
-  }, [activePatient.id, qrType]);
+  }, [activePatient.id]);
 
   useEffect(() => {
     if (activeTab === 'QR') {
       loadQRPayload();
     }
-  }, [activeTab, qrType, loadQRPayload]);
+  }, [activeTab, loadQRPayload]);
 
   // Real counts
   const routineCount = routineList.length;
@@ -318,42 +312,12 @@ export default function CaregiverOfflineSyncScreen() {
           ) : (
             /* TAB 2: QR Code */
             <View style={styles.sectionWrap}>
-              <View style={styles.qrToggleBar}>
-                <TouchableOpacity
-                  onPress={() => setQrType('QUICK')}
-                  style={[styles.qrToggleBtn, qrType === 'QUICK' && styles.qrToggleBtnActive]}
-                >
-                  <Text
-                    style={[
-                      styles.qrToggleBtnText,
-                      qrType === 'QUICK' && styles.qrToggleBtnTextActive,
-                    ]}
-                  >
-                    Tasks & Alarms QR
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setQrType('FULL')}
-                  style={[styles.qrToggleBtn, qrType === 'FULL' && styles.qrToggleBtnActive]}
-                >
-                  <Text
-                    style={[
-                      styles.qrToggleBtnText,
-                      qrType === 'FULL' && styles.qrToggleBtnTextActive,
-                    ]}
-                  >
-                    Full Bundle QR
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
               <View style={styles.qrDisplayBox}>
                 {loading ? (
                   <ActivityIndicator size="large" color="#16A34A" />
                 ) : payloadString ? (
                   <View style={styles.qrFrame}>
-                    <QRCode
+                    <SafeQRCode
                       value={payloadString}
                       size={210}
                       color="#0F172A"
@@ -364,8 +328,14 @@ export default function CaregiverOfflineSyncScreen() {
               </View>
 
               <Text style={styles.qrInstructions}>
-                Open &quot;Offline QR Sync&quot; on {activePatient.name}&apos;s device and scan this QR code.
+                Open &quot;Offline QR Sync&quot; on {activePatient.name}&apos;s device and scan this QR code to transfer daily routine and alarms.
               </Text>
+
+              <View style={styles.nearbyHintCard}>
+                <Text style={styles.nearbyHintText}>
+                  Note: To sync family photos and object images, use the 1-Tap Nearby Sync tab.
+                </Text>
+              </View>
 
               <TouchableOpacity
                 activeOpacity={0.8}
@@ -627,6 +597,23 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     paddingHorizontal: SPACING.md,
     lineHeight: 20,
+  },
+  nearbyHintCard: {
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.sm + 2,
+    marginTop: SPACING.sm,
+    width: '100%',
+    alignItems: 'center',
+  },
+  nearbyHintText: {
+    fontSize: 13,
+    color: '#15803D',
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 18,
   },
   refreshQrBtn: {
     flexDirection: 'row',

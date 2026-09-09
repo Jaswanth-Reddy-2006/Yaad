@@ -15,7 +15,7 @@ import {
   Eye,
   Check,
 } from 'lucide-react-native';
-import QRCode from 'react-native-qrcode-svg';
+import { SafeQRCode } from './SafeQRCode';
 import { Typography } from './Typography';
 import { Button } from './Button';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
@@ -44,7 +44,6 @@ export function OfflineSyncModal({
 
   // Active Tab: 'NEARBY' | 'QR'
   const [activeTab, setActiveTab] = useState<'NEARBY' | 'QR'>('NEARBY');
-  const [qrType, setQrType] = useState<'QUICK' | 'FULL'>('QUICK');
 
   const [payloadString, setPayloadString] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -71,25 +70,20 @@ export function OfflineSyncModal({
     proximitySyncService.startScanning(patientName);
 
     if (mode === 'CAREGIVER_SHARE') {
-      loadCaregiverPayload(qrType);
+      loadCaregiverPayload();
     }
 
     return () => {
       unsubscribe();
       proximitySyncService.stopScanning();
     };
-  }, [visible, mode, qrType, patientName]);
+  }, [visible, mode, patientName]);
 
-  const loadCaregiverPayload = async (type: 'QUICK' | 'FULL') => {
+  const loadCaregiverPayload = async () => {
     setLoading(true);
     try {
-      if (type === 'QUICK') {
-        const quick = await offlineProximitySync.generateQuickQRPayload();
-        setPayloadString(quick);
-      } else {
-        const full = await offlineProximitySync.generatePayload();
-        setPayloadString(full);
-      }
+      const payload = await offlineProximitySync.generateQuickQRPayload();
+      setPayloadString(payload);
     } catch (err) {
       console.warn('Failed to generate offline payload', err);
     } finally {
@@ -172,7 +166,7 @@ export function OfflineSyncModal({
                 activeOpacity={0.8}
                 onPress={() => {
                   setActiveTab('QR');
-                  loadCaregiverPayload(qrType);
+                  loadCaregiverPayload();
                 }}
                 style={[styles.tabBtn, activeTab === 'QR' && styles.tabBtnActive]}
               >
@@ -327,33 +321,6 @@ export function OfflineSyncModal({
             ) : mode === 'CAREGIVER_SHARE' ? (
               /* TAB 2: Offline QR Code Share */
               <View style={styles.qrSection}>
-                {/* QR Type Selector */}
-                <View style={styles.qrTypeToggleRow}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setQrType('QUICK');
-                      loadCaregiverPayload('QUICK');
-                    }}
-                    style={[styles.qrTypeBtn, qrType === 'QUICK' && styles.qrTypeBtnActive]}
-                  >
-                    <Typography size="xs" weight={qrType === 'QUICK' ? 'bold' : 'medium'} color={qrType === 'QUICK' ? '#15803D' : '#64748B'}>
-                      Quick QR (Tasks & Alarms)
-                    </Typography>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => {
-                      setQrType('FULL');
-                      loadCaregiverPayload('FULL');
-                    }}
-                    style={[styles.qrTypeBtn, qrType === 'FULL' && styles.qrTypeBtnActive]}
-                  >
-                    <Typography size="xs" weight={qrType === 'FULL' ? 'bold' : 'medium'} color={qrType === 'FULL' ? '#15803D' : '#64748B'}>
-                      Full Bundle (with Recall)
-                    </Typography>
-                  </TouchableOpacity>
-                </View>
-
                 {loading ? (
                   <View style={styles.qrLoadingBox}>
                     <ActivityIndicator size="large" color={COLORS.primary} />
@@ -363,7 +330,7 @@ export function OfflineSyncModal({
                   </View>
                 ) : payloadString ? (
                   <View style={styles.qrWrapper}>
-                    <QRCode
+                    <SafeQRCode
                       value={payloadString}
                       size={190}
                       color="#0F172A"
@@ -378,7 +345,7 @@ export function OfflineSyncModal({
 
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  onPress={() => loadCaregiverPayload(qrType)}
+                  onPress={loadCaregiverPayload}
                   style={styles.refreshBtn}
                 >
                   <RefreshCw size={14} color="#16A34A" style={{ marginRight: 6 }} />
