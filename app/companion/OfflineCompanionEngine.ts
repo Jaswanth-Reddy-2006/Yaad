@@ -4,7 +4,14 @@ import {
   ConversationState,
   PatientContext,
 } from './types';
-import { normalizeQuery, detectIntent, MatchEvaluation, extractEntities } from './intents';
+import {
+  normalizeQuery,
+  detectIntent,
+  MatchEvaluation,
+  extractEntities,
+  detectQuestionType,
+  detectTopic,
+} from './intents';
 import { generateResponse } from './templates';
 import { PatientContextProvider } from './PatientContextProvider';
 import { updateConversationState, createInitialConversationState } from './context';
@@ -12,7 +19,7 @@ import { updateConversationState, createInitialConversationState } from './conte
 export class OfflineCompanionEngine {
   /**
    * Synchronous processing pipeline:
-   * Query -> Normalize -> Detect Intent (with conversation context) -> Generate Response -> Update Conversation State
+   * USER QUERY -> NORMALIZATION -> STT CLEANUP -> QUESTION TYPE DETECTION -> TOPIC DETECTION -> ENTITY EXTRACTION -> CONTEXT CHECK -> INTENT SCORING -> KNOWLEDGE / RESPONSE SELECTION -> SAFETY CHECK -> FINAL RESPONSE
    */
   public static process(
     rawQuery: string,
@@ -21,9 +28,16 @@ export class OfflineCompanionEngine {
   ): CompanionResult {
     const normalizedQuery = normalizeQuery(rawQuery);
     const evaluation = detectIntent(normalizedQuery, conversationState);
-    const { intent, confidence, subIntents, entities } = evaluation;
+    const { intent, confidence, questionType, topic, category, subIntents, entities } = evaluation;
 
-    const response = generateResponse(intent, context, subIntents);
+    const { response, outcomeType, strategy } = generateResponse(
+      intent,
+      context,
+      subIntents,
+      rawQuery,
+      conversationState,
+      entities
+    );
 
     const updatedState = updateConversationState(
       conversationState,
@@ -34,11 +48,19 @@ export class OfflineCompanionEngine {
       entities
     );
 
+    const confidenceLevel = confidence >= 0.85 ? 'HIGH' : confidence >= 0.6 ? 'MEDIUM' : 'LOW';
+
     return {
       intent,
       confidence,
+      confidenceLevel,
       response,
       normalizedQuery,
+      questionType,
+      topic,
+      category: category || 'UNKNOWN',
+      strategy: strategy || 'FACTUAL',
+      outcomeType,
       subIntents,
       entities,
       conversationState: updatedState,
@@ -91,14 +113,19 @@ export class OfflineCompanionEngine {
   }
 
   /**
-   * Helper to format a response directly from an intent and context.
+   * Helper to detect QuestionType.
    */
-  public static formatResponse(
-    intent: CompanionIntent,
-    context: PatientContext = {},
-    subIntents?: CompanionIntent[]
-  ): string {
-    return generateResponse(intent, context, subIntents);
+  public static questionType(query: string) {
+    const normalized = normalizeQuery(query);
+    return detectQuestionType(normalized);
+  }
+
+  /**
+   * Helper to detect Topic.
+   */
+  public static topic(query: string) {
+    const normalized = normalizeQuery(query);
+    return detectTopic(normalized);
   }
 }
 
@@ -107,4 +134,5 @@ export * from './intents';
 export * from './templates';
 export * from './synonyms';
 export * from './context';
+export * from './knowledge';
 export * from './PatientContextProvider';
