@@ -50,11 +50,20 @@ export default function ConnectPatientScreen() {
       return;
     }
 
-    const cleanCode = codeInputValue.trim().toUpperCase();
+    let cleanCode = codeInputValue.trim().toUpperCase();
+    let cleanName = patientName;
+
+    try {
+      if (codeInputValue.trim().startsWith('{')) {
+        const parsed = JSON.parse(codeInputValue.trim());
+        if (parsed.code) cleanCode = parsed.code.trim().toUpperCase();
+        if (parsed.patientName && !cleanName) cleanName = parsed.patientName;
+      }
+    } catch {}
 
     const success = await connectPatientStore(
       cleanCode,
-      patientName || 'Connected Patient',
+      cleanName || 'Connected Patient',
       relationship,
       notes
     );

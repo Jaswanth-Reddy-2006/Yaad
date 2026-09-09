@@ -135,6 +135,30 @@ export interface OfflineProximityPayload {
   objects?: ObjectRecallItem[];
 }
 
+export interface ProximityDevice {
+  id: string;
+  name: string;
+  role: 'PATIENT' | 'CAREGIVER';
+  distanceMeters: number;
+  rssi: number; // e.g. -45 dBm
+  status: 'IN_RANGE' | 'CONNECTING' | 'CONNECTED' | 'DISCONNECTED';
+  lastSeen: string;
+}
+
+export interface ProximitySyncResult {
+  success: boolean;
+  itemCount: number;
+  syncedTasks: number;
+  syncedReminders: number;
+  syncedAlarms: number;
+  syncedFamilyPhotos: number;
+  syncedObjectPhotos: number;
+  message: string;
+  timestamp: string;
+}
+
+export type ProximitySyncState = 'IDLE' | 'SCANNING' | 'DEVICE_FOUND' | 'SYNCING' | 'SUCCESS' | 'ERROR';
+
 export interface FamilyMemberRecallItem {
   id: string;
   patientId: string;
@@ -166,5 +190,6 @@ export interface EmergencyContact {
 }
 
 export * from './voice';
+
 
 

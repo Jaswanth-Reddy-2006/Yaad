@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { OfflineProximityPayload, RoutineScheduleItem, Reminder, PatientGameSchedule, FamilyMemberRecallItem, ObjectRecallItem } from '../../types';
+import { OfflineProximityPayload, RoutineScheduleItem, Reminder, PatientGameSchedule, FamilyMemberRecallItem, ObjectRecallItem, ProximitySyncResult } from '../../types';
 import { useTaskStore } from '../../store/useTaskStore';
 import { useReminderStore } from '../../store/useReminderStore';
 
@@ -104,7 +104,7 @@ class OfflineProximitySyncService {
   private readonly STORAGE_OBJECT_RECALL = 'yaad_offline_object_recall';
 
   /**
-   * Generates a portable, offline JSON sync payload that can be transferred via QR code or local P2P.
+   * Generates a complete offline JSON sync payload including full-resolution photos for Proximity/Bluetooth peer sync.
    */
   public async generatePayload(patientId: string = 'p-1', caregiverId: string = 'cg-1'): Promise<string> {
     const routine = await this.getRoutineSchedule(patientId);
@@ -129,9 +129,39 @@ class OfflineProximitySyncService {
   }
 
   /**
+   * Generates a compact payload optimized for optical QR code scanning.
+   * Strips heavy base64 strings to ensure camera readability within QR capacity limits.
+   */
+  public async generateQuickQRPayload(patientId: string = 'p-1', caregiverId: string = 'cg-1'): Promise<string> {
+    const routine = await this.getRoutineSchedule(patientId);
+    const reminders = await this.getOneTimeReminders(patientId);
+    const gameSchedule = await this.getGameSchedule(patientId);
+    const familyMembers = await this.getFamilyMembers(patientId);
+    const objects = await this.getObjectRecallItems(patientId);
+
+    // Strip heavy base64 strings for optical QR readability
+    const compactFamily = familyMembers.map(({ photoUri, ...rest }) => rest);
+    const compactObjects = objects.map(({ photoUri, ...rest }) => rest);
+
+    const payload: OfflineProximityPayload = {
+      version: 1,
+      patientId,
+      caregiverId,
+      generatedAt: new Date().toISOString(),
+      routine,
+      reminders,
+      gameSchedule,
+      familyMembers: compactFamily as FamilyMemberRecallItem[],
+      objects: compactObjects as ObjectRecallItem[],
+    };
+
+    return JSON.stringify(payload);
+  }
+
+  /**
    * Ingests and merges an offline payload on the receiving device without internet.
    */
-  public async ingestPayload(rawPayload: string): Promise<{ success: boolean; itemCount: number; message: string }> {
+  public async ingestPayload(rawPayload: string): Promise<ProximitySyncResult> {
     try {
       if (!rawPayload || typeof rawPayload !== 'string') {
         throw new Error('Invalid payload string');
@@ -144,15 +174,17 @@ class OfflineProximitySyncService {
 
       // Save routine tasks
       await safeStorage.setItem(this.STORAGE_ROUTINE, JSON.stringify(parsed.routine));
-      // Save one-time reminders
+      // Save one-time reminders & alarms
       await safeStorage.setItem(this.STORAGE_REMINDERS, JSON.stringify(parsed.reminders));
-      // Save game schedule
+      // Save game schedule & alarms
       if (parsed.gameSchedule) {
         await safeStorage.setItem(this.STORAGE_GAME_SCHEDULE, JSON.stringify(parsed.gameSchedule));
       }
+      // Save family recall items (with photos)
       if (Array.isArray(parsed.familyMembers)) {
         await safeStorage.setItem(this.STORAGE_FAMILY_MEMBERS, JSON.stringify(parsed.familyMembers));
       }
+      // Save object recall items (with photos)
       if (Array.isArray(parsed.objects)) {
         await safeStorage.setItem(this.STORAGE_OBJECT_RECALL, JSON.stringify(parsed.objects));
       }
@@ -163,18 +195,42 @@ class OfflineProximitySyncService {
         useReminderStore.getState().loadReminders();
       } catch {}
 
-      const totalItems = (parsed.routine?.length || 0) + (parsed.reminders?.length || 0);
+      const totalTasks = parsed.routine?.length || 0;
+      const totalReminders = parsed.reminders?.length || 0;
+      const totalAlarms =
+        (parsed.reminders?.filter((r) => r.alarmEnabled).length || 0) +
+        (parsed.gameSchedule?.isAlarmEnabled ? 1 : 0) +
+        totalTasks;
+      const familyPhotosCount =
+        parsed.familyMembers?.filter((f) => !!f.photoUri && f.photoUri.length > 0).length || 0;
+      const objectPhotosCount =
+        parsed.objects?.filter((o) => !!o.photoUri && o.photoUri.length > 0).length || 0;
+
+      const totalItems = totalTasks + totalReminders + (parsed.familyMembers?.length || 0) + (parsed.objects?.length || 0);
+
       return {
         success: true,
         itemCount: totalItems,
-        message: `Offline synchronization successful! Received ${parsed.routine.length} routine tasks and ${parsed.reminders.length} reminders.`,
+        syncedTasks: totalTasks,
+        syncedReminders: totalReminders,
+        syncedAlarms: totalAlarms,
+        syncedFamilyPhotos: familyPhotosCount,
+        syncedObjectPhotos: objectPhotosCount,
+        message: `Offline synchronization successful! Received ${totalTasks} routine tasks, ${totalReminders} reminders, ${totalAlarms} alarms, and ${familyPhotosCount + objectPhotosCount} photos.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
     } catch (err: any) {
       console.warn('[OfflineProximitySync] Ingestion failed:', err);
       return {
         success: false,
         itemCount: 0,
+        syncedTasks: 0,
+        syncedReminders: 0,
+        syncedAlarms: 0,
+        syncedFamilyPhotos: 0,
+        syncedObjectPhotos: 0,
         message: err?.message || 'Failed to process offline sync payload.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
     }
   }

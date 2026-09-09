@@ -125,10 +125,13 @@ export default function CareScheduleScreen() {
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 0.5,
+        base64: true,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setFamPhotoUri(result.assets[0].uri);
+        const asset = result.assets[0];
+        const uri = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+        setFamPhotoUri(uri);
       }
     } catch (e) {
       console.warn('Error picking image', e);
@@ -146,10 +149,13 @@ export default function CareScheduleScreen() {
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 0.5,
+        base64: true,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setObjPhotoUri(result.assets[0].uri);
+        const asset = result.assets[0];
+        const uri = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+        setObjPhotoUri(uri);
       }
     } catch (e) {
       console.warn('Error picking image', e);
@@ -1056,8 +1062,12 @@ export default function CareScheduleScreen() {
         <OfflineSyncModal
           visible={isOfflineSyncModal}
           mode="CAREGIVER_SHARE"
+          patientName={activePatient.name}
           onClose={() => {
             setIsOfflineSyncModal(false);
+            loadData();
+          }}
+          onSuccess={() => {
             loadData();
           }}
         />
