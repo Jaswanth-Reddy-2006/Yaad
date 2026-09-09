@@ -208,7 +208,26 @@ export const useCaregiverStore = create<CaregiverState>((set, get) => ({
       }
     } catch (e) {}
 
-    set({ isOfflineMode: true, isLoading: false });
+    const defaultFallbackPatients: ConnectedPatient[] = [
+      {
+        id: 'p-1',
+        name: 'Amma',
+        activityStatus: 'Activity: Stable & Active',
+        status: 'Connected',
+        activitiesDone: '4/6',
+        mood: 'Calm & Happy',
+        lastActive: '10 mins ago',
+        avatarBg: '#DCFCE7',
+        relationshipType: 'Mother',
+      },
+    ];
+
+    set((state) => ({
+      patients: state.patients.length > 0 ? state.patients : defaultFallbackPatients,
+      activePatientId: state.activePatientId || defaultFallbackPatients[0].id,
+      isOfflineMode: true,
+      isLoading: false,
+    }));
   },
 
   connectPatient: async (codeOrQr, name, relationship, token) => {

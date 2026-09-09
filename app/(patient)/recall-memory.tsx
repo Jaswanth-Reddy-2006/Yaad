@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Volume2, VolumeX, Play, Calendar, Eye, Palette } from 'lucide-react-native';
+import { ArrowLeft, Volume2, VolumeX, Play, Users, Eye } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { Typography } from '../../components/common/Typography';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
@@ -29,55 +29,38 @@ interface RecallExerciseItem {
 
 const EXERCISES_LIST: RecallExerciseItem[] = [
   {
-    id: '1',
-    titleKey: 'daily_routine_recall',
-    icon: Calendar,
-    iconBg: '#EDE9FE',
-    badgeEn: 'Daily Routine',
-    badgeTe: 'రోజువారీ దినచర్య',
-    badgeHi: 'दैनिक दिनचर्या',
-    subtitleEn: 'Recall your daily activities and timings',
-    subtitleTe: 'మీ రోజువారీ పనులు మరియు సమయాలను గుర్తుచేసుకోండి',
-    subtitleHi: 'अपने दैनिक कार्यों और समय को याद करें',
-    pastelBg: '#F5EFFE',
-    borderColor: '#C084FC',
-    titleColor: '#6D28D9',
-    btnBg: '#7C3AED',
-    route: '/(patient)/games/daily-routine',
-  },
-  {
-    id: '2',
-    titleKey: 'name_the_object',
-    icon: Eye,
+    id: 'family_recall',
+    titleKey: 'family_recall_title',
+    icon: Users,
     iconBg: '#DCFCE7',
-    badgeEn: 'Picture Recall',
-    badgeTe: 'చిత్రాల గుర్తింపు',
-    badgeHi: 'चित्र पहचान',
-    subtitleEn: 'Look at everyday objects and choose the name',
-    subtitleTe: 'చిత్రాలను చూసి సరైన వస్తువు పేరును ఎంచుకోండి',
-    subtitleHi: 'चित्र देखें और वस्तु का सही नाम चुनें',
-    pastelBg: '#E6F9ED',
+    badgeEn: 'Family & Loved Ones',
+    badgeTe: 'కుటుంబం & బంధువులు',
+    badgeHi: 'परिवार और परिजन',
+    subtitleEn: 'Remember and identify your dear family members',
+    subtitleTe: 'మీ ప్రియమైన కుటుంబ సభ్యులను మరియు వారి పేర్లను గుర్తుచేసుకోండి',
+    subtitleHi: 'अपने परिवार के सदस्यों और उनके नामों को याद करें',
+    pastelBg: '#F0FDF4',
     borderColor: '#86EFAC',
     titleColor: '#15803D',
     btnBg: '#16A34A',
-    route: '/(patient)/games/word-match',
+    route: '/(patient)/games/family-recall',
   },
   {
-    id: '3',
-    titleKey: 'color_sequence',
-    icon: Palette,
+    id: 'object_recall',
+    titleKey: 'object_recall_title',
+    icon: Eye,
     iconBg: '#FEF3C7',
-    badgeEn: 'Color Sequence',
-    badgeTe: 'రంగుల క్రమం',
-    badgeHi: 'रंग क्रम',
-    subtitleEn: 'Remember and follow the shining color order',
-    subtitleTe: 'రంగుల క్రమాన్ని గుర్తుంచుకుని అనుసరించండి',
-    subtitleHi: 'रंगों के क्रम को याद रखें और दोहराएं',
+    badgeEn: 'Objects & Locations',
+    badgeTe: 'వస్తువులు & స్థలాలు',
+    badgeHi: 'वस्तुएं और स्थान',
+    subtitleEn: 'Remember household objects and where they belong',
+    subtitleTe: 'రోజువారీ వస్తువులను మరియు వాటి స్థలాలను గుర్తుచేసుకోండి',
+    subtitleHi: 'दैनिक वस्तुओं और उनके स्थानों को याद करें',
     pastelBg: '#FFFBEB',
     borderColor: '#FDE68A',
     titleColor: '#D97706',
     btnBg: '#D97706',
-    route: '/(patient)/games/color-sequence',
+    route: '/(patient)/games/object-recall',
   },
 ];
 

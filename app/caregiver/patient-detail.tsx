@@ -73,6 +73,7 @@ export default function PatientDetailScreen() {
 
   return (
     <View style={styles.outerContainer}>
+      <View style={styles.mobileConstraint}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Top Header Row */}
         <View style={styles.topHeaderRow}>
@@ -404,6 +405,7 @@ export default function PatientDetailScreen() {
 
       {/* Floating Caregiver Navigation */}
       <CaregiverBottomNavBar />
+      </View>
     </View>
   );
 }
@@ -413,15 +415,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAF8',
   },
+  mobileConstraint: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    backgroundColor: '#F7FAF8',
+  },
   scrollContent: {
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.md,
-    paddingBottom: SPACING.xl,
+    paddingBottom: 90, // Safe clearance for floating bottom bar
   },
   topHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: 48,
+    gap: 8,
   },
   backSquareBtn: {
     width: 44,

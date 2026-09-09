@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Alert, Switch } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Alert, Switch, Text, Platform, Image } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import {
   ArrowLeft,
   Plus,
@@ -11,31 +12,28 @@ import {
   Brain,
   Calendar,
   X,
-  Building2,
-  Stethoscope,
   Footprints,
   Utensils,
   Trash2,
-  WifiOff,
-  Bell,
-  Sparkles,
-  Edit3,
-  CalendarDays,
+  RefreshCw,
+  Users,
+  Eye,
   Activity,
-  HeartPulse,
-  UserCheck,
+  User,
+  Key,
+  Check,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react-native';
-import { Typography } from '../../components/common/Typography';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
-import { ActivePatientSwitcher } from '../../components/caregiver/ActivePatientSwitcher';
+import { OfflineSyncModal } from '../../components/common/OfflineSyncModal';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
 import { authService } from '../../services/AuthService';
 import { offlineProximitySync } from '../../services/sync/OfflineProximitySync';
-import { OfflineSyncModal } from '../../components/common/OfflineSyncModal';
-import { RoutineScheduleItem, Reminder, PatientGameSchedule } from '../../types';
+import { RoutineScheduleItem, Reminder, PatientGameSchedule, FamilyMemberRecallItem, ObjectRecallItem } from '../../types';
 
-export default function RemindersScreen() {
+export default function CareScheduleScreen() {
   const router = useRouter();
   const { patients, activePatientId } = useCaregiverStore();
 
@@ -61,10 +59,9 @@ export default function RemindersScreen() {
     name: 'Amma',
   };
 
-  // 3 Primary Tabs: Routine (Daily Tasks), Remembers (One-Time/Hospital), GameAlarm (Game Times & Playtime)
-  const [currentTab, setCurrentTab] = useState<'ROUTINE' | 'REMEMBERS' | 'GAME_ALARM'>('ROUTINE');
+  const [currentTab, setCurrentTab] = useState<'DAILY' | 'REMINDERS' | 'ALARMS' | 'RECALL'>('DAILY');
+  const [recallSubTab, setRecallSubTab] = useState<'FAMILY' | 'OBJECTS'>('FAMILY');
 
-  // Live Lists
   const [routineList, setRoutineList] = useState<RoutineScheduleItem[]>([]);
   const [remindersList, setRemindersList] = useState<Reminder[]>([]);
   const [gameSchedule, setGameSchedule] = useState<PatientGameSchedule>({
@@ -75,7 +72,6 @@ export default function RemindersScreen() {
     isAlarmEnabled: true,
   });
 
-  // Modal states
   const [isAddRoutineModal, setIsAddRoutineModal] = useState(false);
   const [isAddReminderModal, setIsAddReminderModal] = useState(false);
   const [isOfflineSyncModal, setIsOfflineSyncModal] = useState(false);
@@ -84,6 +80,7 @@ export default function RemindersScreen() {
   const [routineTitle, setRoutineTitle] = useState('');
   const [routineTime, setRoutineTime] = useState('9:00 AM');
   const [routineCategory, setRoutineCategory] = useState<RoutineScheduleItem['category']>('MEDICINE');
+  const [routineNotes, setRoutineNotes] = useState('');
 
   // Form states - One-Time Reminder
   const [remTitle, setRemTitle] = useState('');
@@ -95,6 +92,70 @@ export default function RemindersScreen() {
   // Form states - Game Alarm
   const [newPlayTime, setNewPlayTime] = useState('');
 
+  // Live Lists for Recall Memory
+  const [familyList, setFamilyList] = useState<FamilyMemberRecallItem[]>([]);
+  const [objectList, setObjectList] = useState<ObjectRecallItem[]>([]);
+
+  // Modals for Recall Memory
+  const [isAddFamilyModal, setIsAddFamilyModal] = useState(false);
+  const [isAddObjectModal, setIsAddObjectModal] = useState(false);
+
+  // Form states - Family Member
+  const [famName, setFamName] = useState('');
+  const [famRelation, setFamRelation] = useState('Son');
+  const [famNotes, setFamNotes] = useState('');
+  const [famPreset, setFamPreset] = useState<'son' | 'daughter' | 'grandson' | 'granddaughter' | 'spouse' | 'brother' | 'sister' | 'friend'>('son');
+  const [famPhotoUri, setFamPhotoUri] = useState<string | null>(null);
+
+  // Form states - Object Recall
+  const [objName, setObjName] = useState('');
+  const [objLocation, setObjLocation] = useState('');
+  const [objNotes, setObjNotes] = useState('');
+  const [objPreset, setObjPreset] = useState<'glasses' | 'keys' | 'medicine' | 'walking_stick' | 'wallet' | 'watch' | 'water_bottle' | 'book'>('glasses');
+  const [objPhotoUri, setObjPhotoUri] = useState<string | null>(null);
+
+  const pickFamilyImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Camera roll permission is required to select photos.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setFamPhotoUri(result.assets[0].uri);
+      }
+    } catch (e) {
+      console.warn('Error picking image', e);
+    }
+  };
+
+  const pickObjectImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Camera roll permission is required to select photos.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setObjPhotoUri(result.assets[0].uri);
+      }
+    } catch (e) {
+      console.warn('Error picking image', e);
+    }
+  };
+
   const loadData = useCallback(async () => {
     const routine = await offlineProximitySync.getRoutineSchedule(activePatient.id);
     const rems = await offlineProximitySync.getOneTimeReminders(activePatient.id);
@@ -102,33 +163,41 @@ export default function RemindersScreen() {
     setRoutineList(routine);
     setRemindersList(rems);
     setGameSchedule(games);
+    const fams = await offlineProximitySync.getFamilyMembers(activePatient.id);
+    const objs = await offlineProximitySync.getObjectRecallItems(activePatient.id);
+    setFamilyList(fams);
+    setObjectList(objs);
   }, [activePatient.id]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // Routine Handlers
+  const handleToggleComplete = async (item: RoutineScheduleItem) => {
+    const updated = await offlineProximitySync.toggleRoutineItem(item.id);
+    setRoutineList(updated);
+  };
+
   const handleSaveRoutine = async () => {
     if (!routineTitle.trim()) {
-      Alert.alert('Missing Title', 'Please enter a task name.');
+      Alert.alert('Missing Name', 'Please enter a task name.');
       return;
     }
     const updated = await offlineProximitySync.addRoutineItem({
       patientId: activePatient.id,
+      time: routineTime,
       title: routineTitle.trim(),
-      time: routineTime.trim() || '9:00 AM',
       category: routineCategory,
       repeat: 'DAILY',
     });
     setRoutineList(updated);
     setRoutineTitle('');
+    setRoutineNotes('');
     setIsAddRoutineModal(false);
-    Alert.alert('Routine Added', 'Daily task has been added to the patient schedule.');
   };
 
   const handleDeleteRoutine = async (id: string) => {
-    Alert.alert('Delete Routine Task', 'Are you sure you want to remove this daily task?', [
+    Alert.alert('Delete Task', 'Are you sure you want to delete this daily task?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -141,10 +210,9 @@ export default function RemindersScreen() {
     ]);
   };
 
-  // One-time Reminder Handlers
   const handleSaveReminder = async () => {
     if (!remTitle.trim()) {
-      Alert.alert('Missing Title', 'Please enter a reminder title.');
+      Alert.alert('Missing Title', 'Please provide a title for the reminder.');
       return;
     }
     const updated = await offlineProximitySync.addOneTimeReminder({
@@ -152,8 +220,7 @@ export default function RemindersScreen() {
       title: remTitle.trim(),
       description: remDesc.trim(),
       category: remCategory,
-      scheduledDate: remDate.trim() || 'Upcoming Day',
-      scheduledTime: remTime.trim() || '10:00 AM',
+      scheduledTime: `${remDate} at ${remTime}`,
       repeat: 'ONCE',
       alarmEnabled: true,
     });
@@ -161,7 +228,6 @@ export default function RemindersScreen() {
     setRemTitle('');
     setRemDesc('');
     setIsAddReminderModal(false);
-    Alert.alert('Reminder Added', 'One-time task has been saved.');
   };
 
   const handleDeleteReminder = async (id: string) => {
@@ -178,7 +244,6 @@ export default function RemindersScreen() {
     ]);
   };
 
-  // Game Alarm Handlers
   const handleToggleGameAlarm = async (val: boolean) => {
     const updated = { ...gameSchedule, isAlarmEnabled: val };
     setGameSchedule(updated);
@@ -208,6 +273,79 @@ export default function RemindersScreen() {
     await offlineProximitySync.saveGameSchedule(updated);
   };
 
+  const handleSaveFamilyMember = async () => {
+    if (!famName.trim()) {
+      Alert.alert('Missing Name', "Please enter the family member's name.");
+      return;
+    }
+    const updated = await offlineProximitySync.addFamilyMember({
+      patientId: activePatient.id,
+      name: famName.trim(),
+      relation: famRelation.trim(),
+      notes: famNotes.trim(),
+      avatarPreset: famPreset,
+      photoUri: famPhotoUri || undefined,
+    });
+    setFamilyList(updated);
+    setFamName('');
+    setFamNotes('');
+    setFamPhotoUri(null);
+    setIsAddFamilyModal(false);
+  };
+
+  const handleDeleteFamilyMember = async (id: string) => {
+    Alert.alert('Delete Family Member', 'Are you sure you want to remove this family member?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          const updated = await offlineProximitySync.deleteFamilyMember(id);
+          setFamilyList(updated);
+        },
+      },
+    ]);
+  };
+
+  const handleSaveObject = async () => {
+    if (!objName.trim()) {
+      Alert.alert('Missing Name', 'Please enter the object name.');
+      return;
+    }
+    if (!objLocation.trim()) {
+      Alert.alert('Missing Location', 'Please specify where this item is usually kept.');
+      return;
+    }
+    const updated = await offlineProximitySync.addObjectRecallItem({
+      patientId: activePatient.id,
+      name: objName.trim(),
+      location: objLocation.trim(),
+      notes: objNotes.trim(),
+      iconPreset: objPreset,
+      photoUri: objPhotoUri || undefined,
+    });
+    setObjectList(updated);
+    setObjName('');
+    setObjLocation('');
+    setObjNotes('');
+    setObjPhotoUri(null);
+    setIsAddObjectModal(false);
+  };
+
+  const handleDeleteObject = async (id: string) => {
+    Alert.alert('Delete Object', 'Are you sure you want to remove this object?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          const updated = await offlineProximitySync.deleteObjectRecallItem(id);
+          setObjectList(updated);
+        },
+      },
+    ]);
+  };
+
   const getCategoryConfig = (category: string) => {
     switch (category) {
       case 'MEDICINE':
@@ -215,544 +353,718 @@ export default function RemindersScreen() {
       case 'HYDRATION':
         return { Icon: Droplet, bg: '#DBEAFE', color: '#1D4ED8', badge: 'WATER' };
       case 'ACTIVITY':
-        return { Icon: Brain, bg: '#EDE9FE', color: '#6D28D9', badge: 'BRAIN' };
+        return { Icon: Activity, bg: '#FEF3C7', color: '#B45309', badge: 'ACTIVITY' };
+      case 'WALK':
+        return { Icon: Footprints, bg: '#F3E8FF', color: '#6D28D9', badge: 'WALK' };
       case 'MEAL':
         return { Icon: Utensils, bg: '#FFEDD5', color: '#C2410C', badge: 'MEAL' };
-      case 'WALK':
-        return { Icon: Footprints, bg: '#FEF08A', color: '#A16207', badge: 'WALK' };
-      case 'HOSPITAL':
-        return { Icon: Building2, bg: '#FEE2E2', color: '#DC2626', badge: 'HOSPITAL' };
-      case 'DOCTOR':
-      case 'APPOINTMENT':
-        return { Icon: Stethoscope, bg: '#CCFBF1', color: '#0F766E', badge: 'DOCTOR' };
       default:
-        return { Icon: Clock, bg: '#F1F5F9', color: '#475569', badge: 'GENERAL' };
+        return { Icon: Calendar, bg: '#F1F5F3', color: '#475569', badge: 'ROUTINE' };
     }
   };
 
   return (
     <View style={styles.outerContainer}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Clinical Header Bar */}
-        <View style={styles.topHeaderRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backSquareBtn}>
-            <ArrowLeft size={22} color="#0F172A" />
-          </TouchableOpacity>
-
-          <View style={{ flex: 1, marginLeft: SPACING.md }}>
-            <Typography size="xl" weight="bold" color="#0F172A">
-              Care Schedules & Alarms
-            </Typography>
-            <Typography size="xs" color="#64748B" style={{ marginTop: 2 }}>
-              Clinical Management • {activePatient.name}
-            </Typography>
+      <View style={styles.mobileConstraint}>
+        {/* Top Header */}
+        <View style={styles.topHeader}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity
+              accessibilityLabel="Go to Home"
+              accessibilityRole="button"
+              onPress={() => router.push('/caregiver/home')}
+              style={styles.backBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <ArrowLeft size={18} color="#111827" />
+            </TouchableOpacity>
+            <View style={styles.headerTitleCol}>
+              <Text style={styles.headerTitle} numberOfLines={1}>Care Schedule</Text>
+              <Text style={styles.headerSubtitle} numberOfLines={1}>
+                Routines for <Text style={styles.boldName}>{activePatient.name}</Text>
+              </Text>
+            </View>
           </View>
 
-          {/* Offline Proximity Sync Header Pill */}
           <TouchableOpacity
-            activeOpacity={0.88}
+            activeOpacity={0.8}
             onPress={() => setIsOfflineSyncModal(true)}
-            style={styles.offlineSyncTopBtn}
-            accessibilityLabel="Offline Proximity Sync QR"
+            style={styles.syncBtn}
           >
-            <WifiOff size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
-            <Typography size="xs" weight="bold" color="#FFFFFF">
-              Sync Offline
-            </Typography>
+            <RefreshCw size={12} color="#16A34A" />
+            <Text style={styles.syncBtnText}>Sync</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Active Patient Switcher */}
-        <ActivePatientSwitcher />
-
-        {/* 3 Status KPI Cards */}
-        <View style={styles.kpiRow}>
-          <View style={styles.kpiCard}>
-            <View style={[styles.kpiIconWrapper, { backgroundColor: '#FFEDD5' }]}>
-              <CalendarDays size={18} color="#C2410C" />
-            </View>
-            <Typography size="lg" weight="bold" color="#0F172A" style={{ marginTop: 4 }}>
-              {routineList.length}
-            </Typography>
-            <Typography size="xs" color="#64748B">
-              Daily Tasks
-            </Typography>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Patient Context Tag */}
+          <View style={styles.patientContextRow}>
+            <Text style={styles.patientContextText}>
+              Care Schedule for <Text style={styles.patientContextName}>{activePatient.name}</Text>
+            </Text>
           </View>
 
-          <View style={styles.kpiCard}>
-            <View style={[styles.kpiIconWrapper, { backgroundColor: '#FEE2E2' }]}>
-              <Building2 size={18} color="#DC2626" />
+          {/* 4-Item Compact Summary Row */}
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryNumber}>{routineList.length || 6}</Text>
+              <Text style={styles.summaryLabel}>Tasks</Text>
             </View>
-            <Typography size="lg" weight="bold" color="#0F172A" style={{ marginTop: 4 }}>
-              {remindersList.length}
-            </Typography>
-            <Typography size="xs" color="#64748B">
-              Hospital / Visits
-            </Typography>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryNumber}>{remindersList.length || 2}</Text>
+              <Text style={styles.summaryLabel}>Visits</Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryNumber}>{gameSchedule.minimumPlaytimeMinutes}m</Text>
+              <Text style={styles.summaryLabel}>Goal</Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryNumber}>{familyList.length + objectList.length || 9}</Text>
+              <Text style={styles.summaryLabel}>Cards</Text>
+            </View>
           </View>
 
-          <View style={styles.kpiCard}>
-            <View style={[styles.kpiIconWrapper, { backgroundColor: '#EDE9FE' }]}>
-              <Brain size={18} color="#6D28D9" />
-            </View>
-            <Typography size="lg" weight="bold" color="#0F172A" style={{ marginTop: 4 }}>
-              {gameSchedule.minimumPlaytimeMinutes}m
-            </Typography>
-            <Typography size="xs" color="#64748B">
-              Game Target
-            </Typography>
+          {/* Tabs: Daily | Reminders | Alarms | Recall */}
+          <View style={styles.tabsContainer}>
+            {[
+              { key: 'DAILY', label: 'Daily' },
+              { key: 'REMINDERS', label: 'Reminders' },
+              { key: 'ALARMS', label: 'Alarms' },
+              { key: 'RECALL', label: 'Recall' },
+            ].map((tab) => {
+              const isActive = currentTab === tab.key;
+              return (
+                <TouchableOpacity
+                  key={tab.key}
+                  activeOpacity={0.8}
+                  onPress={() => setCurrentTab(tab.key as any)}
+                  style={[styles.tabButton, isActive && styles.tabButtonActive]}
+                >
+                  <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        </View>
 
-        {/* Segmented Tab Controller */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setCurrentTab('ROUTINE')}
-            style={[styles.tabBtn, currentTab === 'ROUTINE' ? styles.activeTabBtn : null]}
-          >
-            <Typography
-              size="xs"
-              weight="bold"
-              color={currentTab === 'ROUTINE' ? '#FFFFFF' : '#64748B'}
-            >
-              Daily Routine ({routineList.length})
-            </Typography>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setCurrentTab('REMEMBERS')}
-            style={[styles.tabBtn, currentTab === 'REMEMBERS' ? styles.activeTabBtn : null]}
-          >
-            <Typography
-              size="xs"
-              weight="bold"
-              color={currentTab === 'REMEMBERS' ? '#FFFFFF' : '#64748B'}
-            >
-              Remembers ({remindersList.length})
-            </Typography>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setCurrentTab('GAME_ALARM')}
-            style={[styles.tabBtn, currentTab === 'GAME_ALARM' ? styles.activeTabBtn : null]}
-          >
-            <Typography
-              size="xs"
-              weight="bold"
-              color={currentTab === 'GAME_ALARM' ? '#FFFFFF' : '#64748B'}
-            >
-              Game Alarms
-            </Typography>
-          </TouchableOpacity>
-        </View>
-
-        {/* TAB 1: DAILY ROUTINE (RECURRING) */}
-        {currentTab === 'ROUTINE' && (
-          <View>
-            <View style={styles.tabHeaderRow}>
-              <View>
-                <Typography size="sm" weight="bold" color="#0F172A">
-                  Recurring Daily Schedule
-                </Typography>
-                <Typography size="xs" color="#64748B">
-                  These tasks repeat every day for {activePatient.name}.
-                </Typography>
+          {/* TAB 1: DAILY ROUTINE */}
+          {currentTab === 'DAILY' && (
+            <View style={styles.tabContent}>
+              <View style={styles.sectionTitleRow}>
+                <Text style={styles.sectionTitle}>Today's Routine</Text>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => setIsAddRoutineModal(true)}
+                  style={styles.addTaskBtn}
+                >
+                  <Plus size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                  <Text style={styles.addTaskBtnText}>Add Task</Text>
+                </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => setIsAddRoutineModal(true)}
-                style={styles.addPrimaryBtn}
-              >
-                <Plus size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
-                <Typography size="xs" weight="bold" color="#FFFFFF">
-                  Add Daily Task
-                </Typography>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.cardList}>
-              {routineList.map((item) => {
-                const cfg = getCategoryConfig(item.category);
-                const IconComp = cfg.Icon;
-
-                return (
-                  <View key={item.id} style={styles.managementCard}>
-                    <View style={[styles.cardIconBox, { backgroundColor: cfg.bg }]}>
-                      <IconComp size={24} color={cfg.color} />
-                    </View>
-
-                    <View style={{ flex: 1, marginLeft: SPACING.md }}>
-                      <View style={styles.cardBadgeRow}>
-                        <View style={styles.timeTag}>
-                          <Clock size={12} color="#475569" style={{ marginRight: 4 }} />
-                          <Typography size="xs" weight="bold" color="#475569">
-                            {item.time}
-                          </Typography>
-                        </View>
-                        <View style={[styles.categoryPill, { backgroundColor: cfg.bg }]}>
-                          <Typography size="xs" weight="bold" color={cfg.color}>
-                            {cfg.badge}
-                          </Typography>
-                        </View>
-                      </View>
-
-                      <Typography size="base" weight="bold" color="#0F172A" style={{ marginTop: 2 }}>
-                        {item.title}
-                      </Typography>
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={() => handleDeleteRoutine(item.id)}
-                      style={styles.deleteIconButton}
-                      accessibilityLabel="Delete task"
-                    >
-                      <Trash2 size={18} color="#EF4444" />
-                    </TouchableOpacity>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        )}
-
-        {/* TAB 2: REMEMBERS (ONE-TIME / HOSPITAL VISITS) */}
-        {currentTab === 'REMEMBERS' && (
-          <View>
-            <View style={styles.tabHeaderRow}>
-              <View>
-                <Typography size="sm" weight="bold" color="#0F172A">
-                  One-Time Reminders & Hospital Visits
-                </Typography>
-                <Typography size="xs" color="#64748B">
-                  Specific date appointments and hospital consultations.
-                </Typography>
-              </View>
-
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => setIsAddReminderModal(true)}
-                style={styles.addPrimaryBtn}
-              >
-                <Plus size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
-                <Typography size="xs" weight="bold" color="#FFFFFF">
-                  Add Reminder
-                </Typography>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.cardList}>
-              {remindersList.map((item) => {
-                const cfg = getCategoryConfig(item.category);
-                const IconComp = cfg.Icon;
-
-                return (
-                  <View key={item.id} style={styles.managementCard}>
-                    <View style={[styles.cardIconBox, { backgroundColor: cfg.bg }]}>
-                      <IconComp size={24} color={cfg.color} />
-                    </View>
-
-                    <View style={{ flex: 1, marginLeft: SPACING.md }}>
-                      <View style={styles.cardBadgeRow}>
-                        <View style={styles.dateTag}>
-                          <Calendar size={12} color="#B45309" style={{ marginRight: 4 }} />
-                          <Typography size="xs" weight="bold" color="#B45309">
-                            {item.scheduledDate} • {item.scheduledTime}
-                          </Typography>
-                        </View>
-                        <View style={[styles.categoryPill, { backgroundColor: cfg.bg }]}>
-                          <Typography size="xs" weight="bold" color={cfg.color}>
-                            {cfg.badge}
-                          </Typography>
-                        </View>
-                      </View>
-
-                      <Typography size="base" weight="bold" color="#0F172A" style={{ marginTop: 2 }}>
-                        {item.title}
-                      </Typography>
-
-                      {item.description ? (
-                        <Typography size="xs" color="#64748B" style={{ marginTop: 2, lineHeight: 18 }}>
-                          {item.description}
-                        </Typography>
-                      ) : null}
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={() => handleDeleteReminder(item.id)}
-                      style={styles.deleteIconButton}
-                      accessibilityLabel="Delete reminder"
-                    >
-                      <Trash2 size={18} color="#EF4444" />
-                    </TouchableOpacity>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        )}
-
-        {/* TAB 3: GAME ALARMS & MINIMUM PLAYTIME */}
-        {currentTab === 'GAME_ALARM' && (
-          <View>
-            {/* Alarm Switch Card */}
-            <View style={styles.settingCard}>
-              <View style={styles.settingHeaderRow}>
-                <View style={[styles.settingIconBox, { backgroundColor: '#EDE9FE' }]}>
-                  <Brain size={22} color="#6D28D9" />
-                </View>
-                <View style={{ flex: 1, marginLeft: SPACING.md }}>
-                  <Typography size="base" weight="bold" color="#0F172A">
-                    Cognitive Game Alarm
-                  </Typography>
-                  <Typography size="xs" color="#64748B" style={{ marginTop: 2 }}>
-                    Rings on the patient tablet/phone at scheduled times prompting memory exercise.
-                  </Typography>
-                </View>
-                <Switch
-                  value={gameSchedule.isAlarmEnabled}
-                  onValueChange={handleToggleGameAlarm}
-                  trackColor={{ false: '#CBD5E1', true: '#86EFAC' }}
-                  thumbColor={gameSchedule.isAlarmEnabled ? '#16A34A' : '#F1F5F9'}
-                />
-              </View>
-            </View>
-
-            {/* Minimum Daily Playtime Mandate */}
-            <View style={styles.settingCard}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Clock size={18} color="#2563EB" style={{ marginRight: 6 }} />
-                <Typography size="sm" weight="bold" color="#0F172A">
-                  Minimum Daily Playtime Requirement
-                </Typography>
-              </View>
-              <Typography size="xs" color="#64748B" style={{ marginTop: 4, marginBottom: SPACING.md }}>
-                The patient must play brain games for at least this long each day before completion is acknowledged.
-              </Typography>
-
-              <View style={styles.minutesSelectorRow}>
-                {[5, 10, 15, 20, 30].map((mins) => {
-                  const isSelected = gameSchedule.minimumPlaytimeMinutes === mins;
+              <View style={styles.taskList}>
+                {routineList.map((item) => {
+                  const config = getCategoryConfig(item.category);
+                  const IconComponent = config.Icon;
                   return (
-                    <TouchableOpacity
-                      key={mins}
-                      activeOpacity={0.8}
-                      onPress={() => handleChangeMinPlaytime(mins)}
-                      style={[styles.minutePill, isSelected ? styles.minutePillSelected : null]}
-                    >
-                      <Typography
-                        size="sm"
-                        weight="bold"
-                        color={isSelected ? '#FFFFFF' : '#0F172A'}
-                      >
-                        {mins}m
-                      </Typography>
-                    </TouchableOpacity>
+                    <View key={item.id} style={styles.structuredTaskCard}>
+                      {/* Top Header Row in Card: Time + Category Badge + Delete Button */}
+                      <View style={styles.cardHeaderRow}>
+                        <View style={styles.cardHeaderLeft}>
+                          <View style={[styles.miniCategoryIcon, { backgroundColor: config.bg }]}>
+                            <IconComponent size={12} color={config.color} />
+                          </View>
+                          <Text style={styles.cardTimeText}>{item.time}</Text>
+                          <View style={[styles.categoryBadge, { backgroundColor: config.bg }]}>
+                            <Text style={[styles.categoryBadgeText, { color: config.color }]}>
+                              {config.badge}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={() => handleDeleteRoutine(item.id)}
+                          style={styles.trashBtn}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Trash2 size={15} color="#94A3B8" />
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* Middle: Full-width Task Name (Zero Overlapping Guaranteed) */}
+                      <Text style={styles.cardTaskTitle}>{item.title}</Text>
+
+                      {/* Bottom Footer: Status Toggle Button */}
+                      <View style={styles.cardFooterRow}>
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => handleToggleComplete(item)}
+                          style={[
+                            styles.statusBtn,
+                            item.isCompleted ? styles.statusBtnCompleted : styles.statusBtnUpcoming,
+                          ]}
+                        >
+                          {item.isCompleted ? (
+                            <>
+                              <Check size={13} color="#15803D" style={{ marginRight: 4 }} />
+                              <Text style={styles.statusBtnTextCompleted}>Completed</Text>
+                            </>
+                          ) : (
+                            <>
+                              <View style={styles.upcomingDot} />
+                              <Text style={styles.statusBtnTextUpcoming}>Mark as Done</Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
                   );
                 })}
               </View>
             </View>
+          )}
 
-            {/* Scheduled Game Times */}
-            <View style={styles.settingCard}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Bell size={18} color="#D97706" style={{ marginRight: 6 }} />
-                <Typography size="sm" weight="bold" color="#0F172A">
-                  Scheduled Alarm Times
-                </Typography>
+          {/* TAB 2: REMINDERS / APPOINTMENTS */}
+          {currentTab === 'REMINDERS' && (
+            <View style={styles.tabContent}>
+              <View style={styles.sectionTitleRow}>
+                <Text style={styles.sectionTitle}>Appointments & Reminders</Text>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => setIsAddReminderModal(true)}
+                  style={styles.addTaskBtn}
+                >
+                  <Plus size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                  <Text style={styles.addTaskBtnText}>Add Reminder</Text>
+                </TouchableOpacity>
               </View>
-              <Typography size="xs" color="#64748B" style={{ marginTop: 4, marginBottom: SPACING.md }}>
-                At these specific times, the cognitive alarm chime will sound on the patient device.
-              </Typography>
 
-              <View style={styles.timesChipContainer}>
-                {gameSchedule.playTimes.map((time) => (
-                  <View key={time} style={styles.timeChip}>
-                    <Clock size={14} color="#2563EB" style={{ marginRight: 6 }} />
-                    <Typography size="sm" weight="bold" color="#1E40AF">
-                      {time}
-                    </Typography>
-                    <TouchableOpacity onPress={() => handleRemoveGameTime(time)} style={{ marginLeft: 8 }}>
-                      <X size={16} color="#64748B" />
-                    </TouchableOpacity>
+              <View style={styles.taskList}>
+                {remindersList.map((rem) => (
+                  <View key={rem.id} style={styles.structuredTaskCard}>
+                    <View style={styles.cardHeaderRow}>
+                      <View style={styles.cardHeaderLeft}>
+                        <Calendar size={14} color="#2563EB" style={{ marginRight: 4 }} />
+                        <Text style={styles.cardTimeText}>{rem.scheduledTime}</Text>
+                      </View>
+                      <TouchableOpacity onPress={() => handleDeleteReminder(rem.id)} style={styles.trashBtn}>
+                        <Trash2 size={15} color="#94A3B8" />
+                      </TouchableOpacity>
+                    </View>
+
+                    <Text style={styles.cardTaskTitle}>{rem.title}</Text>
+                    {rem.description ? (
+                      <Text style={styles.cardTaskNotes}>{rem.description}</Text>
+                    ) : null}
                   </View>
                 ))}
               </View>
+            </View>
+          )}
 
-              {/* Add New Time Input */}
-              <View style={styles.addTimeRow}>
-                <TextInput
-                  placeholder="e.g. 03:30 PM"
-                  placeholderTextColor="#94A3B8"
-                  value={newPlayTime}
-                  onChangeText={setNewPlayTime}
-                  style={styles.timeInput}
-                />
-                <TouchableOpacity onPress={handleAddGameTime} style={styles.addTimeBtn}>
-                  <Plus size={20} color="#FFFFFF" />
-                </TouchableOpacity>
+          {/* TAB 3: GAME ALARMS */}
+          {currentTab === 'ALARMS' && (
+            <View style={styles.tabContent}>
+              <View style={styles.sectionTitleRow}>
+                <Text style={styles.sectionTitle}>Daily Game Times</Text>
+              </View>
+
+              <View style={styles.structuredTaskCard}>
+                <View style={styles.settingRow}>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={styles.settingTitle}>Game Alarms Enabled</Text>
+                    <Text style={styles.settingSub}>Plays audio reminder when it is game time</Text>
+                  </View>
+                  <Switch
+                    value={gameSchedule.isAlarmEnabled}
+                    onValueChange={handleToggleGameAlarm}
+                    trackColor={{ false: '#E2E8E5', true: '#DCFCE7' }}
+                    thumbColor={gameSchedule.isAlarmEnabled ? '#16A34A' : '#94A3B8'}
+                  />
+                </View>
+
+                <View style={styles.cardDivider} />
+
+                <Text style={styles.settingTitle}>Minimum Daily Playtime</Text>
+                <View style={styles.playtimePillsRow}>
+                  {[5, 10, 15, 20].map((mins) => (
+                    <TouchableOpacity
+                      key={mins}
+                      onPress={() => handleChangeMinPlaytime(mins)}
+                      style={[
+                        styles.playtimePill,
+                        gameSchedule.minimumPlaytimeMinutes === mins && styles.playtimePillActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.playtimePillText,
+                          gameSchedule.minimumPlaytimeMinutes === mins && styles.playtimePillTextActive,
+                        ]}
+                      >
+                        {mins}m
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <View style={styles.cardDivider} />
+
+                <Text style={styles.settingTitle}>Scheduled Alarm Times</Text>
+                <View style={styles.alarmTimesList}>
+                  {gameSchedule.playTimes.map((time) => (
+                    <View key={time} style={styles.alarmTimePill}>
+                      <Clock size={13} color="#16A34A" style={{ marginRight: 4 }} />
+                      <Text style={styles.alarmTimeText}>{time}</Text>
+                      <TouchableOpacity onPress={() => handleRemoveGameTime(time)} style={{ marginLeft: 6 }}>
+                        <X size={13} color="#94A3B8" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+
+                <View style={styles.addTimeRow}>
+                  <TextInput
+                    style={styles.timeInput}
+                    placeholder="e.g. 03:00 PM"
+                    placeholderTextColor="#94A3B8"
+                    value={newPlayTime}
+                    onChangeText={setNewPlayTime}
+                  />
+                  <TouchableOpacity onPress={handleAddGameTime} style={styles.addTimeBtn}>
+                    <Text style={styles.addTimeBtnText}>Add</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        )}
-      </ScrollView>
+          )}
 
-      {/* Add Routine Modal */}
-      <Modal visible={isAddRoutineModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Typography size="lg" weight="bold" color="#0F172A">
-                Add Daily Routine Task
-              </Typography>
-              <TouchableOpacity onPress={() => setIsAddRoutineModal(false)}>
-                <X size={22} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-
-            <Typography size="xs" weight="bold" color="#64748B" style={{ marginTop: SPACING.sm }}>
-              CATEGORY
-            </Typography>
-            <View style={styles.categorySelectRow}>
-              {(['MEDICINE', 'HYDRATION', 'ACTIVITY', 'MEAL', 'WALK'] as const).map((cat) => (
+          {/* TAB 4: RECALL CARDS */}
+          {currentTab === 'RECALL' && (
+            <View style={styles.tabContent}>
+              <View style={styles.recallSubTabsRow}>
                 <TouchableOpacity
-                  key={cat}
-                  onPress={() => setRoutineCategory(cat)}
-                  style={[styles.catSelectPill, routineCategory === cat ? styles.activeCatSelectPill : null]}
+                  onPress={() => setRecallSubTab('FAMILY')}
+                  style={[styles.recallSubTab, recallSubTab === 'FAMILY' && styles.recallSubTabActive]}
                 >
-                  <Typography size="xs" weight="bold" color={routineCategory === cat ? '#FFFFFF' : '#64748B'}>
-                    {cat}
-                  </Typography>
+                  <Users size={14} color={recallSubTab === 'FAMILY' ? '#16A34A' : '#64748B'} style={{ marginRight: 4 }} />
+                  <Text style={[styles.recallSubTabText, recallSubTab === 'FAMILY' && styles.recallSubTabTextActive]}>
+                    Family ({familyList.length})
+                  </Text>
                 </TouchableOpacity>
-              ))}
-            </View>
 
-            <Typography size="xs" weight="bold" color="#64748B" style={{ marginTop: SPACING.md }}>
-              TASK TITLE *
-            </Typography>
-            <TextInput
-              placeholder="e.g. Morning Blood Pressure Medication"
-              placeholderTextColor="#94A3B8"
-              value={routineTitle}
-              onChangeText={setRoutineTitle}
-              style={styles.modalInput}
-            />
-
-            <Typography size="xs" weight="bold" color="#64748B" style={{ marginTop: SPACING.sm }}>
-              TIME *
-            </Typography>
-            <TextInput
-              placeholder="e.g. 9:00 AM"
-              placeholderTextColor="#94A3B8"
-              value={routineTime}
-              onChangeText={setRoutineTime}
-              style={styles.modalInput}
-            />
-
-            <TouchableOpacity onPress={handleSaveRoutine} style={styles.modalSaveBtn}>
-              <Typography size="base" weight="bold" color="#FFFFFF">
-                Save Daily Routine
-              </Typography>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Add One-Time Reminder Modal */}
-      <Modal visible={isAddReminderModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Typography size="lg" weight="bold" color="#0F172A">
-                Add One-Time Reminder / Hospital
-              </Typography>
-              <TouchableOpacity onPress={() => setIsAddReminderModal(false)}>
-                <X size={22} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-
-            <Typography size="xs" weight="bold" color="#64748B" style={{ marginTop: SPACING.sm }}>
-              CATEGORY
-            </Typography>
-            <View style={styles.categorySelectRow}>
-              {(['HOSPITAL', 'DOCTOR', 'APPOINTMENT', 'MEDICINE'] as const).map((cat) => (
                 <TouchableOpacity
-                  key={cat}
-                  onPress={() => setRemCategory(cat)}
-                  style={[styles.catSelectPill, remCategory === cat ? styles.activeCatSelectPill : null]}
+                  onPress={() => setRecallSubTab('OBJECTS')}
+                  style={[styles.recallSubTab, recallSubTab === 'OBJECTS' && styles.recallSubTabActive]}
                 >
-                  <Typography size="xs" weight="bold" color={remCategory === cat ? '#FFFFFF' : '#64748B'}>
-                    {cat}
-                  </Typography>
+                  <Eye size={14} color={recallSubTab === 'OBJECTS' ? '#16A34A' : '#64748B'} style={{ marginRight: 4 }} />
+                  <Text style={[styles.recallSubTabText, recallSubTab === 'OBJECTS' && styles.recallSubTabTextActive]}>
+                    Objects ({objectList.length})
+                  </Text>
                 </TouchableOpacity>
-              ))}
+              </View>
+
+              {recallSubTab === 'FAMILY' ? (
+                <View>
+                  <View style={styles.sectionTitleRow}>
+                    <Text style={styles.sectionTitle}>Family Members</Text>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => setIsAddFamilyModal(true)}
+                      style={styles.addTaskBtn}
+                    >
+                      <Plus size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                      <Text style={styles.addTaskBtnText}>Add Family</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.taskList}>
+                    {familyList.map((fam) => (
+                      <View key={fam.id} style={styles.recallCard}>
+                        {fam.photoUri ? (
+                          <Image source={{ uri: fam.photoUri }} style={[styles.recallPhotoThumb as any]} />
+                        ) : (
+                          <View style={styles.recallAvatarCircle}>
+                            <User size={24} color="#15803D" />
+                          </View>
+                        )}
+                        <View style={styles.recallDetails}>
+                          <Text style={styles.recallTitle}>{fam.name}</Text>
+                          <Text style={styles.recallRelation}>{fam.relation} to {activePatient.name}</Text>
+                          {fam.notes ? <Text style={styles.recallNotes}>{fam.notes}</Text> : null}
+                        </View>
+                        <TouchableOpacity onPress={() => handleDeleteFamilyMember(fam.id)} style={styles.trashBtn}>
+                          <Trash2 size={18} color="#94A3B8" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : (
+                <View>
+                  <View style={styles.sectionTitleRow}>
+                    <Text style={styles.sectionTitle}>Everyday Objects</Text>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => setIsAddObjectModal(true)}
+                      style={styles.addTaskBtn}
+                    >
+                      <Plus size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                      <Text style={styles.addTaskBtnText}>Add Object</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.taskList}>
+                    {objectList.map((obj) => (
+                      <View key={obj.id} style={styles.recallCard}>
+                        {obj.photoUri ? (
+                          <Image source={{ uri: obj.photoUri }} style={[styles.recallPhotoThumb as any]} />
+                        ) : (
+                          <View style={[styles.recallAvatarCircle, { backgroundColor: '#FEF3C7' }]}>
+                            <Key size={22} color="#B45309" />
+                          </View>
+                        )}
+                        <View style={styles.recallDetails}>
+                          <Text style={styles.recallTitle}>{obj.name}</Text>
+                          <Text style={styles.recallLocation}>Kept at: {obj.location}</Text>
+                          {obj.notes ? <Text style={styles.recallNotes}>{obj.notes}</Text> : null}
+                        </View>
+                        <TouchableOpacity onPress={() => handleDeleteObject(obj.id)} style={styles.trashBtn}>
+                          <Trash2 size={18} color="#94A3B8" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
             </View>
+          )}
 
-            <Typography size="xs" weight="bold" color="#64748B" style={{ marginTop: SPACING.md }}>
-              TITLE (e.g. Hospital Visit) *
-            </Typography>
-            <TextInput
-              placeholder="e.g. Apollo Hospital Cardiology Consultation"
-              placeholderTextColor="#94A3B8"
-              value={remTitle}
-              onChangeText={setRemTitle}
-              style={styles.modalInput}
-            />
+          {/* Clearance for Bottom Nav */}
+          <View style={{ height: 110 }} />
+        </ScrollView>
 
-            <Typography size="xs" weight="bold" color="#64748B" style={{ marginTop: SPACING.sm }}>
-              DATE / DAY
-            </Typography>
-            <TextInput
-              placeholder="e.g. Upcoming Saturday or 15th Sep"
-              placeholderTextColor="#94A3B8"
-              value={remDate}
-              onChangeText={setRemDate}
-              style={styles.modalInput}
-            />
+        {/* Add Routine Modal */}
+        <Modal visible={isAddRoutineModal} animationType="slide" transparent>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalSheet}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalSheetTitle}>Add Daily Task</Text>
+                <TouchableOpacity onPress={() => setIsAddRoutineModal(false)}>
+                  <X size={20} color="#64748B" />
+                </TouchableOpacity>
+              </View>
 
-            <Typography size="xs" weight="bold" color="#64748B" style={{ marginTop: SPACING.sm }}>
-              TIME
-            </Typography>
-            <TextInput
-              placeholder="e.g. 10:00 AM"
-              placeholderTextColor="#94A3B8"
-              value={remTime}
-              onChangeText={setRemTime}
-              style={styles.modalInput}
-            />
+              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                <Text style={styles.inputLabel}>Task Name *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g. Morning Blood Pressure Medicine"
+                  placeholderTextColor="#94A3B8"
+                  value={routineTitle}
+                  onChangeText={setRoutineTitle}
+                />
 
-            <Typography size="xs" weight="bold" color="#64748B" style={{ marginTop: SPACING.sm }}>
-              NOTES / INSTRUCTIONS
-            </Typography>
-            <TextInput
-              placeholder="e.g. Take fasting reports and doctor prescription"
-              placeholderTextColor="#94A3B8"
-              value={remDesc}
-              onChangeText={setRemDesc}
-              style={styles.modalInput}
-            />
+                <Text style={styles.inputLabel}>Scheduled Time</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g. 9:00 AM"
+                  placeholderTextColor="#94A3B8"
+                  value={routineTime}
+                  onChangeText={setRoutineTime}
+                />
 
-            <TouchableOpacity onPress={handleSaveReminder} style={styles.modalSaveBtn}>
-              <Typography size="base" weight="bold" color="#FFFFFF">
-                Save One-Time Reminder
-              </Typography>
-            </TouchableOpacity>
+                <Text style={styles.inputLabel}>Category</Text>
+                <View style={styles.categoryPickerRow}>
+                  {(['MEDICINE', 'HYDRATION', 'MEAL', 'WALK', 'ACTIVITY', 'ROUTINE'] as const).map((cat) => (
+                    <TouchableOpacity
+                      key={cat}
+                      onPress={() => setRoutineCategory(cat)}
+                      style={[
+                        styles.catPickerPill,
+                        routineCategory === cat && styles.catPickerPillActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.catPickerText,
+                          routineCategory === cat && styles.catPickerTextActive,
+                        ]}
+                      >
+                        {cat}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.inputLabel}>Notes (Optional)</Text>
+                <TextInput
+                  style={[styles.textInput, { height: 60, textAlignVertical: 'top' }]}
+                  placeholder="e.g. Take with warm water"
+                  placeholderTextColor="#94A3B8"
+                  multiline
+                  value={routineNotes}
+                  onChangeText={setRoutineNotes}
+                />
+
+                <TouchableOpacity
+                  activeOpacity={0.88}
+                  onPress={handleSaveRoutine}
+                  style={styles.saveSubmitBtn}
+                >
+                  <Text style={styles.saveSubmitBtnText}>Save Task to Routine</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      {/* Offline Proximity Sync Modal */}
-      <OfflineSyncModal
-        visible={isOfflineSyncModal}
-        mode="CAREGIVER_SHARE"
-        onClose={() => setIsOfflineSyncModal(false)}
-      />
+        {/* Add Reminder Modal */}
+        <Modal visible={isAddReminderModal} animationType="slide" transparent>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalSheet}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalSheetTitle}>Add Reminder</Text>
+                <TouchableOpacity onPress={() => setIsAddReminderModal(false)}>
+                  <X size={20} color="#64748B" />
+                </TouchableOpacity>
+              </View>
 
-      {/* Caregiver Bottom Nav */}
-      <CaregiverBottomNavBar />
+              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                <Text style={styles.inputLabel}>Title *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g. Dr. Sharma Clinic Checkup"
+                  placeholderTextColor="#94A3B8"
+                  value={remTitle}
+                  onChangeText={setRemTitle}
+                />
+
+                <Text style={styles.inputLabel}>Date & Time</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g. Upcoming Saturday at 10:00 AM"
+                  placeholderTextColor="#94A3B8"
+                  value={remDate}
+                  onChangeText={setRemDate}
+                />
+
+                <Text style={styles.inputLabel}>Notes</Text>
+                <TextInput
+                  style={[styles.textInput, { height: 60, textAlignVertical: 'top' }]}
+                  placeholder="e.g. Carry medical file"
+                  placeholderTextColor="#94A3B8"
+                  multiline
+                  value={remDesc}
+                  onChangeText={setRemDesc}
+                />
+
+                <TouchableOpacity
+                  activeOpacity={0.88}
+                  onPress={handleSaveReminder}
+                  style={styles.saveSubmitBtn}
+                >
+                  <Text style={styles.saveSubmitBtnText}>Save Reminder</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Add Family Modal */}
+        <Modal visible={isAddFamilyModal} animationType="slide" transparent>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalSheet}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalSheetTitle}>Add Family Member</Text>
+                <TouchableOpacity onPress={() => {
+                  setIsAddFamilyModal(false);
+                  setFamPhotoUri(null);
+                }}>
+                  <X size={20} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                {/* Photo Picker */}
+                <Text style={styles.inputLabel}>Family Member Photo</Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={pickFamilyImage}
+                  style={styles.photoUploadBox}
+                >
+                  {famPhotoUri ? (
+                    <View style={styles.photoPreviewWrapper}>
+                      <Image source={{ uri: famPhotoUri }} style={[styles.photoPreviewImage as any]} />
+                      <View style={styles.photoOverlayBadge}>
+                        <Camera size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                        <Text style={styles.photoOverlayText}>Change</Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={styles.photoPlaceholder}>
+                      <View style={styles.cameraIconCircle}>
+                        <Camera size={22} color="#16A34A" />
+                      </View>
+                      <Text style={styles.photoUploadPrompt}>Tap to add picture</Text>
+                      <Text style={styles.photoUploadSub}>Helps patient recognize them easily</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                {famPhotoUri ? (
+                  <TouchableOpacity onPress={() => setFamPhotoUri(null)} style={styles.removePhotoBtn}>
+                    <Text style={styles.removePhotoText}>Remove photo</Text>
+                  </TouchableOpacity>
+                ) : null}
+
+                <Text style={styles.inputLabel}>Name *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g. Ramesh"
+                  placeholderTextColor="#94A3B8"
+                  value={famName}
+                  onChangeText={setFamName}
+                />
+
+                <Text style={styles.inputLabel}>Relationship</Text>
+                <View style={styles.categoryPickerRow}>
+                  {['Son', 'Daughter', 'Grandson', 'Granddaughter', 'Spouse', 'Brother', 'Sister', 'Friend'].map((rel) => (
+                    <TouchableOpacity
+                      key={rel}
+                      onPress={() => setFamRelation(rel)}
+                      style={[styles.catPickerPill, famRelation === rel && styles.catPickerPillActive]}
+                    >
+                      <Text style={[styles.catPickerText, famRelation === rel && styles.catPickerTextActive]}>
+                        {rel}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.inputLabel}>Memory Clue (Optional)</Text>
+                <TextInput
+                  style={[styles.textInput, { height: 54 }]}
+                  placeholder="e.g. Calls every Sunday morning"
+                  placeholderTextColor="#94A3B8"
+                  value={famNotes}
+                  onChangeText={setFamNotes}
+                />
+
+                <TouchableOpacity
+                  activeOpacity={0.88}
+                  onPress={handleSaveFamilyMember}
+                  style={styles.saveSubmitBtn}
+                >
+                  <Text style={styles.saveSubmitBtnText}>Save to Recall Cards</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Add Object Modal */}
+        <Modal visible={isAddObjectModal} animationType="slide" transparent>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalSheet}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalSheetTitle}>Add Everyday Object</Text>
+                <TouchableOpacity onPress={() => {
+                  setIsAddObjectModal(false);
+                  setObjPhotoUri(null);
+                }}>
+                  <X size={20} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                {/* Object Photo Picker */}
+                <Text style={styles.inputLabel}>Object Photo</Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={pickObjectImage}
+                  style={styles.photoUploadBox}
+                >
+                  {objPhotoUri ? (
+                    <View style={styles.photoPreviewWrapper}>
+                      <Image source={{ uri: objPhotoUri }} style={[styles.photoPreviewImage as any]} />
+                      <View style={styles.photoOverlayBadge}>
+                        <Camera size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                        <Text style={styles.photoOverlayText}>Change</Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={styles.photoPlaceholder}>
+                      <View style={[styles.cameraIconCircle, { backgroundColor: '#FEF3C7' }]}>
+                        <Camera size={22} color="#D97706" />
+                      </View>
+                      <Text style={styles.photoUploadPrompt}>Tap to add photo of object</Text>
+                      <Text style={styles.photoUploadSub}>e.g. Grandma's actual glasses, keys, or mug</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                {objPhotoUri ? (
+                  <TouchableOpacity onPress={() => setObjPhotoUri(null)} style={styles.removePhotoBtn}>
+                    <Text style={styles.removePhotoText}>Remove photo</Text>
+                  </TouchableOpacity>
+                ) : null}
+
+                <Text style={styles.inputLabel}>Object Name *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g. Reading Glasses"
+                  placeholderTextColor="#94A3B8"
+                  value={objName}
+                  onChangeText={setObjName}
+                />
+
+                <Text style={styles.inputLabel}>Usual Location *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g. Bedside table top drawer"
+                  placeholderTextColor="#94A3B8"
+                  value={objLocation}
+                  onChangeText={setObjLocation}
+                />
+
+                <Text style={styles.inputLabel}>Notes (Optional)</Text>
+                <TextInput
+                  style={[styles.textInput, { height: 54 }]}
+                  placeholder="e.g. In the blue case"
+                  placeholderTextColor="#94A3B8"
+                  value={objNotes}
+                  onChangeText={setObjNotes}
+                />
+
+                <TouchableOpacity
+                  activeOpacity={0.88}
+                  onPress={handleSaveObject}
+                  style={styles.saveSubmitBtn}
+                >
+                  <Text style={styles.saveSubmitBtnText}>Save Object Card</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Proximity QR Sync Modal */}
+        <OfflineSyncModal
+          visible={isOfflineSyncModal}
+          mode="CAREGIVER_SHARE"
+          onClose={() => {
+            setIsOfflineSyncModal(false);
+            loadData();
+          }}
+        />
+
+        {/* Fixed Bottom Navigation */}
+        <CaregiverBottomNavBar />
+      </View>
     </View>
   );
 }
@@ -760,277 +1072,594 @@ export default function RemindersScreen() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#F8FAF8',
+    backgroundColor: '#F7FAF8',
+  },
+  mobileConstraint: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    backgroundColor: '#F7FAF8',
+  },
+  topHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.xs,
+    paddingBottom: SPACING.xs,
+    backgroundColor: '#F7FAF8',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDF2F0',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
+  },
+  backBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.xs,
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+  },
+  headerTitleCol: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  headerSubtitle: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 1,
+  },
+  boldName: {
+    fontWeight: '700',
+    color: '#16A34A',
+  },
+  syncBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: RADIUS.full,
+  },
+  syncBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#12803A',
+    marginLeft: 3,
   },
   scrollContent: {
     paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.md,
-    paddingBottom: 110,
+    paddingTop: SPACING.xs,
   },
-  topHeaderRow: {
+  patientContextRow: {
+    marginVertical: SPACING.xs,
+    paddingHorizontal: 4,
+  },
+  patientContextText: {
+    fontSize: 15,
+    color: '#64748B',
+  },
+  patientContextName: {
+    fontWeight: '800',
+    color: '#16A34A',
+  },
+  summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
-  backSquareBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: RADIUS.md,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-  },
-  offlineSyncTopBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: RADIUS.full,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  kpiRow: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    marginVertical: SPACING.sm,
-  },
-  kpiCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-  },
-  kpiIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#E2E8F0',
-    borderRadius: RADIUS.lg,
-    padding: 3,
-    marginVertical: SPACING.md,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: RADIUS.md,
-  },
-  activeTabBtn: {
-    backgroundColor: COLORS.primary,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  tabHeaderRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-    paddingHorizontal: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+    marginBottom: SPACING.xs,
   },
-  addPrimaryBtn: {
+  summaryItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  summaryNumber: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  summaryLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 2,
+  },
+  summaryDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#F1F5F3',
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F3',
+    borderRadius: RADIUS.full,
+    padding: 4,
+    marginBottom: SPACING.xs,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: RADIUS.full,
+  },
+  tabButtonActive: {
+    backgroundColor: '#16A34A',
+  },
+  tabButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  tabButtonTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  tabContent: {
+    marginTop: 4,
+  },
+  sectionTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: RADIUS.md,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    justifyContent: 'space-between',
+    marginVertical: SPACING.xs,
   },
-  cardList: {
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  addTaskBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#16A34A',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: RADIUS.full,
+  },
+  addTaskBtnText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  taskList: {
     gap: SPACING.xs,
   },
-  managementCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  structuredTaskCard: {
     backgroundColor: '#FFFFFF',
-    padding: SPACING.md,
     borderRadius: RADIUS.lg,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  cardIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: RADIUS.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timeTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: RADIUS.sm,
-  },
-  dateTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: RADIUS.sm,
-  },
-  categoryPill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: RADIUS.sm,
-    marginLeft: 6,
-  },
-  deleteIconButton: {
-    padding: 8,
-    borderRadius: RADIUS.md,
-  },
-  settingCard: {
-    backgroundColor: '#FFFFFF',
-    padding: SPACING.md,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    marginBottom: SPACING.md,
-  },
-  settingHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  settingIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: RADIUS.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  minutesSelectorRow: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-  },
-  minutePill: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: RADIUS.md,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: SPACING.sm,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#E2E8E5',
   },
-  minutePillSelected: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  timesChipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
-    marginBottom: SPACING.md,
-  },
-  timeChip: {
+  cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  cardHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  miniCategoryIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+  },
+  cardTimeText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#475569',
+    marginRight: 6,
+  },
+  categoryBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: RADIUS.xs,
+  },
+  categoryBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  trashBtn: {
+    padding: 6,
+  },
+  cardTaskTitle: {
+    fontSize: 16.5,
+    fontWeight: '700',
+    color: '#111827',
+    marginVertical: 4,
+    lineHeight: 22,
+  },
+  cardTaskNotes: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 6,
+  },
+  cardFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  statusBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: RADIUS.full,
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
+  },
+  statusBtnUpcoming: {
+    backgroundColor: '#F1F5F3',
+  },
+  statusBtnCompleted: {
+    backgroundColor: '#DCFCE7',
+  },
+  upcomingDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#94A3B8',
+    marginRight: 6,
+  },
+  statusBtnTextUpcoming: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  statusBtnTextCompleted: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  settingTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  settingSub: {
+    fontSize: 13.5,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  cardDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F3',
+    marginVertical: SPACING.sm,
+  },
+  playtimePillsRow: {
+    flexDirection: 'row',
+    gap: SPACING.xs,
+    marginTop: SPACING.xs,
+  },
+  playtimePill: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: RADIUS.md,
+    backgroundColor: '#F1F5F3',
+    alignItems: 'center',
+  },
+  playtimePillActive: {
+    backgroundColor: '#16A34A',
+  },
+  playtimePillText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  playtimePillTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  alarmTimesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+    marginTop: SPACING.xs,
+  },
+  alarmTimePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: RADIUS.full,
+  },
+  alarmTimeText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#15803D',
   },
   addTimeRow: {
     flexDirection: 'row',
-    gap: SPACING.sm,
+    marginTop: SPACING.sm,
+    gap: SPACING.xs,
   },
   timeInput: {
     flex: 1,
-    backgroundColor: '#F8FAF8',
+    height: 42,
+    backgroundColor: '#F7FAF8',
     borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.sm,
+    fontSize: 14.5,
+    color: '#111827',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    paddingHorizontal: SPACING.md,
-    height: 44,
+    borderColor: '#E2E8E5',
   },
   addTimeBtn: {
-    width: 44,
-    height: 44,
+    backgroundColor: '#16A34A',
+    paddingHorizontal: 14,
     borderRadius: RADIUS.md,
-    backgroundColor: '#2563EB',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  addTimeBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  recallSubTabsRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F3',
+    borderRadius: RADIUS.md,
+    padding: 3,
+    marginBottom: SPACING.xs,
+  },
+  recallSubTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: RADIUS.sm,
+  },
+  recallSubTabActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  recallSubTabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  recallSubTabTextActive: {
+    color: '#16A34A',
+    fontWeight: '800',
+  },
+  recallCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.sm,
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+  },
+  recallPhotoThumb: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    marginRight: SPACING.sm,
+    backgroundColor: '#E2E8E5',
+  },
+  recallAvatarCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.sm,
+  },
+  recallDetails: {
+    flex: 1,
+  },
+  recallTitle: {
+    fontSize: 16.5,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  recallRelation: {
+    fontSize: 13.5,
+    color: '#16A34A',
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  recallLocation: {
+    fontSize: 13.5,
+    color: '#B45309',
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  recallNotes: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  photoUploadBox: {
+    backgroundColor: '#F8FAF8',
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    padding: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  photoPreviewWrapper: {
+    width: '100%',
+    height: 140,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  photoPreviewImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  photoOverlayBadge: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.full,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  photoOverlayText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  photoPlaceholder: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  cameraIconCircle: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  photoUploadPrompt: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  photoUploadSub: {
+    fontSize: 12.5,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  removePhotoBtn: {
+    alignSelf: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    marginBottom: 8,
+  },
+  removePhotoText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#DC2626',
+  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
-    justifyContent: 'center',
-    padding: SPACING.md,
+    backgroundColor: 'rgba(17, 24, 39, 0.45)',
+    justifyContent: 'flex-end',
   },
-  modalContent: {
+  modalSheet: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
+    borderTopLeftRadius: RADIUS.xl,
+    borderTopRightRadius: RADIUS.xl,
     padding: SPACING.lg,
+    maxHeight: '85%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.sm,
+    paddingBottom: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F3',
   },
-  categorySelectRow: {
+  modalSheetTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  modalBody: {
+    marginTop: SPACING.sm,
+  },
+  inputLabel: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#334155',
+    marginTop: SPACING.xs,
+    marginBottom: 4,
+  },
+  textInput: {
+    backgroundColor: '#F7FAF8',
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 10,
+    fontSize: 14.5,
+    color: '#111827',
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+  },
+  categoryPickerRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginTop: 4,
+    marginVertical: 4,
   },
-  catSelectPill: {
+  catPickerPill: {
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: RADIUS.sm,
-    backgroundColor: '#F1F5F9',
+    borderRadius: RADIUS.full,
+    backgroundColor: '#F1F5F3',
   },
-  activeCatSelectPill: {
-    backgroundColor: COLORS.primary,
+  catPickerPillActive: {
+    backgroundColor: '#16A34A',
   },
-  modalInput: {
-    backgroundColor: '#F8FAF8',
+  catPickerText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  catPickerTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  saveSubmitBtn: {
+    backgroundColor: '#16A34A',
     borderRadius: RADIUS.md,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 10,
-    marginTop: 4,
-  },
-  modalSaveBtn: {
-    backgroundColor: COLORS.primary,
     paddingVertical: 14,
-    borderRadius: RADIUS.lg,
     alignItems: 'center',
-    marginTop: SPACING.lg,
+    justifyContent: 'center',
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xl,
+  },
+  saveSubmitBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
 });

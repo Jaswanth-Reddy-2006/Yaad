@@ -1,11 +1,23 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Modal, Text, Platform } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { User, LogOut, Shield, Bell, HeartHandshake, ChevronRight, Users, Plus, Link2Off, Globe, Check } from 'lucide-react-native';
-import { Typography } from '../../components/common/Typography';
+import {
+  User,
+  LogOut,
+  Shield,
+  Bell,
+  ChevronRight,
+  Plus,
+  Globe,
+  Check,
+  CheckCircle2,
+  Calendar,
+  Lock,
+  HeartHandshake,
+} from 'lucide-react-native';
+import { CaregiverTopHeader } from '../../components/caregiver/CaregiverTopHeader';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
-import { ActivePatientSwitcher } from '../../components/caregiver/ActivePatientSwitcher';
-import { AppLogo } from '../../components/common/AppLogo';
+import { PatientStatusBadge } from '../../components/common/PatientStatusBadge';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { authService } from '../../services/AuthService';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
@@ -14,8 +26,8 @@ import { INDIAN_LANGUAGES, LanguageCode } from '../../constants/translations';
 
 export default function CaregiverProfileScreen() {
   const router = useRouter();
-  const { caregiverName, patients } = useCaregiverStore();
-  const { currentLanguage, setLanguage, t } = useAccessibilityStore();
+  const { caregiverName, patients, activePatientId, setActivePatientId } = useCaregiverStore();
+  const { currentLanguage, setLanguage } = useAccessibilityStore();
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
 
   useFocusEffect(
@@ -36,206 +48,250 @@ export default function CaregiverProfileScreen() {
   );
 
   const handleLogout = async () => {
-    await authService.clearSession();
-    useCaregiverStore.setState({
-      caregiverName: 'Caregiver',
-      activePatientId: '',
-      patients: [],
-      reminders: [],
-      alerts: [],
-      lastSyncedTime: null,
-    });
-    if (router.canDismiss?.()) {
-      router.dismissAll();
-    }
-    router.replace('/');
+    Alert.alert('Log Out', 'Are you sure you want to sign out of your caregiver session?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log Out',
+        style: 'destructive',
+        onPress: async () => {
+          await authService.clearSession();
+          useCaregiverStore.setState({
+            caregiverName: 'Caregiver',
+            activePatientId: '',
+            patients: [],
+            reminders: [],
+            alerts: [],
+            lastSyncedTime: null,
+          });
+          if (router.canDismiss?.()) {
+            router.dismissAll();
+          }
+          router.replace('/');
+        },
+      },
+    ]);
   };
 
-  const handleRemoveConnection = (patientId: string, patientName: string) => {
-    Alert.alert(
-      'Remove Connection',
-      `Are you sure you want to remove access for ${patientName}? Patient account records will remain preserved on MitraCare servers.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove Connection',
-          style: 'destructive',
-          onPress: () => {
-            useCaregiverStore.setState((state) => {
-              const updatedPatients = state.patients.filter((p) => p.id !== patientId);
-              return {
-                patients: updatedPatients,
-                activePatientId: state.activePatientId === patientId ? (updatedPatients[0]?.id || '') : state.activePatientId
-              };
-            });
-            Alert.alert('Connection Revoked', `Caregiver relationship for ${patientName} has been revoked.`);
-          }
-        }
-      ]
-    );
+  const activePatient = patients.find((p) => p.id === activePatientId) || patients[0] || {
+    id: 'p-1',
+    name: 'Amma',
+    relationship: 'Mother',
   };
+
+  const currentLangLabel =
+    INDIAN_LANGUAGES.find((l) => l.code === currentLanguage)?.nativeName || 'English';
 
   return (
     <View style={styles.outerContainer}>
+      <View style={styles.mobileConstraint}>
+      {/* Top Header */}
+      <CaregiverTopHeader />
+
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Top Header Row with Active Patient Switcher */}
-        <View style={styles.topHeaderRow}>
-          <AppLogo size="normal" />
-          <ActivePatientSwitcher />
-        </View>
-
-        {/* User Profile Card */}
-        <View style={styles.userCard}>
-          <View style={styles.avatarCircle}>
-            <User size={40} color="#16A34A" />
+        {/* -------------------------
+            15. TOP PROFILE BANNER
+            YAAD Caregiver
+            Connected Patient: AMMA
+        ------------------------- */}
+        <View style={styles.profileHeaderCard}>
+          <View style={styles.avatarWrapper}>
+            <User size={32} color="#16A34A" />
           </View>
-          <Typography size="xl" weight="bold" color="#0F172A" style={{ marginTop: SPACING.sm }}>
-            {caregiverName}
-          </Typography>
-          <Typography size="xs" color="#64748B" style={{ marginTop: 2 }}>
-            Registered Caregiver • Single Account Access
-          </Typography>
+          <View style={styles.profileHeaderInfo}>
+            <Text style={styles.caregiverRoleText}>YAAD Caregiver</Text>
+            <Text style={styles.caregiverNameText}>{caregiverName || 'Jaswanth'}</Text>
+            <Text style={styles.connectedPatientText}>
+              Connected Patient:{' '}
+              <Text style={styles.connectedPatientBold}>{activePatient.name}</Text>
+            </Text>
+          </View>
         </View>
 
-        {/* Section: Manage Connected Patients */}
-        <Typography size="sm" weight="bold" color="#0F172A" style={{ marginBottom: SPACING.xs, marginLeft: 4 }}>
-          MANAGE CONNECTED PATIENTS ({patients.length})
-        </Typography>
+        {/* -------------------------
+            PATIENTS SECTION
+            Tappable Patient Card
+            + Add Another Patient
+        ------------------------- */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Connected Patients</Text>
+        </View>
 
-        <View style={styles.patientsCard}>
-          {patients.map((patient) => (
-            <View key={patient.id} style={styles.patientRow}>
-              <View style={[styles.patientAvatar, { backgroundColor: patient.avatarBg || '#DCFCE7' }]}>
-                <User size={20} color="#0F172A" />
-              </View>
-              <View style={{ flex: 1, marginLeft: SPACING.sm }}>
-                <Typography size="sm" weight="bold" color="#0F172A">
-                  {patient.name}
-                </Typography>
-                <Typography size="xs" color="#64748B">
-                  {patient.relationshipType || 'Family Member'} • {patient.status}
-                </Typography>
-              </View>
+        <View style={styles.patientsList}>
+          {patients.map((patient) => {
+            const isActive = patient.id === (activePatientId || activePatient.id);
+            return (
               <TouchableOpacity
-                onPress={() => handleRemoveConnection(patient.id, patient.name)}
-                style={styles.removeConnBtn}
+                key={patient.id}
+                activeOpacity={0.8}
+                onPress={() => setActivePatientId(patient.id)}
+                style={[styles.patientCard, isActive && styles.patientCardActive]}
               >
-                <Link2Off size={16} color="#DC2626" style={{ marginRight: 4 }} />
-                <Typography size="xs" weight="bold" color="#DC2626">
-                  Remove
-                </Typography>
+                <View style={[styles.patientAvatarCircle, isActive && styles.patientAvatarCircleActive]}>
+                  <User size={22} color={isActive ? '#15803D' : '#64748B'} />
+                </View>
+
+                <View style={styles.patientCardMiddle}>
+                  <Text style={styles.patientCardName}>{patient.name}</Text>
+                  <Text style={styles.patientCardRelation}>{patient.relationshipType || 'Mother'}</Text>
+                </View>
+
+                <View style={styles.patientCardRight}>
+                  {isActive ? (
+                    <View style={styles.activePill}>
+                      <CheckCircle2 size={13} color="#15803D" style={{ marginRight: 3 }} />
+                      <Text style={styles.activePillText}>Active</Text>
+                    </View>
+                  ) : (
+                    <PatientStatusBadge status="STABLE" size="sm" />
+                  )}
+                </View>
               </TouchableOpacity>
-            </View>
-          ))}
+            );
+          })}
 
           <TouchableOpacity
+            activeOpacity={0.85}
             onPress={() => router.push('/caregiver/connect-patient')}
-            style={styles.addPatientRowBtn}
+            style={styles.addPatientBtn}
           >
             <Plus size={18} color="#16A34A" style={{ marginRight: 6 }} />
-            <Typography size="sm" weight="bold" color="#16A34A">
-              Connect Another Patient
-            </Typography>
+            <Text style={styles.addPatientBtnText}>+ Add Another Patient</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Options List */}
-        <Typography size="sm" weight="bold" color="#0F172A" style={{ marginVertical: SPACING.xs, marginLeft: 4 }}>
-          ACCOUNT & SECURITY
-        </Typography>
-        <View style={styles.optionsContainer}>
-          <TouchableOpacity activeOpacity={0.8} style={styles.optionItem}>
-            <HeartHandshake size={20} color="#16A34A" style={{ marginRight: SPACING.md }} />
-            <Typography size="base" weight="semibold" color="#0F172A" style={{ flex: 1 }}>
-              Caregiver Settings
-            </Typography>
+        {/* -------------------------
+            16. ACCOUNT & SECURITY
+            Grouped Settings Rows
+        ------------------------- */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Account & Security</Text>
+        </View>
+
+        <View style={styles.groupedSettingsCard}>
+          {/* Row 1: Care Schedule & Recall Memory */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.push('/caregiver/reminders')}
+            style={styles.settingRow}
+          >
+            <View style={[styles.settingIconCircle, { backgroundColor: '#DCFCE7' }]}>
+              <Calendar size={18} color="#15803D" />
+            </View>
+            <View style={styles.settingTextContainer}>
+              <Text style={styles.settingItemTitle}>Care Schedule & Recall Memory</Text>
+              <Text style={styles.settingItemSubtitle}>Manage daily routines, alarms, and family cards</Text>
+            </View>
             <ChevronRight size={18} color="#94A3B8" />
           </TouchableOpacity>
 
-          <TouchableOpacity activeOpacity={0.8} style={styles.optionItem}>
-            <Bell size={20} color="#2563EB" style={{ marginRight: SPACING.md }} />
-            <Typography size="base" weight="semibold" color="#0F172A" style={{ flex: 1 }}>
-              Alert Preferences
-            </Typography>
+          {/* Row 2: Alert Preferences */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() =>
+              Alert.alert('Alert Preferences', 'All care notifications and game reminder sounds are currently active.')
+            }
+            style={styles.settingRow}
+          >
+            <View style={[styles.settingIconCircle, { backgroundColor: '#FEF3C7' }]}>
+              <Bell size={18} color="#B45309" />
+            </View>
+            <View style={styles.settingTextContainer}>
+              <Text style={styles.settingItemTitle}>Alert Preferences</Text>
+              <Text style={styles.settingItemSubtitle}>Auditory alarms and missed schedule notifications</Text>
+            </View>
             <ChevronRight size={18} color="#94A3B8" />
           </TouchableOpacity>
 
-          <TouchableOpacity activeOpacity={0.8} style={styles.optionItem}>
-            <Shield size={20} color="#8B5CF6" style={{ marginRight: SPACING.md }} />
-            <Typography size="base" weight="semibold" color="#0F172A" style={{ flex: 1 }}>
-              Security & Active Sessions
-            </Typography>
+          {/* Row 3: Security & Active Sessions */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() =>
+              Alert.alert('Security & Sessions', 'Your caregiver session is encrypted and securely stored on-device.')
+            }
+            style={styles.settingRow}
+          >
+            <View style={[styles.settingIconCircle, { backgroundColor: '#EFF6FF' }]}>
+              <Lock size={18} color="#2563EB" />
+            </View>
+            <View style={styles.settingTextContainer}>
+              <Text style={styles.settingItemTitle}>Security & Active Sessions</Text>
+              <Text style={styles.settingItemSubtitle}>Single caregiver access on this verified device</Text>
+            </View>
             <ChevronRight size={18} color="#94A3B8" />
           </TouchableOpacity>
 
-          {/* Language Selector Row */}
+          {/* Row 4: Language */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setShowLanguagePicker(true)}
+            style={[styles.settingRow, { borderBottomWidth: 0 }]}
+          >
+            <View style={[styles.settingIconCircle, { backgroundColor: '#F3E8FF' }]}>
+              <Globe size={18} color="#7C3AED" />
+            </View>
+            <View style={styles.settingTextContainer}>
+              <Text style={styles.settingItemTitle}>Language</Text>
+              <Text style={styles.settingItemSubtitle}>{currentLangLabel}</Text>
+            </View>
+            <ChevronRight size={18} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
+
+        {/* -------------------------
+            17. LOG OUT
+            Soft red/pink container
+        ------------------------- */}
+        <View style={styles.logoutContainer}>
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => setShowLanguagePicker(!showLanguagePicker)}
-            style={styles.optionItem}
+            onPress={handleLogout}
+            style={styles.logoutButton}
           >
-            <Globe size={20} color="#059669" style={{ marginRight: SPACING.md }} />
-            <View style={{ flex: 1 }}>
-              <Typography size="base" weight="semibold" color="#0F172A">
-                {t('language') || 'Language'}
-              </Typography>
-              <Typography size="xs" color="#64748B">
-                {INDIAN_LANGUAGES.find((l) => l.code === currentLanguage)?.nativeName || 'English'} ({INDIAN_LANGUAGES.find((l) => l.code === currentLanguage)?.name || 'English'})
-              </Typography>
-            </View>
-            <ChevronRight
-              size={18}
-              color="#94A3B8"
-              style={{ transform: [{ rotate: showLanguagePicker ? '90deg' : '0deg' }] }}
-            />
+            <LogOut size={18} color="#DC2626" style={{ marginRight: 8 }} />
+            <Text style={styles.logoutButtonText}>Log Out</Text>
           </TouchableOpacity>
-
-          {showLanguagePicker && (
-            <View style={styles.languageDropdown}>
-              <ScrollView style={{ maxHeight: 220 }} nestedScrollEnabled showsVerticalScrollIndicator={true}>
-                {INDIAN_LANGUAGES.map((lang) => {
-                  const isSelected = currentLanguage === lang.code;
-                  return (
-                    <TouchableOpacity
-                      key={lang.code}
-                      activeOpacity={0.7}
-                      onPress={() => {
-                        setLanguage(lang.code as LanguageCode);
-                        setShowLanguagePicker(false);
-                      }}
-                      style={[
-                        styles.langPickerRow,
-                        isSelected && { backgroundColor: '#DCFCE7' },
-                      ]}
-                    >
-                      <Typography
-                        size="sm"
-                        weight={isSelected ? 'bold' : 'regular'}
-                        color={isSelected ? '#15803D' : '#0F172A'}
-                        style={{ flex: 1 }}
-                      >
-                        {lang.nativeName} ({lang.name})
-                      </Typography>
-                      {isSelected && <Check size={16} color="#15803D" />}
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
         </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity activeOpacity={0.85} onPress={handleLogout} style={styles.logoutBtn}>
-          <LogOut size={20} color="#DC2626" style={{ marginRight: 8 }} />
-          <Typography size="base" weight="bold" color="#DC2626">
-            Log Out
-          </Typography>
-        </TouchableOpacity>
+        {/* Bottom clearance */}
+        <View style={{ height: 110 }} />
       </ScrollView>
 
-      {/* Floating Caregiver Navigation */}
-      <CaregiverBottomNavBar />
+      {/* Language Picker Modal */}
+      <Modal visible={showLanguagePicker} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Select Application Language</Text>
+            <ScrollView style={{ maxHeight: 300, marginVertical: SPACING.sm }}>
+              {INDIAN_LANGUAGES.map((lang) => {
+                const isSelected = currentLanguage === lang.code;
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    onPress={() => {
+                      setLanguage(lang.code as LanguageCode);
+                      setShowLanguagePicker(false);
+                    }}
+                    style={[styles.langRow, isSelected && styles.langRowActive]}
+                  >
+                    <View>
+                      <Text style={styles.langName}>{lang.nativeName}</Text>
+                      <Text style={styles.langSub}>{lang.name}</Text>
+                    </View>
+                    {isSelected && <Check size={18} color="#16A34A" />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            <TouchableOpacity onPress={() => setShowLanguagePicker(false)} style={styles.closeModalBtn}>
+              <Text style={styles.closeModalText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+        {/* Fixed Bottom Navigation */}
+        <CaregiverBottomNavBar />
+      </View>
     </View>
   );
 }
@@ -243,116 +299,246 @@ export default function CaregiverProfileScreen() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#F8FAF8',
+    backgroundColor: '#F7FAF8',
+  },
+  mobileConstraint: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    backgroundColor: '#F7FAF8',
   },
   scrollContent: {
     paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.xl,
+    paddingTop: SPACING.xs,
   },
-  topHeaderRow: {
+  profileHeaderCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+    marginVertical: SPACING.xs,
   },
-  userCard: {
+  avatarWrapper: {
+    width: 54,
+    height: 54,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#DCFCE7',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.md,
+  },
+  profileHeaderInfo: {
+    flex: 1,
+  },
+  caregiverRoleText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#16A34A',
+    letterSpacing: 0.5,
+  },
+  caregiverNameText: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111827',
+    marginVertical: 2,
+  },
+  connectedPatientText: {
+    fontSize: 15,
+    color: '#64748B',
+  },
+  connectedPatientBold: {
+    fontWeight: '800',
+    color: '#111827',
+  },
+  sectionHeaderRow: {
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.xs,
+  },
+  sectionTitle: {
+    fontSize: 18.5,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  patientsList: {
+    gap: SPACING.xs,
+  },
+  patientCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 1.5,
+    borderColor: '#E2E8E5',
+  },
+  patientCardActive: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#86EFAC',
+  },
+  patientAvatarCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#F1F5F3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.sm,
+  },
+  patientAvatarCircleActive: {
+    backgroundColor: '#DCFCE7',
+  },
+  patientCardMiddle: {
+    flex: 1,
+  },
+  patientCardName: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  patientCardRelation: {
+    fontSize: 14.5,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  patientCardRight: {},
+  activePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: RADIUS.full,
+  },
+  activePillText: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  addPatientBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.md,
+    paddingVertical: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8E5',
+    borderStyle: 'dashed',
+    marginTop: 6,
+  },
+  addPatientBtnText: {
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: '#16A34A',
+  },
+  groupedSettingsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+    overflow: 'hidden',
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F3',
+    minHeight: 68,
+  },
+  settingIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.sm,
+  },
+  settingTextContainer: {
+    flex: 1,
+  },
+  settingItemTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  settingItemSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  logoutContainer: {
+    marginTop: SPACING.xl,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEE2E2',
+    borderRadius: RADIUS.md,
+    paddingVertical: 15,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+  },
+  logoutButtonText: {
+    fontSize: 16.5,
+    fontWeight: '800',
+    color: '#DC2626',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(17, 24, 39, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.md,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 360,
     backgroundColor: '#FFFFFF',
     borderRadius: RADIUS.xl,
     padding: SPACING.lg,
-    marginVertical: SPACING.md,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
   },
-  avatarCircle: {
-    width: 76,
-    height: 76,
-    borderRadius: RADIUS.full,
-    backgroundColor: '#DCFCE7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#86EFAC',
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: SPACING.xs,
   },
-  patientsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    padding: SPACING.md,
-    marginBottom: SPACING.md,
-  },
-  patientRow: {
+  langRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F1F5F3',
   },
-  patientAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.full,
+  langRowActive: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: RADIUS.sm,
+  },
+  langName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  langSub: {
+    fontSize: 12,
+    color: '#64748B',
+  },
+  closeModalBtn: {
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: SPACING.sm,
+    marginTop: SPACING.xs,
   },
-  removeConnBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEE2E2',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: RADIUS.full,
-    borderWidth: 1,
-    borderColor: '#FCA5A5',
-  },
-  addPatientRowBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#DCFCE7',
-    paddingVertical: 10,
-    borderRadius: RADIUS.lg,
-    marginTop: 10,
-  },
-  optionsContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    overflow: 'hidden',
-  },
-  optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FEE2E2',
-    paddingVertical: 14,
-    borderRadius: RADIUS.xl,
-    marginTop: SPACING.lg,
-    borderWidth: 1,
-    borderColor: '#FCA5A5',
-  },
-  languageDropdown: {
-    backgroundColor: '#F8FAF8',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-  },
-  langPickerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.md,
-    marginVertical: 2,
+  closeModalText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
   },
 });

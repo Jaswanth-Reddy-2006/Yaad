@@ -131,6 +131,30 @@ export interface OfflineProximityPayload {
   routine: RoutineScheduleItem[];
   reminders: Reminder[];
   gameSchedule: PatientGameSchedule;
+  familyMembers?: FamilyMemberRecallItem[];
+  objects?: ObjectRecallItem[];
+}
+
+export interface FamilyMemberRecallItem {
+  id: string;
+  patientId: string;
+  name: string;
+  relation: string;
+  avatarBg?: string;
+  avatarPreset?: 'son' | 'daughter' | 'grandson' | 'granddaughter' | 'spouse' | 'brother' | 'sister' | 'friend';
+  notes?: string;
+  photoUri?: string;
+}
+
+export interface ObjectRecallItem {
+  id: string;
+  patientId: string;
+  name: string;
+  location: string;
+  category?: string;
+  iconPreset?: 'glasses' | 'keys' | 'medicine' | 'walking_stick' | 'wallet' | 'watch' | 'water_bottle' | 'book';
+  notes?: string;
+  photoUri?: string;
 }
 
 export interface EmergencyContact {
@@ -142,4 +166,5 @@ export interface EmergencyContact {
 }
 
 export * from './voice';
+
 

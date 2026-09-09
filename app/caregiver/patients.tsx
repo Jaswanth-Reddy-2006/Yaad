@@ -47,6 +47,7 @@ export default function MyPatientsScreen() {
 
   return (
     <View style={styles.outerContainer}>
+      <View style={styles.mobileConstraint}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -181,6 +182,7 @@ export default function MyPatientsScreen() {
 
       {/* Floating Caregiver Navigation */}
       <CaregiverBottomNavBar />
+      </View>
     </View>
   );
 }
@@ -190,14 +192,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAF8',
   },
+  mobileConstraint: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    backgroundColor: '#F7FAF8',
+  },
   scrollContent: {
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.md,
-    paddingBottom: SPACING.xl,
+    paddingBottom: 90, // Clearance for floating bottom navbar
   },
   topHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 48,
   },
   backSquareBtn: {
     width: 44,
@@ -253,6 +263,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     borderWidth: 1.5,
     borderColor: '#E2E8F0',
+    minHeight: 110,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -262,6 +273,8 @@ const styles = StyleSheet.create({
   cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   avatarCircle: {
     width: 54,
@@ -269,6 +282,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   connectedBadge: {
     flexDirection: 'row',

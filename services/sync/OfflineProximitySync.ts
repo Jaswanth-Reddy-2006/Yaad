@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { OfflineProximityPayload, RoutineScheduleItem, Reminder, PatientGameSchedule } from '../../types';
+import { OfflineProximityPayload, RoutineScheduleItem, Reminder, PatientGameSchedule, FamilyMemberRecallItem, ObjectRecallItem } from '../../types';
 import { useTaskStore } from '../../store/useTaskStore';
 import { useReminderStore } from '../../store/useReminderStore';
 
@@ -79,11 +79,29 @@ export const DEFAULT_GAME_SCHEDULE: PatientGameSchedule = {
   lastPlayedDate: new Date().toISOString().split('T')[0],
 };
 
+
+export const DEFAULT_FAMILY_MEMBERS: FamilyMemberRecallItem[] = [
+  { id: 'fam-1', patientId: 'p-1', name: 'Suresh', relation: 'Son', avatarBg: '#DCFCE7', avatarPreset: 'son', notes: 'Lives in Bangalore, visits on weekends' },
+  { id: 'fam-2', patientId: 'p-1', name: 'Ananya', relation: 'Granddaughter', avatarBg: '#FEF3C7', avatarPreset: 'granddaughter', notes: 'Studies in 5th class, loves drawing' },
+  { id: 'fam-3', patientId: 'p-1', name: 'Kavita', relation: 'Daughter-in-Law', avatarBg: '#FCE7F3', avatarPreset: 'daughter', notes: 'Prepares favorite meals every day' },
+  { id: 'fam-4', patientId: 'p-1', name: 'Ravi', relation: 'Grandson', avatarBg: '#DBEAFE', avatarPreset: 'grandson', notes: 'Plays chess in the evening' },
+];
+
+export const DEFAULT_OBJECT_RECALL_ITEMS: ObjectRecallItem[] = [
+  { id: 'obj-1', patientId: 'p-1', name: 'Reading Glasses', location: 'On the bedside table', category: 'Personal', iconPreset: 'glasses', notes: 'Kept in brown case' },
+  { id: 'obj-2', patientId: 'p-1', name: 'House Keys', location: 'In the kitchen key bowl', category: 'Essentials', iconPreset: 'keys', notes: 'Keychain with brass bell' },
+  { id: 'obj-3', patientId: 'p-1', name: 'Walking Stick', location: 'Beside the front door', category: 'Mobility', iconPreset: 'walking_stick', notes: 'Wooden carved handle' },
+  { id: 'obj-4', patientId: 'p-1', name: 'Medicine Box', location: 'On the dining table', category: 'Health', iconPreset: 'medicine', notes: 'White morning & evening pill organizer' },
+  { id: 'obj-5', patientId: 'p-1', name: 'Water Bottle', location: 'On the living room side table', category: 'Hydration', iconPreset: 'water_bottle', notes: 'Steel bottle with green cap' },
+];
+
 class OfflineProximitySyncService {
   private readonly STORAGE_ROUTINE = 'yaad_offline_routine';
   private readonly STORAGE_REMINDERS = 'yaad_offline_reminders';
   private readonly STORAGE_GAME_SCHEDULE = 'yaad_offline_game_schedule';
   private readonly STORAGE_PLAYTIME = 'yaad_daily_playtime_seconds';
+  private readonly STORAGE_FAMILY_MEMBERS = 'yaad_offline_family_members';
+  private readonly STORAGE_OBJECT_RECALL = 'yaad_offline_object_recall';
 
   /**
    * Generates a portable, offline JSON sync payload that can be transferred via QR code or local P2P.
@@ -92,6 +110,8 @@ class OfflineProximitySyncService {
     const routine = await this.getRoutineSchedule(patientId);
     const reminders = await this.getOneTimeReminders(patientId);
     const gameSchedule = await this.getGameSchedule(patientId);
+    const familyMembers = await this.getFamilyMembers(patientId);
+    const objects = await this.getObjectRecallItems(patientId);
 
     const payload: OfflineProximityPayload = {
       version: 1,
@@ -101,6 +121,8 @@ class OfflineProximitySyncService {
       routine,
       reminders,
       gameSchedule,
+      familyMembers,
+      objects,
     };
 
     return JSON.stringify(payload);
@@ -127,6 +149,12 @@ class OfflineProximitySyncService {
       // Save game schedule
       if (parsed.gameSchedule) {
         await safeStorage.setItem(this.STORAGE_GAME_SCHEDULE, JSON.stringify(parsed.gameSchedule));
+      }
+      if (Array.isArray(parsed.familyMembers)) {
+        await safeStorage.setItem(this.STORAGE_FAMILY_MEMBERS, JSON.stringify(parsed.familyMembers));
+      }
+      if (Array.isArray(parsed.objects)) {
+        await safeStorage.setItem(this.STORAGE_OBJECT_RECALL, JSON.stringify(parsed.objects));
       }
 
       // Notify active stores
@@ -277,6 +305,72 @@ class OfflineProximitySyncService {
     const next = current + seconds;
     await safeStorage.setItem(todayKey, next.toString());
     return next;
+  }
+
+  public async getFamilyMembers(patientId: string = 'p-1'): Promise<FamilyMemberRecallItem[]> {
+    try {
+      const raw = await safeStorage.getItem(this.STORAGE_FAMILY_MEMBERS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return DEFAULT_FAMILY_MEMBERS;
+  }
+
+  public async saveFamilyMembers(items: FamilyMemberRecallItem[]): Promise<void> {
+    await safeStorage.setItem(this.STORAGE_FAMILY_MEMBERS, JSON.stringify(items));
+  }
+
+  public async addFamilyMember(item: Omit<FamilyMemberRecallItem, 'id'>): Promise<FamilyMemberRecallItem[]> {
+    const list = await this.getFamilyMembers(item.patientId);
+    const newItem: FamilyMemberRecallItem = {
+      ...item,
+      id: `fam-${Date.now()}`,
+    };
+    const updated = [newItem, ...list];
+    await this.saveFamilyMembers(updated);
+    return updated;
+  }
+
+  public async deleteFamilyMember(id: string): Promise<FamilyMemberRecallItem[]> {
+    const list = await this.getFamilyMembers();
+    const updated = list.filter((f) => f.id !== id);
+    await this.saveFamilyMembers(updated);
+    return updated;
+  }
+
+  public async getObjectRecallItems(patientId: string = 'p-1'): Promise<ObjectRecallItem[]> {
+    try {
+      const raw = await safeStorage.getItem(this.STORAGE_OBJECT_RECALL);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return DEFAULT_OBJECT_RECALL_ITEMS;
+  }
+
+  public async saveObjectRecallItems(items: ObjectRecallItem[]): Promise<void> {
+    await safeStorage.setItem(this.STORAGE_OBJECT_RECALL, JSON.stringify(items));
+  }
+
+  public async addObjectRecallItem(item: Omit<ObjectRecallItem, 'id'>): Promise<ObjectRecallItem[]> {
+    const list = await this.getObjectRecallItems(item.patientId);
+    const newItem: ObjectRecallItem = {
+      ...item,
+      id: `obj-${Date.now()}`,
+    };
+    const updated = [newItem, ...list];
+    await this.saveObjectRecallItems(updated);
+    return updated;
+  }
+
+  public async deleteObjectRecallItem(id: string): Promise<ObjectRecallItem[]> {
+    const list = await this.getObjectRecallItems();
+    const updated = list.filter((o) => o.id !== id);
+    await this.saveObjectRecallItems(updated);
+    return updated;
   }
 }
 

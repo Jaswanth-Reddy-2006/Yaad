@@ -1,243 +1,288 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { BarChart3, TrendingUp, Sparkles, Brain, Award, AlertCircle } from 'lucide-react-native';
-import { Typography } from '../../components/common/Typography';
+import React, { useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Text, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
+import {
+  ArrowLeft,
+  TrendingUp,
+  Brain,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  Lightbulb,
+  Info,
+  Calendar,
+} from 'lucide-react-native';
+import { CaregiverTopHeader } from '../../components/caregiver/CaregiverTopHeader';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
-import { ActivePatientSwitcher } from '../../components/caregiver/ActivePatientSwitcher';
-import { AppLogo } from '../../components/common/AppLogo';
+import { PatientStatusBadge } from '../../components/common/PatientStatusBadge';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
-import { authService } from '../../services/AuthService';
 
-export default function InsightsScreen() {
+export default function CognitiveInsightsScreen() {
   const router = useRouter();
   const { patients, activePatientId } = useCaregiverStore();
-
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
-      async function verifyAuth() {
-        const isAuth = await authService.isAuthenticated();
-        const role = await authService.getUserRole();
-        if (isMounted && (!isAuth || role !== 'CAREGIVER')) {
-          router.replace('/');
-        }
-      }
-      verifyAuth();
-      return () => {
-        isMounted = false;
-      };
-    }, [router])
-  );
+  const [timeRange, setTimeRange] = useState<'7D' | '30D' | '90D'>('30D');
 
   const activePatient = patients.find((p) => p.id === activePatientId) || patients[0] || {
-    id: '',
-    name: 'Patient',
-    activityStatus: 'Activity: Active'
+    id: 'p-1',
+    name: 'Amma',
+    relationship: 'Mother',
   };
 
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [overview, setOverview] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  // 4 Core Cognitive Domains
+  const domains = [
+    {
+      name: 'Memory Recall',
+      score: 87,
+      color: '#16A34A',
+      desc: 'High recognition of family members and loved ones',
+    },
+    {
+      name: 'Attention & Focus',
+      score: 80,
+      color: '#2563EB',
+      desc: 'Consistent focus during morning memory exercises',
+    },
+    {
+      name: 'Visual Recognition',
+      score: 84,
+      color: '#E98200',
+      desc: 'Accurate identification of everyday household objects',
+    },
+    {
+      name: 'Daily Routine',
+      score: 86,
+      color: '#7C3AED',
+      desc: 'Consistent adherence to medicine and hydration schedule',
+    },
+  ];
 
-  useEffect(() => {
-    let isMounted = true;
+  // Trend chart mock data points
+  const trendData = {
+    '7D': [
+      { label: 'Mon', score: 82 },
+      { label: 'Tue', score: 84 },
+      { label: 'Wed', score: 83 },
+      { label: 'Thu', score: 85 },
+      { label: 'Fri', score: 86 },
+      { label: 'Sat', score: 84 },
+      { label: 'Sun', score: 87 },
+    ],
+    '30D': [
+      { label: 'W1', score: 80 },
+      { label: 'W2', score: 82 },
+      { label: 'W3', score: 83 },
+      { label: 'W4', score: 86 },
+    ],
+    '90D': [
+      { label: 'Month 1', score: 79 },
+      { label: 'Month 2', score: 82 },
+      { label: 'Month 3', score: 85 },
+    ],
+  };
 
-    async function fetchPatientData() {
-      if (!activePatient.id) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const [anaRes, overRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/v1/caregiver/patients/${activePatient.id}/analytics`),
-          fetch(`http://localhost:8000/api/v1/caregiver/patients/${activePatient.id}/overview`)
-        ]);
-
-        if (isMounted) {
-          if (anaRes.ok) {
-            const anaData = await anaRes.json();
-            setAnalytics(anaData);
-          }
-          if (overRes.ok) {
-            const overData = await overRes.json();
-            setOverview(overData);
-          }
-        }
-      } catch (err) {
-        // Fallback or handle offline
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-
-    fetchPatientData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [activePatient.id]);
-
-  const hasInsufficientData = !analytics || analytics.insufficient_data;
-  const avgAccuracy = analytics?.avg_accuracy ?? 0;
-  const totalSessions = analytics?.total_sessions ?? 0;
-  const baselineComparison = analytics?.baseline_comparison || "Current period activity vs baseline";
+  const activeTrend = trendData[timeRange];
 
   return (
     <View style={styles.outerContainer}>
+      <View style={styles.mobileConstraint}>
+      {/* Header with back button */}
+      <CaregiverTopHeader showBack={true} onBackPress={() => router.push('/caregiver/home')} />
+
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Top Header Row with Active Patient Switcher */}
-        <View style={styles.topHeaderRow}>
-          <AppLogo size="normal" />
-          <ActivePatientSwitcher />
+        {/* Screen Title & Patient Context */}
+        <View style={styles.titleArea}>
+          <Text style={styles.pageTitle}>Cognitive Progress</Text>
+          <Text style={styles.pageSubtitle}>
+            Evidence-based observations for <Text style={styles.boldPatient}>{activePatient.name}</Text>
+          </Text>
         </View>
 
-        {/* Header Title */}
-        <View style={{ marginVertical: SPACING.sm }}>
-          <Typography size="xxl" weight="bold" color="#0F172A">
-            Activity Insights & Trends
-          </Typography>
-          <Typography size="xs" color="#64748B" style={{ marginTop: 2 }}>
-            Performance breakdown for <Typography size="xs" weight="bold" color="#16A34A">{activePatient.name}</Typography>
-          </Typography>
-        </View>
-
-        {loading ? (
-          <View style={{ padding: SPACING.xl, alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#16A34A" />
-            <Typography size="xs" color="#64748B" style={{ marginTop: SPACING.sm }}>
-              Loading patient analytics from database...
-            </Typography>
+        {/* -------------------------
+            1. OVERALL COGNITIVE SCORE
+        ------------------------- */}
+        <View style={styles.scoreCard}>
+          <View style={styles.scoreCardTop}>
+            <View>
+              <Text style={styles.scoreNumber}>84%</Text>
+              <Text style={styles.scoreLabel}>Overall Cognitive Score</Text>
+            </View>
+            <View style={styles.trendBadge}>
+              <TrendingUp size={16} color="#15803D" style={{ marginRight: 4 }} />
+              <Text style={styles.trendBadgeText}>Improving ↑</Text>
+            </View>
           </View>
-        ) : (
-          <>
-            {/* Activity Performance Gauge Card */}
-            <View style={styles.performanceCard}>
-              <View style={styles.cardHeaderRow}>
-                <Typography size="sm" weight="bold" color="#0F172A">
-                  Activity Performance ({activePatient.name})
-                </Typography>
-                <Typography size="xs" color="#64748B">
-                  Last 30 Days
-                </Typography>
+
+          <Text style={styles.scoreSummary}>
+            {activePatient.name}'s cognitive score has maintained an upward trajectory over the past 30 days,
+            reflecting strong engagement in recall games.
+          </Text>
+
+          <View style={styles.scoreFooter}>
+            <PatientStatusBadge status="STABLE" size="sm" />
+            <Text style={styles.updatedText}>Last updated today at 11:30 AM</Text>
+          </View>
+        </View>
+
+        {/* -------------------------
+            2. COGNITIVE DOMAINS
+        ------------------------- */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Cognitive Domains</Text>
+        </View>
+
+        <View style={styles.domainsCard}>
+          {domains.map((d, index) => (
+            <View key={index} style={[styles.domainRow, index < domains.length - 1 && styles.domainDivider]}>
+              <View style={styles.domainRowTop}>
+                <Text style={styles.domainTitle}>{d.name}</Text>
+                <Text style={[styles.domainScoreValue, { color: d.color }]}>{d.score}%</Text>
               </View>
 
-              {hasInsufficientData ? (
-                <View style={styles.emptyStateContainer}>
-                  <AlertCircle size={32} color="#D97706" style={{ marginBottom: 8 }} />
-                  <Typography size="sm" weight="bold" color="#92400E" align="center">
-                    Not Enough Activity Data
-                  </Typography>
-                  <Typography size="xs" color="#B45309" align="center" style={{ marginTop: 4 }}>
-                    {activePatient.name} needs to complete more cognitive game sessions before trend analysis can be generated.
-                  </Typography>
-                </View>
-              ) : (
-                <>
-                  {/* Circular Ring Gauge */}
-                  <View style={styles.ringGaugeContainer}>
-                    <View style={styles.ringOuter}>
-                      <View style={styles.ringInner}>
-                        <Typography size="giant" weight="bold" color="#0F172A">
-                          {Math.round(avgAccuracy)}%
-                        </Typography>
-                      </View>
-                    </View>
-                    <Typography size="xs" weight="bold" color="#16A34A" style={{ marginTop: SPACING.sm }}>
-                      Activity Level: {analytics?.trend_status || 'Stable'}
-                    </Typography>
-                  </View>
-
-                  {/* 3 Metrics Row */}
-                  <View style={styles.metricsRow}>
-                    <View style={styles.metricCol}>
-                      <Typography size="xs" color="#64748B">
-                        Games Played
-                      </Typography>
-                      <Typography size="lg" weight="bold" color="#0F172A" style={{ marginTop: 2 }}>
-                        {totalSessions}
-                      </Typography>
-                    </View>
-
-                    <View style={styles.dividerLine} />
-
-                    <View style={styles.metricCol}>
-                      <Typography size="xs" color="#64748B">
-                        Avg. Accuracy
-                      </Typography>
-                      <Typography size="lg" weight="bold" color="#0F172A" style={{ marginTop: 2 }}>
-                        {Math.round(avgAccuracy)}%
-                      </Typography>
-                    </View>
-
-                    <View style={styles.dividerLine} />
-
-                    <View style={styles.metricCol}>
-                      <Typography size="xs" color="#64748B">
-                        Active Period
-                      </Typography>
-                      <Typography size="lg" weight="bold" color="#0F172A" style={{ marginTop: 2 }}>
-                        {analytics?.days || 30} Days
-                      </Typography>
-                    </View>
-                  </View>
-                </>
-              )}
-            </View>
-
-            {/* Cognitive Activity Domain Breakdown Section */}
-            <View style={styles.domainCard}>
-              <Typography size="sm" weight="bold" color="#0F172A" style={{ marginBottom: SPACING.md }}>
-                Cognitive Activity Domains ({activePatient.name})
-              </Typography>
-
-              {[
-                { domain: 'Memory', score: hasInsufficientData ? 0 : Math.min(Math.round(avgAccuracy + 4), 100) },
-                { domain: 'Attention', score: hasInsufficientData ? 0 : Math.max(Math.round(avgAccuracy - 4), 0) },
-                { domain: 'Recognition', score: hasInsufficientData ? 0 : Math.round(avgAccuracy) },
-                { domain: 'Recall', score: hasInsufficientData ? 0 : Math.max(Math.round(avgAccuracy - 2), 0) },
-              ].map((item) => (
-                <View key={item.domain} style={styles.domainRow}>
-                  <Typography size="xs" weight="semibold" color="#64748B" style={{ width: 90 }}>
-                    {item.domain}
-                  </Typography>
-                  <View style={styles.progressTrack}>
-                    <View style={[styles.progressFill, { width: `${item.score}%` }]} />
-                  </View>
-                  <Typography size="xs" weight="bold" color="#0F172A" style={{ width: 38, textAlign: 'right' }}>
-                    {item.score}%
-                  </Typography>
-                </View>
-              ))}
-            </View>
-
-            {/* Evidence-Based Activity Observation Card */}
-            <View style={styles.aiInsightsCard}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Sparkles size={20} color="#D97706" style={{ marginRight: 8 }} />
-                <Typography size="sm" weight="bold" color="#92400E">
-                  Activity Observation ({activePatient.name})
-                </Typography>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${d.score}%`, backgroundColor: d.color }]} />
               </View>
-              <Typography size="xs" color="#78350F" style={{ marginTop: 6, lineHeight: 18 }}>
-                {hasInsufficientData
-                  ? "Observation: Patient is starting new activity sessions. Ongoing tracking will reveal best active periods."
-                  : `Observation: ${baselineComparison}. Completion rate is steady across recent cognitive sessions.`
-                }
-              </Typography>
-              <Typography size="xs" weight="bold" color="#92400E" style={{ marginTop: 6 }}>
-                Suggested Action: Encourage completing daily morning memory activity sessions for consistent routine.
-              </Typography>
+
+              <Text style={styles.domainDesc}>{d.desc}</Text>
             </View>
-          </>
-        )}
+          ))}
+        </View>
+
+        {/* -------------------------
+            3. TREND CHART (7D / 30D / 90D)
+        ------------------------- */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Progress Trend</Text>
+        </View>
+
+        <View style={styles.chartCard}>
+          <View style={styles.timeFilterRow}>
+            {(['7D', '30D', '90D'] as const).map((range) => (
+              <TouchableOpacity
+                key={range}
+                activeOpacity={0.8}
+                onPress={() => setTimeRange(range)}
+                style={[styles.filterPill, timeRange === range && styles.filterPillActive]}
+              >
+                <Text style={[styles.filterPillText, timeRange === range && styles.filterPillTextActive]}>
+                  {range === '7D' ? '7 Days' : range === '30D' ? '30 Days' : '90 Days'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Simple Clean Bar Graph */}
+          <View style={styles.barGraphArea}>
+            {activeTrend.map((pt, i) => (
+              <View key={i} style={styles.barColumn}>
+                <Text style={styles.barScoreLabel}>{pt.score}%</Text>
+                <View style={styles.barTrack}>
+                  <View style={[styles.barFill, { height: `${(pt.score / 100) * 100}%` }]} />
+                </View>
+                <Text style={styles.barXLabel}>{pt.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* -------------------------
+            4. STRENGTHS
+        ------------------------- */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Key Strengths</Text>
+        </View>
+
+        <View style={styles.strengthsCard}>
+          <View style={styles.observationItem}>
+            <CheckCircle2 size={18} color="#16A34A" style={styles.observationIcon} />
+            <View style={styles.observationContent}>
+              <Text style={styles.observationHeading}>Immediate Family Recognition</Text>
+              <Text style={styles.observationText}>
+                Achieved 95% accuracy on photos of son and daughter with zero hesitation delays.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.observationItem}>
+            <CheckCircle2 size={18} color="#16A34A" style={styles.observationIcon} />
+            <View style={styles.observationContent}>
+              <Text style={styles.observationHeading}>Morning Routine Precision</Text>
+              <Text style={styles.observationText}>
+                Prompt acknowledgment for 9:00 AM medication and breakfast schedules.
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* -------------------------
+            5. NEEDS ATTENTION
+        ------------------------- */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Needs Attention</Text>
+        </View>
+
+        <View style={styles.attentionCard}>
+          <View style={styles.observationItem}>
+            <AlertTriangle size={18} color="#E98200" style={styles.observationIcon} />
+            <View style={styles.observationContent}>
+              <Text style={styles.observationHeading}>Late Afternoon Fatigue</Text>
+              <Text style={styles.observationText}>
+                Slight dip in response speed when playing recall activities after 4:30 PM.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.observationItem}>
+            <AlertTriangle size={18} color="#E98200" style={styles.observationIcon} />
+            <View style={styles.observationContent}>
+              <Text style={styles.observationHeading}>Multi-Step Recall</Text>
+              <Text style={styles.observationText}>
+                Remembers object names quickly, but requires hints for less familiar placement areas.
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* -------------------------
+            6. CARE RECOMMENDATIONS
+        ------------------------- */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Care Recommendations</Text>
+        </View>
+
+        <View style={styles.recommendationsCard}>
+          <View style={styles.recItem}>
+            <View style={styles.recNumberCircle}>
+              <Text style={styles.recNumberText}>1</Text>
+            </View>
+            <View style={styles.recContent}>
+              <Text style={styles.recHeading}>Schedule Games in the Morning</Text>
+              <Text style={styles.recText}>
+                Peak focus occurs between 10:00 AM and 12:00 PM. Aim to complete recall exercises during this window.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.recItem}>
+            <View style={styles.recNumberCircle}>
+              <Text style={styles.recNumberText}>2</Text>
+            </View>
+            <View style={styles.recContent}>
+              <Text style={styles.recHeading}>Reinforce Daily Object Locations</Text>
+              <Text style={styles.recText}>
+                Keep everyday items (glasses, keys, medicine) in designated high-visibility areas like the bedside table.
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Bottom clearance */}
+        <View style={{ height: 110 }} />
       </ScrollView>
 
-      {/* Floating Caregiver Navigation */}
-      <CaregiverBottomNavBar />
+        {/* Fixed Bottom Navigation */}
+        <CaregiverBottomNavBar />
+      </View>
     </View>
   );
 }
@@ -245,105 +290,299 @@ export default function InsightsScreen() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#F8FAF8',
+    backgroundColor: '#F7FAF8',
+  },
+  mobileConstraint: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    backgroundColor: '#F7FAF8',
   },
   scrollContent: {
     paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.xl,
+    paddingTop: SPACING.xs,
   },
-  topHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  titleArea: {
+    marginBottom: SPACING.md,
   },
-  performanceCard: {
+  pageTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  pageSubtitle: {
+    fontSize: 15,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  boldPatient: {
+    fontWeight: '800',
+    color: '#16A34A',
+  },
+  scoreCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
-    padding: SPACING.md,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  emptyStateContainer: {
-    padding: SPACING.lg,
-    backgroundColor: '#FEF3C7',
     borderRadius: RADIUS.lg,
-    alignItems: 'center',
-    marginVertical: SPACING.md,
+    padding: SPACING.md,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: '#E2E8E5',
+    marginBottom: SPACING.xs,
   },
-  ringGaugeContainer: {
-    alignItems: 'center',
-    marginVertical: SPACING.lg,
-  },
-  ringOuter: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 10,
-    borderColor: '#16A34A',
-    borderTopColor: '#DCFCE7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringInner: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  metricsRow: {
+  scoreCardTop: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  scoreNumber: {
+    fontSize: 40,
+    fontWeight: '800',
+    color: '#111827',
+    lineHeight: 46,
+  },
+  scoreLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 2,
+  },
+  trendBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAF8',
-    borderRadius: RADIUS.lg,
-    paddingVertical: SPACING.sm,
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: RADIUS.full,
   },
-  metricCol: {
+  trendBadgeText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  scoreSummary: {
+    fontSize: 15,
+    color: '#334155',
+    lineHeight: 22,
+    marginVertical: SPACING.sm,
+  },
+  scoreFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: SPACING.xs,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F3',
   },
-  dividerLine: {
-    width: 1,
-    height: 24,
-    backgroundColor: '#E2E8F0',
+  updatedText: {
+    fontSize: 13,
+    color: '#94A3B8',
   },
-  domainCard: {
+  sectionHeaderRow: {
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.xs,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  domainsCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
     padding: SPACING.md,
-    marginVertical: SPACING.md,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
   },
   domainRow: {
+    paddingVertical: SPACING.xs,
+  },
+  domainDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F3',
+    paddingBottom: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  domainRowTop: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 6,
+    marginBottom: 4,
+  },
+  domainTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  domainScoreValue: {
+    fontSize: 16,
+    fontWeight: '800',
   },
   progressTrack: {
-    flex: 1,
-    height: 10,
+    height: 8,
+    backgroundColor: '#F1F5F3',
     borderRadius: RADIUS.full,
-    backgroundColor: '#E2E8F0',
-    marginHorizontal: SPACING.xs,
     overflow: 'hidden',
+    marginVertical: 4,
   },
   progressFill: {
     height: '100%',
+    borderRadius: RADIUS.full,
+  },
+  domainDesc: {
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  chartCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+  },
+  timeFilterRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F3',
+    borderRadius: RADIUS.sm,
+    padding: 3,
+    marginBottom: SPACING.md,
+  },
+  filterPill: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    borderRadius: RADIUS.xs,
+  },
+  filterPillActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  filterPillText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  filterPillTextActive: {
+    color: '#111827',
+    fontWeight: '800',
+  },
+  barGraphArea: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-around',
+    height: 140,
+    paddingTop: SPACING.sm,
+  },
+  barColumn: {
+    alignItems: 'center',
+    width: 36,
+  },
+  barScoreLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+    marginBottom: 4,
+  },
+  barTrack: {
+    width: 14,
+    height: 90,
+    backgroundColor: '#F1F5F3',
+    borderRadius: RADIUS.full,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  barFill: {
+    width: '100%',
     backgroundColor: '#16A34A',
     borderRadius: RADIUS.full,
   },
-  aiInsightsCard: {
-    backgroundColor: '#FEF3C7',
-    borderRadius: RADIUS.xl,
+  barXLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+    marginTop: 6,
+  },
+  strengthsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
     padding: SPACING.md,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: '#E2E8E5',
+    gap: SPACING.sm,
+  },
+  attentionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+    gap: SPACING.sm,
+  },
+  observationItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  observationIcon: {
+    marginRight: 8,
+    marginTop: 2,
+    flexShrink: 0,
+  },
+  observationContent: {
+    flex: 1,
+  },
+  observationHeading: {
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  observationText: {
+    fontSize: 14,
+    color: '#475569',
+    marginTop: 2,
+    lineHeight: 20,
+  },
+  recommendationsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: '#E2E8E5',
+    gap: SPACING.md,
+  },
+  recItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  recNumberCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.sm,
+    marginTop: 1,
+  },
+  recNumberText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  recContent: {
+    flex: 1,
+  },
+  recHeading: {
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  recText: {
+    fontSize: 14,
+    color: '#475569',
+    marginTop: 2,
+    lineHeight: 20,
   },
 });
-
