@@ -108,10 +108,10 @@ export default function ConnectPatientScreen() {
           <Info size={20} color="#6D28D9" style={{ marginRight: SPACING.sm }} />
           <View style={{ flex: 1 }}>
             <Typography size="xs" weight="bold" color="#6D28D9">
-              Secure Relationship Pairing
+              Secure Caregiver Pairing
             </Typography>
             <Typography size="xs" color="#581C87" style={{ marginTop: 2 }}>
-              FastAPI verifies patient relationship before access is granted.
+              Connect with your patient to manage their daily routine and reminders.
             </Typography>
           </View>
         </View>

@@ -127,11 +127,11 @@ export default function CaregiverHomeScreen() {
     : [];
 
   const completedRoutineCount = todayRoutine.filter((r) => r.isCompleted).length;
-  const totalRoutineCount = todayRoutine.length || 6;
-  const displayCompletedRoutine = todayRoutine.length > 0 ? completedRoutineCount : 4;
+  const totalRoutineCount = todayRoutine.length;
+  const displayCompletedRoutine = completedRoutineCount;
   const displayTotalRoutine = totalRoutineCount;
 
-  const totalRemindersCount = todayReminders.length || 18;
+  const totalRemindersCount = todayReminders.length;
   const completedRemindersCount = todayReminders.filter((r) => r.status === 'COMPLETED').length;
 
   const avgAccuracy = analytics?.avg_accuracy ?? 84;
@@ -143,42 +143,42 @@ export default function CaregiverHomeScreen() {
     { label: 'Daily Routine', score: 86, color: '#7C3AED' },
   ];
 
-  // Top 3 relevant priority tasks
-  const topPriorities = [
-    {
-      id: 'p1',
-      time: '9:00 AM',
-      category: 'Medicine',
-      title: 'Morning Medicine',
-      status: 'Completed',
-      isCompleted: true,
-      Icon: Pill,
-      iconColor: '#16A34A',
-      iconBg: '#DCFCE7',
-    },
-    {
-      id: 'p2',
-      time: '10:30 AM',
-      category: 'Hydration',
-      title: 'Drink Fresh Water',
-      status: 'Pending',
-      isCompleted: false,
-      Icon: Droplet,
-      iconColor: '#2563EB',
-      iconBg: '#EFF6FF',
-    },
-    {
-      id: 'p3',
-      time: '11:00 AM',
-      category: 'Activity',
-      title: 'Mind Sharp Game',
-      status: 'Pending',
-      isCompleted: false,
-      Icon: Brain,
-      iconColor: '#7C3AED',
-      iconBg: '#F3E8FF',
-    },
-  ];
+  // Derive top priority tasks directly from patient's live routine
+  const topPriorities = todayRoutine.slice(0, 3).map((item) => {
+    let Icon = Pill;
+    let iconColor = '#16A34A';
+    let iconBg = '#DCFCE7';
+
+    if (item.category === 'HYDRATION') {
+      Icon = Droplet;
+      iconColor = '#2563EB';
+      iconBg = '#EFF6FF';
+    } else if (item.category === 'ACTIVITY') {
+      Icon = Brain;
+      iconColor = '#7C3AED';
+      iconBg = '#F3E8FF';
+    } else if (item.category === 'WALK') {
+      Icon = Activity;
+      iconColor = '#059669';
+      iconBg = '#ECFDF5';
+    } else if (item.category === 'MEAL') {
+      Icon = Clock;
+      iconColor = '#D97706';
+      iconBg = '#FEF3C7';
+    }
+
+    return {
+      id: item.id,
+      time: item.time,
+      category: item.category.charAt(0) + item.category.slice(1).toLowerCase(),
+      title: item.title,
+      status: item.isCompleted ? 'Completed' : 'Pending',
+      isCompleted: item.isCompleted,
+      Icon,
+      iconColor,
+      iconBg,
+    };
+  });
 
   return (
     <View style={styles.outerContainer}>

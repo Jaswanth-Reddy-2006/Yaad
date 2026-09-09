@@ -26,7 +26,6 @@ import {
   Image as ImageIcon,
 } from 'lucide-react-native';
 import { CaregiverBottomNavBar } from '../../components/caregiver/CaregiverBottomNavBar';
-import { OfflineSyncModal } from '../../components/common/OfflineSyncModal';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useCaregiverStore } from '../../store/useCaregiverStore';
 import { authService } from '../../services/AuthService';
@@ -74,7 +73,6 @@ export default function CareScheduleScreen() {
 
   const [isAddRoutineModal, setIsAddRoutineModal] = useState(false);
   const [isAddReminderModal, setIsAddReminderModal] = useState(false);
-  const [isOfflineSyncModal, setIsOfflineSyncModal] = useState(false);
 
   // Form states - Routine
   const [routineTitle, setRoutineTitle] = useState('');
@@ -394,7 +392,7 @@ export default function CareScheduleScreen() {
 
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => setIsOfflineSyncModal(true)}
+            onPress={() => router.push('/caregiver/offline-sync')}
             style={styles.syncBtn}
           >
             <RefreshCw size={12} color="#16A34A" />
@@ -1058,19 +1056,6 @@ export default function CareScheduleScreen() {
           </View>
         </Modal>
 
-        {/* Proximity QR Sync Modal */}
-        <OfflineSyncModal
-          visible={isOfflineSyncModal}
-          mode="CAREGIVER_SHARE"
-          patientName={activePatient.name}
-          onClose={() => {
-            setIsOfflineSyncModal(false);
-            loadData();
-          }}
-          onSuccess={() => {
-            loadData();
-          }}
-        />
 
         {/* Fixed Bottom Navigation */}
         <CaregiverBottomNavBar />

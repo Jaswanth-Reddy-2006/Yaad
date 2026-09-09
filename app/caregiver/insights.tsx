@@ -120,7 +120,7 @@ export default function CognitiveInsightsScreen() {
 
           <View style={styles.scoreFooter}>
             <PatientStatusBadge status="STABLE" size="sm" />
-            <Text style={styles.updatedText}>Last updated today at 11:30 AM</Text>
+            <Text style={styles.updatedText}>Updated today</Text>
           </View>
         </View>
 

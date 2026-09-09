@@ -375,12 +375,12 @@ export default function PatientOfflineSyncScreen() {
               <View style={styles.rangeInfoBadge}>
                 <Check size={14} color="#15803D" style={{ marginRight: 4 }} />
                 <Typography size="xs" weight="bold" color="#15803D">
-                  Signal Strong ({nearbyDevice?.rssi || -46} dBm • ~{nearbyDevice?.distanceMeters || 1.2}m away)
+                  Connected • Ready to Sync
                 </Typography>
               </View>
 
               <Typography size="sm" color="#475569" align="center" style={{ marginTop: 10, paddingHorizontal: 16, lineHeight: 20 }}>
-                Your caregiver is nearby. Tap below to automatically receive today&apos;s routine, alarms, and family photos without internet.
+                Your caregiver is nearby. Tap below to receive today&apos;s routine, alarms, and family photos without internet.
               </Typography>
 
               {/* Big 1-Tap Sync Button */}

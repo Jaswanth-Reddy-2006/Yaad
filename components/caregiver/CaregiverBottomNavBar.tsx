@@ -11,7 +11,7 @@ export const CaregiverBottomNavBar: React.FC = () => {
   const { t } = useAccessibilityStore();
 
   const isHome = pathname === '/caregiver/home' || pathname === '/caregiver' || pathname.includes('/caregiver/insights');
-  const isReminders = pathname.includes('/caregiver/reminders');
+  const isReminders = pathname.includes('/caregiver/reminders') || pathname.includes('/caregiver/offline-sync');
   const isProfile = pathname.includes('/caregiver/profile');
 
   return (
