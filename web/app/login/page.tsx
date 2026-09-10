@@ -15,7 +15,7 @@ export default function SharedLoginPage() {
   const [successRole, setSuccessRole] = useState<string | null>(null);
 
   // Quick Demo Login Handler
-  const handleQuickDemoLogin = async (targetRole: 'CAREGIVER' | 'DOCTOR' | 'ADMIN') => {
+  const handleQuickDemoLogin = (targetRole: 'CAREGIVER' | 'DOCTOR' | 'ADMIN') => {
     setIsLoading(true);
     setErrorMsg('');
 
@@ -37,23 +37,49 @@ export default function SharedLoginPage() {
     setPassword(demoPass);
     setSuccessRole(targetRole);
 
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('yaad_demo_role', targetRole);
+        localStorage.setItem('yaad_user_email', demoId);
+      } catch (e) {}
+    }
+
+    // Try backend sync in the background with a fast timeout (never blocks navigation)
     try {
-      await fetch('http://localhost:8000/api/v1/auth/login', {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1200);
+      fetch('http://localhost:8000/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           identifier: demoId,
           password: demoPass,
           client_type: 'WEB',
           platform: 'BROWSER'
         })
-      });
+      })
+      .then((res) => {
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          return res.json().then((data) => {
+            if (data.token || data.access_token) {
+              try {
+                localStorage.setItem('auth_token', data.token || data.access_token);
+              } catch (e) {}
+            }
+          });
+        }
+      })
+      .catch(() => {});
     } catch (e) {
-      // Local preview fallback
+      // Ignore background sync errors
     }
 
-    // Direct browser navigation for 100% reliable redirection
-    window.location.href = targetPath;
+    // Instant smooth browser redirection
+    setTimeout(() => {
+      window.location.href = targetPath;
+    }, 200);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -66,11 +92,26 @@ export default function SharedLoginPage() {
     setIsLoading(true);
     setErrorMsg('');
 
+    const lowerId = identifier.trim().toLowerCase();
+    let predictedRole = 'CAREGIVER';
+    let predictedPath = '/caregiver/dashboard';
+
+    if (lowerId.includes('admin')) {
+      predictedRole = 'ADMIN';
+      predictedPath = '/admin/dashboard';
+    } else if (lowerId.includes('doc') || lowerId.includes('dr')) {
+      predictedRole = 'DOCTOR';
+      predictedPath = '/doctor/dashboard';
+    }
+
     try {
-      // Send auth request to FastAPI backend
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1800);
+
       const response = await fetch('http://localhost:8000/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           identifier: identifier.trim(),
           password: password,
@@ -79,37 +120,34 @@ export default function SharedLoginPage() {
         })
       });
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Invalid identifier or password. Please try again.');
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        const actualRole = data.role as string;
+        if (data.token || data.access_token) {
+          try {
+            localStorage.setItem('auth_token', data.token || data.access_token);
+          } catch (e) {}
+        }
+
+        setSuccessRole(actualRole || predictedRole);
+        setTimeout(() => {
+          if (actualRole === 'ADMIN') window.location.href = '/admin/dashboard';
+          else if (actualRole === 'DOCTOR' || actualRole === 'HEALTHCARE_WORKER') window.location.href = '/doctor/dashboard';
+          else window.location.href = '/caregiver/dashboard';
+        }, 300);
+        return;
       }
-
-      const data = await response.json();
-      const actualRole = data.role as string;
-
-      setSuccessRole(actualRole);
-
-      setTimeout(() => {
-        if (actualRole === 'ADMIN') window.location.href = '/admin/dashboard';
-        else if (actualRole === 'DOCTOR' || actualRole === 'HEALTHCARE_WORKER') window.location.href = '/doctor/dashboard';
-        else window.location.href = '/caregiver/dashboard';
-      }, 400);
-
     } catch (err: any) {
-      // Local preview fallback
-      if (identifier.toLowerCase().includes('admin')) {
-        setSuccessRole('ADMIN');
-        setTimeout(() => window.location.href = '/admin/dashboard', 400);
-      } else if (identifier.toLowerCase().includes('doc')) {
-        setSuccessRole('DOCTOR');
-        setTimeout(() => window.location.href = '/doctor/dashboard', 400);
-      } else {
-        setSuccessRole('CAREGIVER');
-        setTimeout(() => window.location.href = '/caregiver/dashboard', 400);
-      }
-    } finally {
-      setIsLoading(false);
+      // Backend unavailable or timed out; fall through to preview login
     }
+
+    // Instant fallback preview login
+    setSuccessRole(predictedRole);
+    setTimeout(() => {
+      window.location.href = predictedPath;
+    }, 300);
   };
 
   return (
