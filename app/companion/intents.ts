@@ -140,10 +140,13 @@ export function detectTopic(normalizedQuery: string): CompanionTopic {
 export function isGameplayAnalysisQuery(normalizedQuery: string): boolean {
   const norm = normalizedQuery.toLowerCase();
   return (
-    /\b(how\s+am\s+i\s+doing|how\s+did\s+i\s+do|how\s+is\s+(the\s+)?patient\s+doing|how\s+is\s+my\s+performance|how\s+is\s+their\s+performance)\b/i.test(norm) ||
-    (/\b(score|scores|performance|perform|progress|improve|improving|improved|decline|declining|declined|worse|better|difficult|difficulty|hardest|harder|hard|easiest|easier|easy|mistake|mistakes|accuracy|attempts|good\s+at)\b/i.test(norm) &&
+    /\b(how\s+am\s+i\s+doing|how\s+did\s+i\s+do|how\s+is\s+(the\s+)?patient\s+doing|how\s+is\s+my\s+performance|how\s+is\s+their\s+performance|how\s+are\s+my\s+games|how\s+did\s+i\s+perform)\b/i.test(norm) ||
+    /\b(what\s+game|what\s+games|which\s+game|which\s+games)\s+(did\s+i\s+play|have\s+i\s+played|played|i\s+played)/i.test(norm) ||
+    /\b(what\s+was\s+my\s+(latest\s+|recent\s+)?score|my\s+latest\s+score|my\s+recent\s+score)\b/i.test(norm) ||
+    /\b(am\s+i\s+improving|am\s+i\s+getting\s+better|has\s+(my|their|the)\s+performance\s+changed)\b/i.test(norm) ||
+    (/\b(score|scores|performance|perform|progress|improve|improving|improved|decline|declining|declined|worse|worst|better|best|difficult|difficulty|hardest|harder|hard|easiest|easier|easy|mistake|mistakes|accuracy|attempts|good\s+at)\b/i.test(norm) &&
       /\b(game|games|session|sessions|memory|match|pair|triplet|cognitive)\b/i.test(norm)) ||
-    /\b(which\s+game|what\s+game|what\s+games|which\s+games)\s+.*(difficult|hard|hardest|easy|easiest|good\s+at|trouble|struggle)/i.test(norm) ||
+    /\b(which\s+game|what\s+game|what\s+games|which\s+games)\s+.*(difficult|hard|hardest|easy|easiest|good\s+at|best|worst|trouble|struggle)/i.test(norm) ||
     /\b(are\s+(my|their|the)\s+scores|has\s+(my|their|the)\s+performance|show\s+(me\s+)?(my|their|recent)\s+performance|show\s+(me\s+)?(my|their|recent)\s+game)/i.test(norm) ||
     /\b(cognitive\s+areas|game\s+history|game\s+performance|game\s+results|recent\s+games)\b/i.test(norm)
   );
