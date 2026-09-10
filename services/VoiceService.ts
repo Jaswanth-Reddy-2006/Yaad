@@ -306,6 +306,27 @@ export class VoiceService {
     const effectiveLang = resolvedVoiceLang.ttsLocale;
 
     const intentResult = parseVoiceIntent(query, effectiveLang);
+    if (intentResult.intent !== 'UNKNOWN') {
+      await this.speak(intentResult.responsePrompt, effectiveLang, undefined, 'HIGH', intentResult.intent);
+      return intentResult;
+    }
+
+    // For unknown voice queries, seamlessly route through askMitraCare (local first -> Groq fallback)
+    try {
+      const { askMitraCare } = await import('../app/companion');
+      const res = await askMitraCare(query, { useDatabaseContext: true });
+      if (res && res.answer) {
+        await this.speak(res.answer, effectiveLang, undefined, 'HIGH', res.intent);
+        return {
+          intent: (res.intent as any) || 'UNKNOWN',
+          spokenText: query,
+          responsePrompt: res.answer,
+        };
+      }
+    } catch {
+      // Graceful fallback to default response prompt
+    }
+
     await this.speak(intentResult.responsePrompt, effectiveLang, undefined, 'HIGH', intentResult.intent);
     return intentResult;
   }

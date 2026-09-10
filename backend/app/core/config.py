@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/mitracare"
     ALLOWED_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8081", "*"]
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
 
     @property
     def async_database_url(self) -> str:
