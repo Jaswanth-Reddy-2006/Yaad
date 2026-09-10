@@ -1,3 +1,5 @@
+import { GameResult } from '../../types';
+
 export type CompanionIntent =
   // Safety & Emergency
   | 'SAFETY_ALERT'
@@ -234,6 +236,9 @@ export interface PatientContext {
 
   // Memories
   memories?: PatientMemoryItem[] | string[];
+
+  // Gameplay & Activity
+  recentGameResults?: GameResult[];
 
   // Conversation tracking
   lastResponse?: string;

@@ -27,7 +27,7 @@ import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { Typography } from '../../components/common/Typography';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
 import { useAccessibilityStore } from '../../store/useAccessibilityStore';
-import { askMitraCare, LLMSource } from '../companion';
+import { OfflineCompanionEngine } from '../companion/OfflineCompanionEngine';
 
 const QUICK_QUESTIONS = [
   { label: 'What is my name?', icon: UserCheck, color: '#2563EB', bg: '#EFF6FF' },
@@ -37,6 +37,8 @@ const QUICK_QUESTIONS = [
   { label: 'Where am I?', icon: MapPin, color: '#EA580C', bg: '#FFF7ED' },
   { label: 'What is my next reminder?', icon: Bell, color: '#D97706', bg: '#FEF3C7' },
   { label: 'Recommend a game', icon: Gamepad2, color: '#2563EB', bg: '#EFF6FF' },
+  { label: 'How am I doing in the games?', icon: Gamepad2, color: '#7C3AED', bg: '#F3E8FF' },
+  { label: 'Which game is most difficult?', icon: Sparkles, color: '#D97706', bg: '#FEF3C7' },
   { label: 'What should I do now?', icon: Calendar, color: '#16A34A', bg: '#DCFCE7' },
 ];
 
@@ -48,7 +50,7 @@ export default function OfflineCompanionTestScreen() {
   const [inputQuery, setInputQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState<string | null>(null);
   const [response, setResponse] = useState<string | null>(null);
-  const [source, setSource] = useState<LLMSource | null>(null);
+  const [source, setSource] = useState<string | null>(null);
   const [intent, setIntent] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,17 +70,16 @@ export default function OfflineCompanionTestScreen() {
     setIsLoading(true);
 
     try {
-      // Unified LLM single entry point: askMitraCare
-      const result = await askMitraCare(trimmed, { useDatabaseContext: true });
-      setResponse(result.answer);
-      setSource(result.source);
+      const result = await OfflineCompanionEngine.processWithDatabase(trimmed);
+      setResponse(result.response);
+      setSource(result.source || 'local');
       setIntent(result.intent || 'UNKNOWN');
       setConfidence(result.confidence ?? null);
     } catch (err) {
       console.error('[CompanionTest] Error processing question:', err);
       setErrorMessage("Sorry, I couldn't get that information right now.");
       setResponse("Sorry, I couldn't get that information right now.");
-      setSource('groq_error');
+      setSource('offline_unknown');
       setIntent('ERROR');
       setConfidence(0);
     } finally {
@@ -158,7 +159,7 @@ export default function OfflineCompanionTestScreen() {
                     backgroundColor:
                       source === 'local'
                         ? '#DCFCE7'
-                        : source === 'groq'
+                        : source === 'gemma'
                         ? '#F3E8FF'
                         : source === 'offline_unknown'
                         ? '#FEF3C7'
@@ -173,7 +174,7 @@ export default function OfflineCompanionTestScreen() {
                       color:
                         source === 'local'
                           ? '#15803D'
-                          : source === 'groq'
+                          : source === 'gemma'
                           ? '#7C3AED'
                           : source === 'offline_unknown'
                           ? '#B45309'

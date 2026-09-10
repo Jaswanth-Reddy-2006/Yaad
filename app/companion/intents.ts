@@ -135,6 +135,21 @@ export function detectTopic(normalizedQuery: string): CompanionTopic {
 }
 
 /**
+ * Detects if a query is asking for gameplay analysis, scores, progress, difficulty, or performance trends.
+ */
+export function isGameplayAnalysisQuery(normalizedQuery: string): boolean {
+  const norm = normalizedQuery.toLowerCase();
+  return (
+    /\b(how\s+am\s+i\s+doing|how\s+did\s+i\s+do|how\s+is\s+(the\s+)?patient\s+doing|how\s+is\s+my\s+performance|how\s+is\s+their\s+performance)\b/i.test(norm) ||
+    (/\b(score|scores|performance|perform|progress|improve|improving|improved|decline|declining|declined|worse|better|difficult|difficulty|hardest|harder|hard|easiest|easier|easy|mistake|mistakes|accuracy|attempts|good\s+at)\b/i.test(norm) &&
+      /\b(game|games|session|sessions|memory|match|pair|triplet|cognitive)\b/i.test(norm)) ||
+    /\b(which\s+game|what\s+game|what\s+games|which\s+games)\s+.*(difficult|hard|hardest|easy|easiest|good\s+at|trouble|struggle)/i.test(norm) ||
+    /\b(are\s+(my|their|the)\s+scores|has\s+(my|their|the)\s+performance|show\s+(me\s+)?(my|their|recent)\s+performance|show\s+(me\s+)?(my|their|recent)\s+game)/i.test(norm) ||
+    /\b(cognitive\s+areas|game\s+history|game\s+performance|game\s+results|recent\s+games)\b/i.test(norm)
+  );
+}
+
+/**
  * Extracts lightweight entities from query text.
  */
 export function extractEntities(normalizedQuery: string): ExtractedEntities {
@@ -868,6 +883,9 @@ function evaluateClause(
     } else if (rule.patterns) {
       for (const pattern of rule.patterns) {
         if (pattern.test(clause)) {
+          if (rule.intent === 'RECOMMEND_GAME' && isGameplayAnalysisQuery(clause)) {
+            continue;
+          }
           score = 80 + rule.priority;
           break;
         }
@@ -907,8 +925,10 @@ function evaluateClause(
       bestIntent = 'DATE_DEVICE_QUERY';
       highestScore = 145;
     } else if (topic === 'GAME') {
-      bestIntent = 'RECOMMEND_GAME';
-      highestScore = 130;
+      if (!isGameplayAnalysisQuery(clause)) {
+        bestIntent = 'RECOMMEND_GAME';
+        highestScore = 130;
+      }
     } else if (topic === 'ACTIVITY') {
       bestIntent = 'RECOMMEND_ACTIVITY';
       highestScore = 130;

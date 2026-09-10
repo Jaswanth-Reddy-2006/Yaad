@@ -101,6 +101,51 @@ export class PatientContextProvider {
         console.warn('[PatientContextProvider] Error reading daily tasks:', tasksErr);
       }
 
+      // 4. Fetch Recent Game Results for Cognitive/Gameplay Context
+      let recentGameResults: any[] | undefined;
+      try {
+        const rows = (await db.getAllAsync(
+          'SELECT * FROM game_results WHERE patient_id = ? ORDER BY completed_at DESC LIMIT 20',
+          [LOCAL_PATIENT_ID]
+        )) as Array<{
+          id: string;
+          session_id: string;
+          patient_id: string;
+          game_id: string;
+          difficulty: string;
+          score: number;
+          accuracy: number;
+          duration_seconds: number;
+          attempts: number;
+          mistakes: number;
+          hints_used: number;
+          started_at: string;
+          completed_at: string;
+          status: string;
+        }>;
+
+        if (Array.isArray(rows) && rows.length > 0) {
+          recentGameResults = rows.map((r) => ({
+            id: r.id,
+            sessionId: r.session_id,
+            patientId: r.patient_id,
+            gameId: r.game_id,
+            difficulty: r.difficulty,
+            score: r.score,
+            accuracy: r.accuracy,
+            durationSeconds: r.duration_seconds,
+            attempts: r.attempts,
+            mistakes: r.mistakes,
+            hintsUsed: r.hints_used,
+            startedAt: r.started_at,
+            completedAt: r.completed_at,
+            status: r.status,
+          }));
+        }
+      } catch (gameErr) {
+        console.warn('[PatientContextProvider] Error reading game results:', gameErr);
+      }
+
       return {
         patientName,
         medicineName,
@@ -109,6 +154,7 @@ export class PatientContextProvider {
         nextReminderTime,
         todayPlanSummary,
         recommendedActivity,
+        recentGameResults,
       };
     } catch (err) {
       console.warn('[PatientContextProvider] Database error while fetching context:', err);
